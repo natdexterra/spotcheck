@@ -56,4 +56,5 @@ This repository becomes public at submission and is read by judges. Write every 
 - No personal names, handles or email addresses anywhere except the `LICENSE` copyright line. Refer to roles ("the reviewer", "the builder"), never to people.
 - `tasks/` is a showcase, not a notebook. A task file carries: goal, scope, acceptance criteria, `Status:`, PR link. No QA transcripts, doubts, chat excerpts or "do not merge" notes — those belong in the private planning workspace.
 - Before the repo goes public, every row in `tasks/INDEX.md` must read `done` or `out of scope for submission`. Nothing may sit in `review` or `blocked`.
+- Product documents describe the product, not the event. No hackathon-process language in the repo: no "judges", "demo video", "recording day", "deadline", "day 3". Schedules, video scripts and submission tactics live in the private planning workspace.
 - Demo data uses fictional customer and company names. Public-domain source documents keep their `SOURCE.md` attribution.
