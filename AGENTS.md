@@ -13,9 +13,11 @@ Resolve conflicts in this order:
 
 ## Stack
 
-- Plain HTML/CSS/TypeScript, bundled with Vite. No framework unless a task file says otherwise.
+- React 18 + TypeScript + Vite, static single-page app. No router, no server framework.
+- React renders; it never owns state. The reducer in `src/state/reducer.ts` is plain TypeScript with no React imports and is tested without React. A small external store exposes `dispatchAgent` and `dispatchHuman`; components subscribe with `useSyncExternalStore`.
+- Plain CSS with custom properties from `DESIGN.md`. No Tailwind, no CSS-in-JS, no inline styles for tokens.
 - Static hosting. No server code, no tracking, no third-party scripts, no secrets.
-- All tools live in `src/webmcp-tools.ts` and are registered with the literal call form `document.modelContext.registerTool({...})`.
+- All tools live in `src/webmcp-tools.ts` and are registered with the literal call form `document.modelContext.registerTool({...})`. That module imports `dispatchAgent` and nothing from the human action set; a test asserts it.
 
 ## WebMCP rules
 
