@@ -38,7 +38,15 @@ Resolve conflicts in this order:
 
 ## Delivery
 
-Feature branch → pull request → Vercel preview → review → merge. Do not push directly to `main`. Commit history must stay inside the hackathon submission period (2026-08-25 → 2026-09-03).
+Feature branch → pull request → Vercel preview → QA → owner review → merge. Do not push directly to `main`. Commit history must stay inside the hackathon submission period (2026-08-25 → 2026-09-03).
+
+Gates on every PR:
+
+1. **Builder self-check** — tests pass, `pnpm build` is clean, the task's acceptance criteria are ticked in the task file with evidence (test names, screenshots).
+2. **QA** — run by a different agent than the builder: Playwright checks against `build-spec.md` (tool contract via `getTools()`/`executeTool()`, fixture replay, console clean), accessibility audit, code review. The QA record goes into the PR description, not into the task file.
+3. **Owner review** — the repository owner reviews the preview and the diff. Approval is required; no PR merges on QA alone.
+
+A builder's own report never closes a task.
 
 ## Everything in this repo is public-facing
 
