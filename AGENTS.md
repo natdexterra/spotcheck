@@ -31,7 +31,7 @@ Resolve conflicts in this order:
 ## Product rules
 
 - Agent proposals never enter the `verified` state; `verified` is reachable only through UI actions.
-- A field the estimator has edited or confirmed is locked against `propose_field`; the tool returns the current value in a structured rejection and the UI shows the proposal as a suggestion card.
+- A field the estimator has acted on (verified, edited, picked, dismissed, or started typing in) is locked against every write tool; the tool returns the current value in a structured rejection and the UI shows a differing proposal as a suggestion card. Locks never release.
 - Verify, edit, resolve, confirm and send exist only in the UI. No tool triggers them.
 - Document text and agent rationale are rendered as text (`textContent`), never as HTML.
 - `Content-Security-Policy: default-src 'self'`; `Permissions-Policy: tools=(self)`; no `exposedTo` on any tool.
@@ -51,7 +51,6 @@ A builder's own report never closes a task.
 
 ## Conventions
 
-- English throughout: code, comments, commit messages, documents.
 - Refer to roles ("the reviewer", "the builder"), not to people.
 - Task files carry goal, scope, acceptance criteria, `Status:` and the pull request link. Working notes stay out of the repository.
 - Demo data uses fictional customer and company names; public-domain source documents keep their `SOURCE.md` attribution.
