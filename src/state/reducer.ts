@@ -2,6 +2,7 @@ import type { AppState, Candidate, DispatchedEvent, Proposal } from './types';
 import { reviewSession } from './session';
 
 export function reduce(state: AppState, event: DispatchedEvent): AppState {
+  if (state.confirmed && !(event.actor === 'agent' && event.action.type === 'read')) return state;
   const next = transition(state, event);
   return { ...reviewSession(next), log: [...reviewSession(state).log, {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
