@@ -2,6 +2,8 @@ import type { AgentAction, AppState, Candidate, Field, Proposal } from './types'
 import { record, reject, validateWrite } from './agent-validation';
 import type { Result } from './agent-validation';
 import { readResult } from './read-results';
+import { isGap, reviewSession } from './session';
+import type { FieldId } from './types';
 
 export interface AgentTransition { state: AppState; result: Result; notes?: string[] }
 const current = (field: Field) => ({ state: field.state,
@@ -16,6 +18,12 @@ export function transitionAgent(state: AppState, action: AgentAction): AgentTran
   if (action.type === 'read') return { state, result: readResult(state, action) };
   let error = validateWrite(action);
   const input = record(action.input) ? action.input : {};
+  if (action.type === 'draft') {
+    if (error) return { state, result: error };
+    const covers = [...new Set(input.covers as FieldId[])].filter(id => state.fields.some(f => f.id === id && isGap(f)));
+    return { state: { ...reviewSession(state), draft: { subject: input.subject as string, body: input.body as string, covers } },
+      result: { ok: true, opened: true, covers } };
+  }
   const field = state.fields.find(f => f.id === input.field_id);
   if (field && action.type === 'report_conflict' && (!error || error.path === 'candidates')) {
     const earlier = field.candidates ?? (field.proposal ? [field.proposal] : []);
