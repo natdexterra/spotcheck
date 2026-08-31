@@ -112,9 +112,12 @@ test('persistence saves the log and replays on load; denied storage and malforme
   expect(restored.restored).toBe(true);
   expect(getState()).toEqual(saved);
   restored.stop();
-  const broken = await startPersistence({ getItem: () => '{broken', setItem: () => {} });
+  const saveBroken = vi.fn();
+  const broken = await startPersistence({ getItem: () => '{broken', setItem: saveBroken });
   expect(broken.error).toBeTruthy();
   expect(getState()).toEqual(saved);
+  await executeTool('get_review_state', {});
+  expect(saveBroken).not.toHaveBeenCalled();
   broken.stop();
   const denied = await startPersistence({ getItem: () => { throw new Error('denied'); }, setItem: () => { throw new Error('quota'); } });
   await expect(executeTool('get_review_state', {})).resolves.toHaveProperty('fields');
