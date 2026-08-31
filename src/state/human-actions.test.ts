@@ -57,3 +57,18 @@ test('dismiss: requires a reason and permits null dimensions as not required', (
   expect(get(result, 'overall_dimensions')).toMatchObject({ state: 'verified', locked: true, value: null, resolution: { kind: 'dismissed' } });
   expect(reviewSession(result).log.at(-1)?.event.action).toMatchObject({ reason: 'Not required for this quote' });
 });
+
+test('apply and dismiss_suggestion keep locks; apply checks dimensions units', () => {
+  const s = act(propose(), { type: 'verify', field_id: 'material' });
+  get(s).suggestion = { value: 'steel', source_refs: ['email:p2'] };
+  const applied = act(s, { type: 'apply', field_id: 'material' } as HumanAction);
+  expect(get(applied)).toMatchObject({ value: 'steel', locked: true, resolution: { kind: 'applied' } });
+  expect(get(applied).suggestion).toBeUndefined();
+  const dismissed = act(s, { type: 'dismiss_suggestion', field_id: 'material' } as HumanAction);
+  expect(get(dismissed).value).toBe('6061');
+  expect(get(dismissed).locked).toBe(true);
+  expect(get(dismissed).suggestion).toBeUndefined();
+  const dimensions = propose('overall_dimensions');
+  get(dimensions, 'overall_dimensions').suggestion = { value: '20', source_refs: ['drawing:width'] };
+  expect(get(act(dimensions, { type: 'apply', field_id: 'overall_dimensions' } as HumanAction), 'overall_dimensions').state).toBe('needs_review');
+});

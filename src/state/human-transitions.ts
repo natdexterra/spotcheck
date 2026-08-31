@@ -6,6 +6,13 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'apply' || action.type === 'dismiss_suggestion') return { ...state, fields: state.fields.map(field => {
+    if (field.id !== action.field_id || !field.suggestion) return field;
+    const { suggestion, ...current } = field;
+    if (action.type === 'dismiss_suggestion') return { ...current, locked: true };
+    const next = { ...current, value: suggestion.value, ...(field.id === 'overall_dimensions' ? { unit: suggestion.unit } : {}) };
+    return hasUnit(next) ? resolve(next, 'applied', action.at ?? 0) : field;
+  }) };
   if (action.type === 'dismiss') {
     if (typeof action.reason !== 'string' || !action.reason.trim()) return state;
     return { ...state, fields: state.fields.map(field => field.id !== action.field_id ? field :
