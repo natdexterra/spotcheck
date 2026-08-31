@@ -75,3 +75,23 @@ test('D14: viewer overrides skip fixture estimator actions and log; agent steps 
   expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
   fixtureOnly.dispose();
 });
+
+test('B8: export/import preserves entire final state including rejections, skips, diffs and times', async () => {
+  const { createReplay } = await import('./replay');
+  const { exportSession, importSession } = await import('./serialization');
+  const { getState, dispatchHuman } = await import('../state/store');
+  const fixture = JSON.parse(readFileSync('data/sample-session.stub.json', 'utf8'));
+  const replay = createReplay(fixture);
+  await replay.next();
+  dispatchHuman({ type: 'edit', field_id: 'material', value: 'viewer choice', at: 42 });
+  while (await replay.next()) { /* include viewer skip and actual locked rejections */ }
+  replay.dispose();
+  const before = structuredClone(getState());
+  const exported = exportSession('2026-08-31');
+  expect(JSON.parse(exported)).toMatchObject({ recorded_at: '2026-08-31', steps: expect.any(Array) });
+  await importSession(exported);
+  expect(getState()).toEqual(before);
+  const unchanged = getState();
+  await expect(importSession('{"recorded_at":"bad","steps":[{"actor":"agent","call":{"tool":"verify"}}]}')).rejects.toThrow();
+  expect(getState()).toBe(unchanged);
+});
