@@ -14,6 +14,7 @@ export type ToolName = 'list_rfq_documents' | 'read_document' | 'propose_field' 
   'report_missing' | 'get_review_state' | 'draft_clarification';
 
 export async function executeTool(name: ToolName, input: unknown, at = Date.now()): Promise<Record<string, unknown>> {
+  if (input === undefined) input = {};
   if (name === 'draft_clarification') draftInFlight++;
   try {
   switch (name) {
