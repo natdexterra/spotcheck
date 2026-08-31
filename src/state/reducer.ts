@@ -16,6 +16,8 @@ export function reduce(state: AppState, event: DispatchedEvent): AppState {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
     at: 'at' in event.action ? event.action.at ?? 0 : 0,
     event: structuredClone(event),
+    ...(event.actor === 'human' && event.action.type === 'send' && next !== state && reviewSession(state).draft && reviewSession(next).sent
+      ? { diff: { before: reviewSession(state).draft!, after: reviewSession(next).sent! } } : {}),
   }] };
 }
 

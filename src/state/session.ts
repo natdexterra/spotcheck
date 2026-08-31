@@ -19,10 +19,15 @@ export interface LogEntry {
   event: DispatchedEvent;
   notes?: string[];
   result?: Record<string, unknown>;
+  diff?: { before: Draft; after: Draft };
 }
+
+export interface Draft { subject: string; body: string; covers: FieldId[] }
 
 export interface ReviewSession extends AppState {
   log: LogEntry[];
+  draft?: Draft;
+  sent?: Draft;
 }
 
 export const reviewSession = (state: AppState): ReviewSession => ({
