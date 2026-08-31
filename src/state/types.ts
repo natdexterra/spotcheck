@@ -90,7 +90,7 @@ export type HumanAction =
   | { type: 'dismiss'; field_id?: FieldId; reason?: string; at?: number }
   | { type: 'apply'; field_id?: FieldId; at?: number }
   | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number }
-  | { type: 'ask_customer' }
+  | { type: 'ask_customer'; field_id?: FieldId; at?: number }
   | { type: 'send' }
   | { type: 'reopen' }
   | { type: 'confirm' };
