@@ -1,7 +1,7 @@
 # F1 — Scaffold: Vite + React 18 + TypeScript, tests, CSP
 
-**Status:** queued
-**PR:** —
+**Status:** QA passed, in owner review
+**PR:** https://github.com/natdexterra/spotcheck/pull/1
 **Depends on:** nothing (first build task)
 
 ## Goal
@@ -37,12 +37,18 @@ A deployable empty shell: the toolchain, the token stylesheet, the external-stor
 
 ## Acceptance criteria
 
-- [ ] `pnpm build` clean; `pnpm test` (vitest) and `pnpm e2e` (Playwright smoke) green
-- [ ] `dist/` contains no inline `<script>` (checked by a script, not by eye)
-- [ ] `tokens.css` spot-check test passes; no color/size literals in `base.css` that duplicate a token
-- [ ] `src/state/types.ts` action unions match build-spec exactly; `store.ts` exports only `getState`, `subscribe`, `dispatchAgent`, `dispatchHuman`
-- [ ] `vercel.json` carries both headers verbatim
-- [ ] No dependency beyond the list above; no router, no CSS framework, no icon package
+- [x] `pnpm build` clean; `pnpm test` (vitest) and `pnpm e2e` (Playwright smoke) green
+  — Evidence: `pnpm build` exit 0 (tsc --noEmit + vite build); `pnpm test` → "Test Files 2 passed (2), Tests 10 passed (10)"; `pnpm e2e` → "1 passed".
+- [x] `dist/` contains no inline `<script>` (checked by a script, not by eye)
+  — Evidence: `node scripts/check-no-inline-scripts.mjs` after `pnpm build` → "1 HTML file(s) clean".
+- [x] `tokens.css` spot-check test passes; no color/size literals in `base.css` that duplicate a token
+  — Evidence: `src/styles/tokens.test.ts` asserts the six values by parsing the file, 6/6 green; grep of `base.css` for hex/size literals finds only the DESIGN.md focus-ring rule (`outline: 2px solid var(--accent)`), which duplicates no token.
+- [x] `src/state/types.ts` action unions match build-spec exactly; `store.ts` exports only `getState`, `subscribe`, `dispatchAgent`, `dispatchHuman`
+  — Evidence: grep of `types.ts` lists exactly read · propose · report_conflict · report_missing · draft and the 12 human members; grep `^export` in `store.ts` shows only getState, subscribe, dispatchAgent, dispatchHuman.
+- [x] `vercel.json` carries both headers verbatim
+  — Evidence: values read `default-src 'self'` and `tools=(self)` verbatim.
+- [x] No dependency beyond the list above; no router, no CSS framework, no icon package
+  — Evidence: deps react + react-dom; dev deps the listed five plus declaration-only @types/react, @types/react-dom, @types/node (required by strict tsc for React 18 and the node:fs test import; no runtime code, no router, no CSS framework, no icon package).
 
 ## Out of scope
 
