@@ -1,7 +1,7 @@
 # P1 — Reducer, WebMCP tool layer, fixture replay
 
-**Status:** with the builder
-**PR:** —
+**Status:** done — 2026-08-31
+**PR:** [#2](https://github.com/natdexterra/spotcheck/pull/2)
 **Depends on:** F1 (branches from F1 until it merges)
 
 ## Goal
@@ -35,12 +35,12 @@ The product's core without visuals: the pure reducer implementing the full state
 
 ## Acceptance criteria
 
-- [ ] All twelve invariant tests green; every error code covered incl. precedence and validation-before-lock
-- [ ] T1 unit half green: no import path from the tool module to human actions; five-member agent union asserted
-- [ ] Replay: export → import → identical state; stub session reaches `confirmed`; viewer-override steps skipped and logged
-- [ ] Every tool result over the fixture < 1,500 characters serialized
-- [ ] `reducer.ts` imports nothing from React or the DOM; `pnpm test` green; `pnpm build` clean
-- [ ] Changes to F1 files limited to: `reducer.ts` (stub replaced), `types.ts` (payloads added to existing action members — member names, both unions and the actor envelope unchanged), `store.ts` (state seeding/replacement for package load and replay import only); no changes to `App.tsx`, `main.tsx`, styles, or configs
+- [x] All twelve invariant tests green; every error code covered incl. precedence and validation-before-lock
+- [x] T1 unit half green: no import path from the tool module to human actions; five-member agent union asserted
+- [x] Replay: export → import → identical state; stub session reaches `confirmed`; viewer-override steps skipped and logged
+- [x] Every tool result over the fixture < 1,500 characters serialized
+- [x] `reducer.ts` imports nothing from React or the DOM; `pnpm test` green; `pnpm build` clean
+- [x] Changes to F1 files limited to: `reducer.ts` (stub replaced), `types.ts` (payloads added to existing action members — member names, both unions and the actor envelope unchanged), `store.ts` (state seeding/replacement for package load and replay import only); no changes to `App.tsx`, `main.tsx`, styles, or configs
 
 ## Out of scope
 
