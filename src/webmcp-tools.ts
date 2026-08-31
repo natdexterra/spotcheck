@@ -16,7 +16,8 @@ export type ToolName = 'list_rfq_documents' | 'read_document' | 'propose_field' 
 export async function executeTool(name: ToolName, input: unknown, at = Date.now()): Promise<Record<string, unknown>> {
   switch (name) {
     case 'list_rfq_documents': dispatchAgent({ type: 'read', operation: 'list', input, at }); break;
-    case 'read_document': dispatchAgent({ type: 'read', operation: 'section', input, at }); break;
+    case 'read_document': dispatchAgent({ type: 'read', operation: 'section', input, at,
+      quiet: typeof location !== 'undefined' && new URLSearchParams(location.search).get('quiet') === '1' }); break;
     case 'get_review_state': dispatchAgent({ type: 'read', operation: 'review', input, at }); break;
     case 'propose_field': dispatchAgent({ type: 'propose', input, at }); break;
     case 'report_conflict': dispatchAgent({ type: 'report_conflict', input, at }); break;

@@ -118,3 +118,35 @@ test('draft covers reject unknown ids, filter nongaps and echo only the accepted
   expect(await executeTool('draft_clarification', draft)).toEqual({ ok: true, opened: true, covers: ['drawing_number'] });
   expect(reviewSession(getState()).draft).toEqual({ ...draft, covers: ['drawing_number'] });
 });
+
+test('fixture output budgets, read provenance/privacy, S4 units and quiet injection filtering', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { packageData } = await import('./data/package');
+  const { dispatchHuman, getState } = await import('./state/store');
+  const check = (result: unknown) => expect(JSON.stringify(result).length).toBeLessThan(1500);
+  check(await executeTool('list_rfq_documents', {}));
+  for (const doc of packageData.documents) for (const section of doc.sections) {
+    const result = await executeTool('read_document', { doc_id: doc.id, section_id: section.id });
+    check(result);
+    expect(JSON.stringify(result)).not.toMatch(/[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b\d{3}[-.]\d{3}[-.]\d{4}\b/i);
+    expect(result).not.toHaveProperty('units_note', null);
+  }
+  const fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
+  for (const step of fixture.steps) {
+    if (step.actor === 'agent') check(await executeTool(step.call.tool, step.call.input, step.at));
+    else dispatchHuman({ ...step.action, at: step.at });
+    check(await executeTool('get_review_state', {}));
+  }
+  expect(getState().confirmed).toBe(true);
+  const { replaceState } = await import('./state/store');
+  const { createInitialState } = await import('./state/session');
+  replaceState(createInitialState());
+  const dims = { field_id: 'overall_dimensions', value: '20 × 14.5', source_refs: ['drawing:width'] };
+  expect(await executeTool('propose_field', dims)).toMatchObject({ ok: true, state: 'needs_review' });
+  dispatchHuman({ type: 'verify', field_id: 'overall_dimensions' });
+  expect(getState().fields.find(f => f.id === 'overall_dimensions')?.state).toBe('needs_review');
+  dispatchHuman({ type: 'edit', field_id: 'overall_dimensions', value: dims.value, unit: 'in' });
+  expect(getState().fields.find(f => f.id === 'overall_dimensions')?.state).toBe('verified');
+  vi.stubGlobal('location', { search: '?quiet=1' });
+  expect(JSON.stringify(await executeTool('read_document', { doc_id: 'email', section_id: 'body' }))).not.toContain('ignore previous instructions');
+});
