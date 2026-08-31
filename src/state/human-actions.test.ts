@@ -37,3 +37,13 @@ test('enter: a human supplies an absent value and acquires a permanent lock', ()
   expect(get(entered)).toMatchObject({ state: 'verified', locked: true, value: 'steel', resolution: { kind: 'entered' } });
   expect(get(act(createInitialState(), { type: 'enter', field_id: 'material', value: ' ' } as HumanAction)).state).toBe('empty');
 });
+
+test('pick: resolves one existing candidate, preserving all candidates', () => {
+  const s = createInitialState();
+  get(s).state = 'conflict';
+  get(s).candidates = [{ value: '800', source_refs: ['spec:s1.1'] }, { value: '750', source_refs: ['email:p2'] }];
+  const picked = act(s, { type: 'pick', field_id: 'material', index: 1, at: 30 } as HumanAction);
+  expect(get(picked)).toMatchObject({ value: '750', state: 'verified', locked: true, resolution: { kind: 'picked' } });
+  expect(get(picked).candidates).toEqual(get(s).candidates);
+  expect(get(act(s, { type: 'pick', field_id: 'material', index: 8 } as HumanAction)).state).toBe('conflict');
+});
