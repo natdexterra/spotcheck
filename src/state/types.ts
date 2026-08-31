@@ -92,7 +92,7 @@ export type HumanAction =
   | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number }
   | { type: 'ask_customer'; field_id?: FieldId; at?: number }
   | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number }
-  | { type: 'reopen' }
+  | { type: 'reopen'; field_id?: FieldId; at?: number }
   | { type: 'confirm' };
 
 export type DispatchedEvent =

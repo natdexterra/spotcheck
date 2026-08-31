@@ -88,3 +88,16 @@ test('send: resolves only selected current gaps and records one draft-versus-sen
   expect(reviewSession(result).draft).toBeUndefined();
   expect(get(result, 'quantity').state).toBe('empty');
 });
+
+test('reopen: derive agent state while keeping the human value and lock', () => {
+  for (const derived of ['empty', 'needs_review', 'missing', 'conflict'] as const) {
+    const s = createInitialState();
+    Object.assign(get(s), { state: 'verified', value: 'human', locked: true, resolution: { kind: 'edited', at: 1 } });
+    if (derived === 'needs_review') get(s).proposal = { value: 'agent', source_refs: ['spec:s1.1'] };
+    if (derived === 'missing') get(s).searched = { searched: ['spec'] };
+    if (derived === 'conflict') get(s).candidates = [{ value: 'a', source_refs: ['spec:s1.1'] }, { value: 'b', source_refs: ['email:p2'] }];
+    const reopened = act(s, { type: 'reopen', field_id: 'material' } as HumanAction);
+    expect(get(reopened)).toMatchObject({ state: derived, value: 'human', locked: true });
+    expect(get(reopened).resolution).toBeUndefined();
+  }
+});
