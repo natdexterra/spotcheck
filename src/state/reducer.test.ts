@@ -19,3 +19,10 @@ test('invariant-01: an agent proposal is reviewable, never verified', () => {
   }
   expect(human(state(), { type: 'confirm' }).confirmed).toBe(false);
 });
+
+test('invariant-02: agent writes preserve the locked current field', () => {
+  const before = state({ locked: true, state: 'needs_review', value: 'human choice' });
+  for (const type of ['propose', 'report_conflict', 'report_missing'] as const) {
+    expect(agent(before, type).fields).toEqual(before.fields);
+  }
+});
