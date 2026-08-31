@@ -107,3 +107,14 @@ test('suggestions require valid provenance; equal value agrees; locked reports o
   await executeTool('report_missing', { field_id: 'material', searched: [], note: 'invalid note' });
   expect(reviewSession(getState()).log.at(-1)?.notes).toBeUndefined();
 });
+
+test('draft covers reject unknown ids, filter nongaps and echo only the accepted subset', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { getState } = await import('./state/store');
+  const { reviewSession } = await import('./state/session');
+  await executeTool('report_missing', { field_id: 'drawing_number', searched: ['drawing'] });
+  const draft = { subject: 'Question', body: 'Please supply the drawing number.', covers: ['drawing_number', 'material', 'drawing_number'] };
+  expect(await executeTool('draft_clarification', { ...draft, covers: ['unknown'] })).toMatchObject({ code: 'UNKNOWN_FIELD' });
+  expect(await executeTool('draft_clarification', draft)).toEqual({ ok: true, opened: true, covers: ['drawing_number'] });
+  expect(reviewSession(getState()).draft).toEqual({ ...draft, covers: ['drawing_number'] });
+});
