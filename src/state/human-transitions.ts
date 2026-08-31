@@ -6,6 +6,13 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'pick') return { ...state, fields: state.fields.map(field => {
+    if (field.id !== action.field_id || field.state !== 'conflict' || !Number.isInteger(action.index)) return field;
+    const candidate = field.candidates?.[action.index!];
+    if (!candidate) return field;
+    const next = { ...field, value: candidate.value, ...(field.id === 'overall_dimensions' ? { unit: candidate.unit } : {}) };
+    return hasUnit(next) ? resolve(next, 'picked', action.at ?? 0) : field;
+  }) };
   if (action.type === 'edit_start') return { ...state, fields: state.fields.map(field =>
     field.id === action.field_id ? { ...field, locked: true } : field) };
   if (action.type === 'edit' || action.type === 'enter') {
