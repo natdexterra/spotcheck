@@ -3,9 +3,10 @@ import { record, reject, validateWrite } from './agent-validation';
 import type { Result } from './agent-validation';
 import { readResult } from './read-results';
 import { isGap, reviewSession } from './session';
+import type { ReviewSession } from './session';
 import type { FieldId } from './types';
 
-export interface AgentTransition { state: AppState; result: Result; notes?: string[] }
+export interface AgentTransition { state: AppState & Partial<ReviewSession>; result: Result; notes?: string[] }
 const current = (field: Field) => ({ state: field.state,
   ...(field.value !== null ? { value: field.value } : {}), ...(field.unit ? { unit: field.unit } : {}),
   ...(field.resolution ? { resolution: field.resolution.kind } : {}),

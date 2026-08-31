@@ -1,5 +1,5 @@
 import { dispatchAgent } from './state/store';
-import { selectToolResult } from './state/selectors';
+import { selectDraftAvailable, selectToolResult, subscribeReview } from './state/selectors';
 
 interface Tool {
   name: string; description: string; inputSchema: object;
@@ -14,6 +14,8 @@ export type ToolName = 'list_rfq_documents' | 'read_document' | 'propose_field' 
   'report_missing' | 'get_review_state' | 'draft_clarification';
 
 export async function executeTool(name: ToolName, input: unknown, at = Date.now()): Promise<Record<string, unknown>> {
+  if (name === 'draft_clarification') draftInFlight++;
+  try {
   switch (name) {
     case 'list_rfq_documents': dispatchAgent({ type: 'read', operation: 'list', input, at }); break;
     case 'read_document': dispatchAgent({ type: 'read', operation: 'section', input, at,
@@ -23,8 +25,13 @@ export async function executeTool(name: ToolName, input: unknown, at = Date.now(
     case 'report_conflict': dispatchAgent({ type: 'report_conflict', input, at }); break;
     case 'report_missing': dispatchAgent({ type: 'report_missing', input, at }); break;
     case 'draft_clarification': dispatchAgent({ type: 'draft', input, at }); break;
+    default: return { ok: false, code: 'SCHEMA', message: 'Choose a registered tool.', path: 'tool' };
   }
-  return selectToolResult(name === 'list_rfq_documents' || name === 'read_document' || name === 'get_review_state');
+  const result = selectToolResult(name === 'list_rfq_documents' || name === 'read_document' || name === 'get_review_state');
+  return await Promise.resolve(structuredClone(result));
+  } finally {
+    if (name === 'draft_clarification') { draftInFlight--; syncDraftTool(); }
+  }
 }
 
 const text = (description: string) => ({ type: 'string', description });
@@ -33,10 +40,32 @@ const value = text('The proposed value, as it should appear in the quote request
 const unit = text('Unit for the unit-bearing field (in or mm). Omit if the sources state none.');
 const refs = { type: 'array', items: { type: 'string' }, description: 'Region or section ids the value comes from. At least one is required.' };
 const schema = (properties: object = {}) => ({ type: 'object', properties });
+let registered = false;
+let draftController: AbortController | undefined;
+let draftInFlight = 0;
+
+function syncDraftTool(): void {
+  if (!registered || !document.modelContext) return;
+  if (selectDraftAvailable()) {
+    if (draftController) return;
+    draftController = new AbortController();
+    document.modelContext.registerTool({
+      name: 'draft_clarification',
+      description: 'Opens a clarification-email draft for the estimator, with your subject, body and the gap fields it covers. The estimator edits and sends it; the covered fields are then marked as asked. Available while open gaps exist.',
+      inputSchema: schema({ subject: { type: 'string' }, body: { type: 'string' }, covers: { type: 'array', items: { type: 'string' } } }),
+      execute: input => executeTool('draft_clarification', input),
+    }, { signal: draftController.signal });
+  } else if (draftController && draftInFlight === 0) {
+    draftController.abort();
+    draftController = undefined;
+  }
+}
 
 export function registerTools(): void {
   if (typeof document === 'undefined' || typeof document.modelContext?.registerTool !== 'function') return;
   if (typeof window !== 'undefined' && window.top !== window) return;
+  if (registered) return;
+  registered = true;
   document.modelContext.registerTool({
     name: 'list_rfq_documents',
     description: 'Lists the documents in the RFQ package with their section index. Call once at the start to learn what can be read; use the section ids with read_document.',
@@ -71,6 +100,8 @@ export function registerTools(): void {
     description: 'Returns the whole review: every field with its state, value and lock, which fields are still unverified, and which are open gaps. Call it to plan your next step or to answer questions about the review.',
     inputSchema: schema(), annotations: { readOnlyHint: true, untrustedContentHint: true }, execute: input => executeTool('get_review_state', input),
   });
+  subscribeReview(syncDraftTool);
+  syncDraftTool();
 }
 
 registerTools();

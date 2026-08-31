@@ -150,3 +150,25 @@ test('fixture output budgets, read provenance/privacy, S4 units and quiet inject
   vi.stubGlobal('location', { search: '?quiet=1' });
   expect(JSON.stringify(await executeTool('read_document', { doc_id: 'email', section_id: 'body' }))).not.toContain('ignore previous instructions');
 });
+
+test('draft lifecycle: gap roster changes, idempotent registration and abort waits for pending calls', async () => {
+  const { roster, events } = modelContext();
+  const { registerTools, executeTool } = await import('./webmcp-tools');
+  registerTools();
+  expect(events).toHaveLength(6);
+  const { dispatchHuman } = await import('./state/store');
+  await executeTool('report_missing', { field_id: 'drawing_number', searched: ['drawing'] });
+  expect(roster.size).toBe(7);
+  const draft = roster.get('draft_clarification')!;
+  expect(readFileSync('build-spec.md', 'utf8')).toContain('> ' + draft.description);
+  // execute returns a pending Promise; the synchronous human event closes the last gap before it settles.
+  const pending = draft.execute({ subject: 'Question', body: 'Number?', covers: ['drawing_number'] });
+  dispatchHuman({ type: 'dismiss', field_id: 'drawing_number', reason: 'Not required' });
+  expect(roster.has('draft_clarification')).toBe(true);
+  await pending;
+  expect(roster.size).toBe(6);
+  await executeTool('report_missing', { field_id: 'delivery', searched: ['email'] });
+  expect(roster.size).toBe(7);
+  dispatchHuman({ type: 'dismiss', field_id: 'delivery', reason: 'Not required' });
+  expect(roster.size).toBe(6);
+});
