@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { reduce } from './reducer';
+import { reviewSession } from './session';
 import type { AgentAction, AppState, Field, HumanAction } from './types';
 
 const field = (overrides: Partial<Field> = {}): Field => ({
@@ -50,4 +51,13 @@ test('invariant-04: only a human can exit a conflict', () => {
 test('invariant-05: human verification always locks', () => {
   const result = human(agent(state(), 'propose'), { type: 'verify', field_id: 'material' } as HumanAction);
   expect(result.fields[0]).toMatchObject({ state: 'verified', locked: true });
+});
+
+test('invariant-06: superseded agent payloads survive immutable history', () => {
+  const first = agent(state(), 'propose');
+  const next = agent(first, 'propose', { ...proposal, value: 'steel' });
+  expect(first.fields[0]?.value).toBe('6061-T6');
+  expect(next.fields[0]?.proposal?.value).toBe('steel');
+  expect(next.fields[0]?.revised?.was).toBe('6061-T6');
+  expect(reviewSession(next).log[0]?.event).toMatchObject({ actor: 'agent', action: { input: proposal } });
 });
