@@ -117,7 +117,23 @@ Rules the builder must not trade away:
 
 ## Spacing, layout, hit targets
 
-- Spacing scale, rem at 4px steps: `--space-1: 0.25rem` · `--space-2: 0.5rem` · `--space-3: 0.75rem` · `--space-4: 1rem` · `--space-6: 1.5rem` · `--space-8: 2rem`. Micro-steps of 2px and 6px are allowed **only inside a control** for optical centering (button padding, dot-to-word gaps) — never between elements or in layout. Any other off-scale value is a defect. Field rows use `--space-3` vertical padding; groups separate with hairlines, not gaps.
+- Spacing scale, rem at 4px steps: `--space-1: 0.25rem` · `--space-2: 0.5rem` · `--space-3: 0.75rem` · `--space-4: 1rem` · `--space-6: 1.5rem` · `--space-8: 2rem`. Micro-steps of 2px and 6px are allowed **only inside a control** for optical centering (button padding, dot-to-word gaps) — never between elements or in layout. Any other off-scale value is a defect.
+- **One value per role.** Spacing is assigned by structural role, never improvised per screen:
+
+  | Role | Value |
+  |---|---|
+  | inside a control (dot↔word, icon↔label) | 4 |
+  | button padding | 6×12 compact · 12×16 large |
+  | between inline siblings (chips, actions) and between blocks inside a row | 8 |
+  | row padding | 12 block × 24 inline |
+  | group heading | 16 above / 8 below |
+  | card internal (candidate, suggestion) | 12×16; between cards 8 |
+  | field-pane gutter | 24 |
+  | document gutter — tabs and text share it | 48; paragraph gap 16; section gap 24 |
+  | pane gap | 24 |
+  | page margin | one token `--page-margin` (the layout ladder: 80 → 28) |
+
+- **Two vertical lanes.** Header, status strip, workspace and log drawer all take their inline padding from `--page-margin`; content inside a pane sits on the pane-gutter lane (margin + 24). Every left edge on the screen lands on one of these two lines — an edge on neither is a defect. The 3px state marker is compensated (row inline padding 21 = 24 − 3) so row content stays on the gutter lane; that is the one sanctioned off-scale number, by construction.
 - **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.
   1. 1920 → ~1400: margins give way (80 → 28); the source pane absorbs the rest; the field pane holds 640px.
   2. → 1280: the source pane reaches its comfortable minimum (document measure ≥ 52ch); document padding steps 48 → 32.
