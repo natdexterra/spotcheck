@@ -93,7 +93,7 @@ export type HumanAction =
   | { type: 'ask_customer'; field_id?: FieldId; at?: number }
   | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number }
   | { type: 'reopen'; field_id?: FieldId; at?: number }
-  | { type: 'confirm' };
+  | { type: 'confirm'; at?: number };
 
 export type DispatchedEvent =
   | { actor: 'agent'; action: AgentAction }

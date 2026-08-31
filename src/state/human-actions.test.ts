@@ -101,3 +101,16 @@ test('reopen: derive agent state while keeping the human value and lock', () => 
     expect(get(reopened).resolution).toBeUndefined();
   }
 });
+
+test('confirm: all verified gate, timer stops, suggestions auto-dismiss within one entry', () => {
+  expect(act(propose(), { type: 'confirm' }).confirmed).toBe(false);
+  let s = propose();
+  for (const f of s.fields) s = act(s, { type: 'enter', field_id: f.id, value: 'human', ...(f.id === 'overall_dimensions' ? { unit: 'mm' } : {}) });
+  get(s).suggestion = { value: 'agent', source_refs: ['spec:s1.1'] };
+  const result = act(s, { type: 'confirm', at: 50 } as HumanAction);
+  expect(result.confirmed).toBe(true);
+  expect(get(result).suggestion).toBeUndefined();
+  expect(reviewSession(result)).toMatchObject({ startedAt: 10, confirmedAt: 50 });
+  expect(reviewSession(result).log).toHaveLength(reviewSession(s).log.length + 1);
+  expect(reviewSession(result).log.at(-1)?.notes).toContain('Auto-dismissed suggestion: material');
+});

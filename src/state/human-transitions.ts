@@ -1,5 +1,5 @@
 import type { AppState, Field, HumanAction, ResolutionKind } from './types';
-import { isGap, reviewSession } from './session';
+import { canConfirm, isGap, reviewSession } from './session';
 
 const hasUnit = (field: Field) => field.id !== 'overall_dimensions' || field.unit === 'in' || field.unit === 'mm';
 const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
@@ -7,6 +7,12 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'confirm') {
+    if (!canConfirm(state)) return state;
+    const { draft: _draft, ...session } = reviewSession(state);
+    return { ...session, confirmed: true, confirmedAt: action.at ?? 0,
+      fields: state.fields.map(({ suggestion: _suggestion, ...field }) => field) };
+  }
   if (action.type === 'reopen') return { ...state, fields: state.fields.map(field => {
     if (field.id !== action.field_id || field.state !== 'verified') return field;
     const { resolution: _resolution, ...rest } = field;
