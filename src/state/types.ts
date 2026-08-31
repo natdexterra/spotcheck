@@ -74,26 +74,26 @@ export interface Field {
 
 // Agent dispatcher action union — nothing else.
 export type AgentAction =
-  | { type: 'read' }
-  | { type: 'propose' }
-  | { type: 'report_conflict' }
-  | { type: 'report_missing' }
-  | { type: 'draft' };
+  | { type: 'read'; input?: unknown; at?: number; operation?: 'list' | 'section' | 'review'; quiet?: boolean }
+  | { type: 'propose'; input?: unknown; at?: number }
+  | { type: 'report_conflict'; input?: unknown; at?: number }
+  | { type: 'report_missing'; input?: unknown; at?: number }
+  | { type: 'draft'; input?: unknown; at?: number };
 
 // Human action union — the twelve members from build-spec.md.
 export type HumanAction =
-  | { type: 'verify' }
-  | { type: 'edit' }
-  | { type: 'edit_start' }
-  | { type: 'enter' }
-  | { type: 'pick' }
-  | { type: 'dismiss' }
-  | { type: 'apply' }
-  | { type: 'dismiss_suggestion' }
-  | { type: 'ask_customer' }
-  | { type: 'send' }
-  | { type: 'reopen' }
-  | { type: 'confirm' };
+  | { type: 'verify'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'edit'; field_id?: FieldId; value?: string; unit?: string | null; at?: number; replay_skip?: string }
+  | { type: 'edit_start'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'enter'; field_id?: FieldId; value?: string; unit?: string | null; at?: number; replay_skip?: string }
+  | { type: 'pick'; field_id?: FieldId; index?: number; at?: number; replay_skip?: string }
+  | { type: 'dismiss'; field_id?: FieldId; reason?: string; at?: number; replay_skip?: string }
+  | { type: 'apply'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'ask_customer'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number; replay_skip?: string }
+  | { type: 'reopen'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'confirm'; at?: number; replay_skip?: string };
 
 export type DispatchedEvent =
   | { actor: 'agent'; action: AgentAction }
