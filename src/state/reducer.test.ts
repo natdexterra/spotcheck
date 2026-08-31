@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { reduce } from './reducer';
-import { canDraft, reviewSession } from './session';
+import { canConfirm, canDraft, createInitialState, reviewSession } from './session';
 import type { AgentAction, AppState, Field, HumanAction } from './types';
 
 const field = (overrides: Partial<Field> = {}): Field => ({
@@ -69,4 +69,14 @@ test('invariant-07: draft eligibility equals open gaps and not confirmed', () =>
     expect(canDraft({ ...s, confirmed: true })).toBe(false);
   }
   expect(canDraft(state({ state: 'needs_review', ask_customer: true }))).toBe(true);
+});
+
+test('invariant-08: confirm requires exactly all eleven fields verified', () => {
+  const initial = createInitialState();
+  expect(initial.fields).toHaveLength(11);
+  expect(canConfirm(initial)).toBe(false);
+  const ready = { ...initial, fields: initial.fields.map(f => ({ ...f, state: 'verified' as const, locked: true })) };
+  expect(canConfirm(ready)).toBe(true);
+  expect(canConfirm({ ...ready, fields: ready.fields.slice(1) })).toBe(false);
+  expect(canConfirm({ ...ready, fields: ready.fields.map(() => ready.fields[0]!) })).toBe(false);
 });
