@@ -56,3 +56,29 @@ test('validation: structured input errors and successful reads/proposals', async
   const { getState } = await import('./state/store');
   expect((getState() as { log?: unknown[] }).log).toHaveLength(13);
 });
+
+test('rejection precedence: confirmed > locked > conflict > input; no silent merging', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { dispatchHuman, getState, replaceState } = await import('./state/store');
+  const good = { field_id: 'quantity', value: '800', source_refs: ['spec:s1.1'] };
+  await executeTool('propose_field', good);
+  const other = { value: '750', source_refs: ['email:p2'], note: 'private rationale' };
+  const single = await executeTool('report_conflict', { field_id: 'quantity', candidates: [other] });
+  expect(single).toMatchObject({ ok: false, code: 'SCHEMA', path: 'candidates' });
+  expect(single.message).toContain('800 (spec:s1.1)');
+  expect(await executeTool('report_conflict', { field_id: 'quantity', candidates: [{ value: '799', source_refs: ['spec:s1.1'] }, other] })).toMatchObject({ code: 'SCHEMA' });
+  await executeTool('report_conflict', { field_id: 'quantity', candidates: [good, other] });
+  const conflict = await executeTool('propose_field', { ...good, source_refs: [] });
+  expect(conflict).toMatchObject({ code: 'FIELD_IN_CONFLICT' });
+  expect(JSON.stringify(conflict)).not.toContain('private rationale');
+  expect(await executeTool('report_missing', { field_id: 'quantity', searched: [] })).toMatchObject({ code: 'FIELD_IN_CONFLICT' });
+  dispatchHuman({ type: 'edit_start', field_id: 'quantity' });
+  expect(await executeTool('propose_field', { ...good, source_refs: [] })).toMatchObject({ code: 'FIELD_LOCKED', suggestion_recorded: false });
+  const frozen = { ...getState(), confirmed: true };
+  replaceState(frozen);
+  for (const tool of ['propose_field', 'report_conflict', 'report_missing', 'draft_clarification'] as const) {
+    expect(await executeTool(tool, null)).toMatchObject({ code: 'SESSION_CONFIRMED' });
+    expect(getState()).toBe(frozen);
+  }
+  expect(await executeTool('get_review_state', {})).toHaveProperty('confirmed', true);
+});
