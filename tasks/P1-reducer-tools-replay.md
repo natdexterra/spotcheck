@@ -1,6 +1,6 @@
 # P1 — Reducer, WebMCP tool layer, fixture replay
 
-**Status:** queued
+**Status:** with the builder
 **PR:** —
 **Depends on:** F1 (branches from F1 until it merges)
 
@@ -40,7 +40,7 @@ The product's core without visuals: the pure reducer implementing the full state
 - [ ] Replay: export → import → identical state; stub session reaches `confirmed`; viewer-override steps skipped and logged
 - [ ] Every tool result over the fixture < 1,500 characters serialized
 - [ ] `reducer.ts` imports nothing from React or the DOM; `pnpm test` green; `pnpm build` clean
-- [ ] No change to F1 files beyond replacing the stub reducer import
+- [ ] Changes to F1 files limited to: `reducer.ts` (stub replaced), `types.ts` (payloads added to existing action members — member names, both unions and the actor envelope unchanged), `store.ts` (state seeding/replacement for package load and replay import only); no changes to `App.tsx`, `main.tsx`, styles, or configs
 
 ## Out of scope
 
