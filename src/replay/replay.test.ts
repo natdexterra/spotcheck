@@ -177,3 +177,25 @@ test('P1.1 replay: a viewer no-op on a fixture-locked field does not suppress la
   expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
   replay.dispose();
 });
+
+test('P1.1 persistence: a replay suspends saves; the stored live session survives byte-identical', async () => {
+  const { startPersistence } = await import('./persistence');
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman } = await import('../state/store');
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const session = await startPersistence(storage);
+  dispatchHuman({ type: 'enter', field_id: 'material', value: 'viewer choice', at: 5 });
+  const saved = values.get('spotcheck.session.v1');
+  expect(saved).toBeTruthy();
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+  ] });
+  await replay.next();
+  replay.restart();
+  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  replay.dispose();
+  dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
+  expect(values.get('spotcheck.session.v1')).not.toBe(saved);
+  session.stop();
+});
