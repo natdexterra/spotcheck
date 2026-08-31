@@ -6,6 +6,8 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'ask_customer') return { ...state, fields: state.fields.map(field =>
+    field.id === action.field_id && field.state !== 'verified' ? { ...field, locked: true, ask_customer: true } : field) };
   if (action.type === 'apply' || action.type === 'dismiss_suggestion') return { ...state, fields: state.fields.map(field => {
     if (field.id !== action.field_id || !field.suggestion) return field;
     const { suggestion, ...current } = field;

@@ -72,3 +72,8 @@ test('apply and dismiss_suggestion keep locks; apply checks dimensions units', (
   get(dimensions, 'overall_dimensions').suggestion = { value: '20', source_refs: ['drawing:width'] };
   expect(get(act(dimensions, { type: 'apply', field_id: 'overall_dimensions' } as HumanAction), 'overall_dimensions').state).toBe('needs_review');
 });
+
+test('ask_customer opens a gap and locks without verifying', () => {
+  const result = act(propose(), { type: 'ask_customer', field_id: 'material' } as HumanAction);
+  expect(get(result)).toMatchObject({ locked: true, state: 'needs_review', ask_customer: true });
+});
