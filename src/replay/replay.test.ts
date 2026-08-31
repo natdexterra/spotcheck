@@ -46,3 +46,32 @@ test('play/pause/next/restart honor agent 900ms and estimator 1500ms cadence', a
   expect(replay.position).toBe(1);
   replay.dispose();
 });
+
+test('D14: viewer overrides skip fixture estimator actions and log; agent steps still reject for real', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const proposal = { tool: 'propose_field' as const, input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } };
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: proposal },
+    { actor: 'estimator', at: 2, action: { type: 'edit', field_id: 'material', value: 'fixture choice' } },
+    { actor: 'agent', at: 3, call: proposal },
+  ] });
+  await replay.next();
+  dispatchHuman({ type: 'edit_start', field_id: 'material', at: 10 });
+  dispatchHuman({ type: 'edit', field_id: 'material', value: 'viewer choice', at: 11 });
+  await replay.next();
+  expect(getState().fields.find(f => f.id === 'material')?.value).toBe('viewer choice');
+  expect(reviewSession(getState()).log.at(-1)?.notes?.join(' ')).toContain('Skipped fixture step');
+  await replay.next();
+  expect(reviewSession(getState()).log.at(-1)?.result).toMatchObject({ code: 'FIELD_LOCKED', suggestion_recorded: true });
+  replay.dispose();
+  const fixtureOnly = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: proposal },
+    { actor: 'estimator', at: 2, action: { type: 'verify', field_id: 'material' } },
+    { actor: 'estimator', at: 3, action: { type: 'reopen', field_id: 'material' } },
+  ] });
+  while (await fixtureOnly.next()) { /* previous fixture locks are not viewer overrides */ }
+  expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
+  fixtureOnly.dispose();
+});

@@ -82,18 +82,18 @@ export type AgentAction =
 
 // Human action union — the twelve members from build-spec.md.
 export type HumanAction =
-  | { type: 'verify'; field_id?: FieldId; at?: number }
-  | { type: 'edit'; field_id?: FieldId; value?: string; unit?: string | null; at?: number }
-  | { type: 'edit_start'; field_id?: FieldId; at?: number }
-  | { type: 'enter'; field_id?: FieldId; value?: string; unit?: string | null; at?: number }
-  | { type: 'pick'; field_id?: FieldId; index?: number; at?: number }
-  | { type: 'dismiss'; field_id?: FieldId; reason?: string; at?: number }
-  | { type: 'apply'; field_id?: FieldId; at?: number }
-  | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number }
-  | { type: 'ask_customer'; field_id?: FieldId; at?: number }
-  | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number }
-  | { type: 'reopen'; field_id?: FieldId; at?: number }
-  | { type: 'confirm'; at?: number };
+  | { type: 'verify'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'edit'; field_id?: FieldId; value?: string; unit?: string | null; at?: number; replay_skip?: string }
+  | { type: 'edit_start'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'enter'; field_id?: FieldId; value?: string; unit?: string | null; at?: number; replay_skip?: string }
+  | { type: 'pick'; field_id?: FieldId; index?: number; at?: number; replay_skip?: string }
+  | { type: 'dismiss'; field_id?: FieldId; reason?: string; at?: number; replay_skip?: string }
+  | { type: 'apply'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'ask_customer'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number; replay_skip?: string }
+  | { type: 'reopen'; field_id?: FieldId; at?: number; replay_skip?: string }
+  | { type: 'confirm'; at?: number; replay_skip?: string };
 
 export type DispatchedEvent =
   | { actor: 'agent'; action: AgentAction }
