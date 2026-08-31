@@ -10,13 +10,15 @@ export function reduce(state: AppState, event: DispatchedEvent): AppState & Part
   const skip = event.actor === 'human' ? event.action.replay_skip : undefined;
   const next = event.actor === 'human' ? skip ? state : transitionHuman(state, event.action) : agent!.state;
   const result = agent?.result;
+  const loggedEvent = structuredClone(event);
+  loggedEvent.action.at ??= 0;
   return { ...reviewSession(next),
     ...(event.actor === 'agent' && event.action.type !== 'read' && reviewSession(state).startedAt === undefined
       ? { startedAt: event.action.at ?? 0 } : {}),
     log: [...reviewSession(state).log, {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
     at: 'at' in event.action ? event.action.at ?? 0 : 0,
-    event: structuredClone({ ...event, action: { ...event.action, at: event.action.at ?? 0 } }),
+    event: loggedEvent,
     ...(result ? { result } : {}),
     ...(agent?.notes ? { notes: agent.notes } : {}),
     ...(skip ? { notes: [`Skipped fixture step: ${skip}`] } : {}),
