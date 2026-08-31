@@ -1,12 +1,13 @@
 import type { AppState, Field, HumanAction, ResolutionKind } from './types';
 import { canConfirm, isGap, reviewSession } from './session';
+import type { ReviewSession } from './session';
 
 const hasUnit = (field: Field) => field.id !== 'overall_dimensions' || field.unit === 'in' || field.unit === 'mm';
 const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
   ...field, state: 'verified', locked: true, resolution: { kind, at }, ask_customer: false,
 });
 
-export function transitionHuman(state: AppState, action: HumanAction): AppState {
+export function transitionHuman(state: AppState, action: HumanAction): AppState & Partial<ReviewSession> {
   if (action.type === 'confirm') {
     if (!canConfirm(state)) return state;
     const { draft: _draft, ...session } = reviewSession(state);

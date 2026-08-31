@@ -1,5 +1,6 @@
 import type { AppState, Candidate, DispatchedEvent, Proposal } from './types';
 import { reviewSession } from './session';
+import type { ReviewSession } from './session';
 import { resolvesSource } from '../data/package';
 import { transitionHuman } from './human-transitions';
 
@@ -9,7 +10,7 @@ const hasSources = (value: unknown): boolean => {
   return Array.isArray(refs) && refs.length > 0 && refs.every(ref => typeof ref === 'string' && resolvesSource(ref));
 };
 
-export function reduce(state: AppState, event: DispatchedEvent): AppState {
+export function reduce(state: AppState, event: DispatchedEvent): AppState & Partial<ReviewSession> {
   if (state.confirmed && !(event.actor === 'agent' && event.action.type === 'read')) return state;
   const next = transition(state, event);
   return { ...reviewSession(next),
