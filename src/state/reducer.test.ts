@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { reduce } from './reducer';
-import { reviewSession } from './session';
+import { canDraft, reviewSession } from './session';
 import type { AgentAction, AppState, Field, HumanAction } from './types';
 
 const field = (overrides: Partial<Field> = {}): Field => ({
@@ -60,4 +60,13 @@ test('invariant-06: superseded agent payloads survive immutable history', () => 
   expect(next.fields[0]?.proposal?.value).toBe('steel');
   expect(next.fields[0]?.revised?.was).toBe('6061-T6');
   expect(reviewSession(next).log[0]?.event).toMatchObject({ actor: 'agent', action: { input: proposal } });
+});
+
+test('invariant-07: draft eligibility equals open gaps and not confirmed', () => {
+  for (const status of ['empty', 'needs_review', 'missing', 'conflict', 'verified'] as const) {
+    const s = state({ state: status });
+    expect(canDraft(s)).toBe(status === 'missing' || status === 'conflict');
+    expect(canDraft({ ...s, confirmed: true })).toBe(false);
+  }
+  expect(canDraft(state({ state: 'needs_review', ask_customer: true }))).toBe(true);
 });
