@@ -121,3 +121,14 @@ test('persistence saves the log and replays on load; denied storage and malforme
   expect(denied.error).toBeTruthy();
   denied.stop();
 });
+
+test('B8 preserves default human timestamps and rejected null tool input', async () => {
+  const { executeTool } = await import('../webmcp-tools');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const { exportSession, importSession } = await import('./serialization');
+  await executeTool('propose_field', null, 1);
+  dispatchHuman({ type: 'enter', field_id: 'material', value: 'steel' });
+  const before = structuredClone(getState());
+  await importSession(exportSession());
+  expect(getState()).toEqual(before);
+});
