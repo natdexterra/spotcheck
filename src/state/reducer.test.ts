@@ -80,3 +80,16 @@ test('invariant-08: confirm requires exactly all eleven fields verified', () => 
   expect(canConfirm({ ...ready, fields: ready.fields.slice(1) })).toBe(false);
   expect(canConfirm({ ...ready, fields: ready.fields.map(() => ready.fields[0]!) })).toBe(false);
 });
+
+test('invariant-09: each unfrozen action emits one attributed log entry', () => {
+  let current = state();
+  for (const type of ['read', 'propose', 'report_missing', 'draft'] as const) {
+    const before = reviewSession(current).log.length;
+    current = agent(current, type);
+    expect(reviewSession(current).log).toHaveLength(before + 1);
+    expect(reviewSession(current).log.at(-1)?.actor).toBe('agent');
+  }
+  const result = human(current, { type: 'confirm' });
+  expect(reviewSession(result).log).toHaveLength(5);
+  expect(reviewSession(result).log.at(-1)?.actor).toBe('estimator');
+});
