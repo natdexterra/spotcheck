@@ -13,7 +13,8 @@ export async function startPersistence(storage?: SessionStorage) {
     const saved = storage?.getItem(key);
     if (saved) { await importSession(saved); restored = true; }
   } catch (cause) { error = cause instanceof Error ? cause.message : 'Session storage is unavailable.'; }
-  const stop = subscribe(() => {
+  // A restore error may contain a recoverable session. Do not overwrite it with a fresh log.
+  const stop = error ? () => {} : subscribe(() => {
     try { storage?.setItem(key, exportSession()); }
     catch (cause) { error = cause instanceof Error ? cause.message : 'Session could not be saved.'; }
   });
