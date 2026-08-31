@@ -1,5 +1,6 @@
 import { executeTool } from '../webmcp-tools';
 import { resumePersistence, suspendPersistence } from './persistence';
+import { parseFixture } from './serialization';
 import type { ToolName } from '../webmcp-tools';
 import { dispatchHuman, getState, replaceState, subscribe } from '../state/store';
 import { createInitialState, reviewSession } from '../state/session';
@@ -17,7 +18,7 @@ export async function runStep(step: Step): Promise<void> {
 }
 
 export function createReplay(source: Fixture = sampleSession) {
-  const fixture = structuredClone(source);
+  const fixture = parseFixture(JSON.stringify(source));
   let position = 0;
   let playing = false;
   let busy = false;

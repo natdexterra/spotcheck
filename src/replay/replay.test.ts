@@ -199,3 +199,10 @@ test('P1.1 persistence: a replay suspends saves; the stored live session survive
   expect(values.get('spotcheck.session.v1')).not.toBe(saved);
   session.stop();
 });
+
+test('P1.1 replay: createReplay validates its fixture through parseFixture', async () => {
+  const { createReplay } = await import('./replay');
+  const bad = { recorded_at: 'test', steps: [{ actor: 'agent', at: 1, call: { tool: 'not_a_tool', input: {} } }] };
+  expect(() => createReplay(bad as never)).toThrow(/fixture step 0/i);
+  expect(() => createReplay({ steps: [] } as never)).toThrow();
+});
