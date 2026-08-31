@@ -24,9 +24,20 @@ export function transitionAgent(state: AppState, action: AgentAction): AgentTran
       error = reject('SCHEMA', `Include every candidate; earlier material: ${earlier.map(c => `${c.value} (${c.source_refs.join(', ')})`).join('; ')}.`, { path: 'candidates' });
     }
   }
-  if (field?.locked) return { state, result: reject('FIELD_LOCKED', 'The estimator keeps this decision; offer a sourced suggestion.', {
-    current: current(field), suggestion_recorded: false,
-  }) };
+  if (field?.locked) {
+    const agrees = action.type === 'propose' && input.value === field.value && (input.unit ?? null) === (field.unit ?? null);
+    const suggestionRecorded = !error && action.type === 'propose' && !agrees;
+    return {
+      state: suggestionRecorded ? { ...state, fields: state.fields.map(f => f === field
+        ? { ...f, suggestion: structuredClone(input) as unknown as Proposal } : f) } : state,
+      result: reject('FIELD_LOCKED', 'The estimator keeps this decision; offer a sourced suggestion.', {
+        current: current(field), suggestion_recorded: suggestionRecorded,
+      }),
+      ...(!error ? { notes: agrees ? ['agent independently agrees'] : action.type === 'propose'
+        ? [field.suggestion ? 'Replaced pending suggestion' : 'Recorded suggestion']
+        : [typeof input.note === 'string' ? input.note : `Agent reported ${action.type} on locked ${field.id}`] } : {}),
+    };
+  }
   if (field?.state === 'conflict' && (action.type === 'propose' || action.type === 'report_missing'))
     return { state, result: reject('FIELD_IN_CONFLICT', 'Include all candidates in report_conflict for the estimator to resolve.', {
       candidates: field.candidates?.map(({ value, source_refs }) => ({ value, source_refs })),
