@@ -1,3 +1,33 @@
+/* Self-hosted Geist + Geist Mono (SIL OFL 1.1 — see public/fonts/OFL.txt).
+   Variable files cover the 400/500/600 weights in use. */
+
+@font-face {
+  font-family: "Geist";
+  src: url("/fonts/Geist-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/fonts/GeistMono-Variable.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Metric-matched fallback (Capsize createFontStack, Geist over Arial):
+   prevents layout shift while Geist loads. */
+@font-face {
+  font-family: "Geist Fallback";
+  src: local("Arial"), local("ArialMT");
+  ascent-override: 95.9379%;
+  descent-override: 28.1609%;
+  line-gap-override: 0%;
+  size-adjust: 104.7553%;
+}
+
 /* Generated from DESIGN.md — a value that is not in DESIGN.md is not a token.
    Re-transcribe when DESIGN.md tables change; the spot-check unit test guards drift. */
 
