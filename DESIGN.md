@@ -10,7 +10,7 @@ The agent proposes; only a person verifies, edits, resolves and confirms. The UI
 - **Badge text comes from `resolution.kind`, never from the state name.** Labels: Verified · Edited · Entered · Picked · Not required · Applied · Asked customer. A dismissed field must read "Not required", not "Verified"; null-value resolutions get their own icon.
 - **The suggestion card is subordinate.** An agent proposal on a locked field renders as a hairline card tagged `agent`, visually quieter than the field's current value. It never uses the verified green and never replaces the value display.
 - **Provenance is the primary element.** Every proposal and candidate shows its source chips (`spec:s3.1`, `email:p2`, `drawing:width`) in mono; chips are clickable and drive the two-way highlight. No chip, no claim: a value without provenance cannot appear in the field pane at all — the tool layer already rejects it, and no component accepts a value prop without `source_refs`.
-- **Two actors, one log.** Change-log entries and announcements always name the actor. Agent-attributed text (rationale, notes) is styled as quoted material: mono, secondary ink, hairline left border, labelled "agent's reason" — visibly *reported speech*, not app copy.
+- **Two actors, one log.** Change-log entries and announcements always name the actor. Agent-attributed text (rationale, notes) is set in the sans, `--ink-secondary`, prefixed "Agent:" — visibly *reported speech*, not app copy. It never uses mono: mono belongs to data, and log-file texture buries the meaning.
 
 ## Constraint 2 — documents are untrusted input
 
@@ -44,6 +44,10 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--border-input` | `#808A99` | input and editor boundaries (must hold ≥ 3:1) |
 | `--accent-text` | `#1A56C4` | links, provenance chip text |
 | `--accent` | `#1F6FEB` | focus ring, active markers, graphical accents |
+| `--accent-strong` | `#14418F` | hover color for links and text buttons |
+| `--bg-subtle` | `#ECEFF3` | secondary button fill, text-button hover pill, quiet chips |
+| `--ink-hover` | `#2A313A` | primary button hover fill |
+| `--ink-active` | `#1A1F26` | primary button active fill |
 | `--highlight` | `#E7F0FE` | provenance flash background (both panes) |
 | `--highlight-edge` | `#1F6FEB` | active region outline, reading marker |
 | `--state-conflict` | `#C2293A` | conflict icon + label text |
@@ -55,7 +59,21 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--state-neutral` | value of `--ink-secondary` | needs_review icon + label |
 | `--state-empty` | value of `--ink-muted` | empty icon + label |
 
-Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Buttons: primary is ink-filled (`--ink` ground, `--bg-raised` text), secondary is hairline-outlined on the panel; the confirm button is the only primary button in the field pane.
+Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Field state renders as a 3px left marker bar plus a dot-and-word badge in human wording ("Two sources disagree", "Not found", "Unit missing", "Edited by you · 0:42 ago") — never a bordered badge, never a full-row tint.
+
+## Interaction states
+
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen.
+
+| Class | Default | Hover | Active | Disabled |
+|---|---|---|---|---|
+| Primary (Confirm, Send, Play sample session) | `--ink` fill, `--bg-raised` text | `--ink-hover` fill | `--ink-active` fill | `--ink-faint` fill, no hover, default cursor |
+| Secondary (Verify, Pick, Enter value, Export, Pause) | `--bg-subtle` fill, ink text, no border | `--hairline` fill | `--hairline-strong` fill | `--bg-subtle` fill, `--ink-faint` text |
+| Text button (Dismiss, Edit, Ask customer, Show tools ▾) | `--accent-text`, no underline ever | `--bg-subtle` pill, `--accent-strong` text | `--hairline` pill | `--ink-faint` text |
+| Inline link — provenance ref (`spec §1.1`) | `--accent-text`, dotted underline, offset 3px | `--accent-strong`, solid underline | — | — |
+| Inline link — jump link ("2 conflicts") | `--accent-text`, solid underline, offset 3px | `--accent-strong` | — | — |
+
+The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline.
 
 ### Contrast ledger (computed 2026-08-31, WCAG 2.x)
 
@@ -65,6 +83,7 @@ Re-run whenever a color token changes; this table is the current state, not a pe
 - on `--bg-canvas`: ink 17.62 · ink-secondary 5.52 · ink-muted 4.91 · accent-text 6.17 · conflict 5.33 · missing 5.52 · verified 5.03 · accent (graphical) 4.32 · border-input (graphical) 3.25
 - state text on its own tint: conflict on conflict-tint 4.87 · missing on missing-tint 5.44 · verified on verified-tint 4.81 · accent-text on highlight 5.77
 - `--highlight-edge` on `--highlight`: 4.04 (graphical, floor 3)
+- interaction colors: accent-strong 9.62 on white · 8.97 on canvas · 8.34 on the bg-subtle pill; white on ink-hover 13.13 · on ink-active 16.56
 - `--ink-faint` measures 2.52 on white — that is why it is fenced to disabled and decorative use.
 
 Hard rules that follow:
@@ -98,8 +117,14 @@ Rules the builder must not trade away:
 
 ## Spacing, layout, hit targets
 
-- Spacing scale, rem at 4px steps: `--space-1: 0.25rem` · `--space-2: 0.5rem` · `--space-3: 0.75rem` · `--space-4: 1rem` · `--space-6: 1.5rem` · `--space-8: 2rem`. Field rows use `--space-3` vertical padding; groups separate with hairlines, not gaps.
-- Desktop ≥ 900px: field pane `minmax(26rem, 5fr)`, source pane `7fr`, one hairline between. Below 900px: one column; the source pane becomes a sheet (shell rules in the spec). The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
+- Spacing scale, rem at 4px steps: `--space-1: 0.25rem` · `--space-2: 0.5rem` · `--space-3: 0.75rem` · `--space-4: 1rem` · `--space-6: 1.5rem` · `--space-8: 2rem`. Micro-steps of 2px and 6px are allowed **only inside a control** for optical centering (button padding, dot-to-word gaps) — never between elements or in layout. Any other off-scale value is a defect. Field rows use `--space-3` vertical padding; groups separate with hairlines, not gaps.
+- **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.
+  1. 1920 → ~1400: margins give way (80 → 28); the source pane absorbs the rest; the field pane holds 640px.
+  2. → 1280: the source pane reaches its comfortable minimum (document measure ≥ 52ch); document padding steps 48 → 32.
+  3. 1280 → down: the field pane gives way 640 → 480; pane gap 24 → 16.
+  4. Below 900px: one column; the source pane opens as a sheet over the list (shell rules in the spec). On one-column widths above ~600px the content column caps at 680px, centered.
+  - Anti-overlap is a rule, not a hope: each pane has an explicit min-width; values wrap and are never truncated; badges are `flex-shrink: 0`; action rows wrap. Grid: `minmax(480px, 640px) minmax(460px, 1fr)`.
+- The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
 - Hit targets: ≥ 24×24 CSS px everywhere (WCAG 2.5.8), ≥ 44px on the narrow layout. Dense text buttons reach it with padding (`min-height: 1.5rem` desktop, `2.75rem` narrow), not with larger type.
 
 ## State iconography
