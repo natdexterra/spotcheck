@@ -95,3 +95,29 @@ test('B8: export/import preserves entire final state including rejections, skips
   await expect(importSession('{"recorded_at":"bad","steps":[{"actor":"agent","call":{"tool":"verify"}}]}')).rejects.toThrow();
   expect(getState()).toBe(unchanged);
 });
+
+test('persistence saves the log and replays on load; denied storage and malformed data are contained', async () => {
+  const { startPersistence } = await import('./persistence');
+  const { executeTool } = await import('../webmcp-tools');
+  const { getState, replaceState } = await import('../state/store');
+  const { createInitialState } = await import('../state/session');
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const first = await startPersistence(storage);
+  await executeTool('propose_field', { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] }, 25);
+  const saved = structuredClone(getState());
+  first.stop();
+  replaceState(createInitialState());
+  const restored = await startPersistence(storage);
+  expect(restored.restored).toBe(true);
+  expect(getState()).toEqual(saved);
+  restored.stop();
+  const broken = await startPersistence({ getItem: () => '{broken', setItem: () => {} });
+  expect(broken.error).toBeTruthy();
+  expect(getState()).toEqual(saved);
+  broken.stop();
+  const denied = await startPersistence({ getItem: () => { throw new Error('denied'); }, setItem: () => { throw new Error('quota'); } });
+  await expect(executeTool('get_review_state', {})).resolves.toHaveProperty('fields');
+  expect(denied.error).toBeTruthy();
+  denied.stop();
+});
