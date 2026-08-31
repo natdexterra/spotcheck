@@ -40,3 +40,9 @@ test('invariant-03: reports never release locks or acquire human locks', () => {
     }
   }
 });
+
+test('invariant-04: only a human can exit a conflict', () => {
+  const before = state({ state: 'conflict', candidates: [proposal, { ...proposal, value: 'steel' }] });
+  expect(agent(before, 'propose').fields).toEqual(before.fields);
+  expect(agent(before, 'report_missing', { field_id: 'material', searched: ['spec'] }).fields).toEqual(before.fields);
+});
