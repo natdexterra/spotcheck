@@ -31,3 +31,9 @@ test('edit_start locks immediately; edit saves and verifies with unit validation
   const bad = act(typing, { type: 'edit', field_id: 'overall_dimensions', value: '20', unit: 'ft' } as HumanAction);
   expect(get(bad, 'overall_dimensions').state).toBe('needs_review');
 });
+
+test('enter: a human supplies an absent value and acquires a permanent lock', () => {
+  const entered = act(createInitialState(), { type: 'enter', field_id: 'material', value: 'steel', at: 5 } as HumanAction);
+  expect(get(entered)).toMatchObject({ state: 'verified', locked: true, value: 'steel', resolution: { kind: 'entered' } });
+  expect(get(act(createInitialState(), { type: 'enter', field_id: 'material', value: ' ' } as HumanAction)).state).toBe('empty');
+});
