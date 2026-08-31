@@ -34,3 +34,25 @@ test('registration: six literal tools on load, exact descriptions, annotations a
   expect(roster.get('read_document')?.annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true });
   expect(roster.get('get_review_state')?.annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true });
 });
+
+test('validation: structured input errors and successful reads/proposals', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const good = { field_id: 'material', value: '6061', source_refs: ['spec:s1.1'] };
+  for (const [name, input, code] of [
+    ['read_document', { doc_id: 'unknown', section_id: 's1' }, 'UNKNOWN_DOCUMENT'],
+    ['read_document', { doc_id: 'spec', section_id: 'unknown' }, 'UNKNOWN_SECTION'],
+    ['propose_field', { ...good, field_id: 'unknown' }, 'UNKNOWN_FIELD'],
+    ['propose_field', { ...good, value: 42 }, 'SCHEMA'],
+    ['propose_field', { ...good, source_refs: [] }, 'NO_SOURCE_REF'],
+    ['propose_field', { ...good, source_refs: ['bad'] }, 'INVALID_SOURCE_REF'],
+    ['propose_field', { ...good, field_id: 'quantity', value: '1.5' }, 'SCHEMA'],
+    ['propose_field', { ...good, unit: 'mm' }, 'SCHEMA'],
+    ['report_missing', { field_id: 'delivery', searched: [] }, 'SCHEMA'],
+    ['report_missing', { field_id: 'delivery', searched: ['bad'] }, 'INVALID_SOURCE_REF'],
+  ] as const) expect(await executeTool(name, input)).toMatchObject({ ok: false, code });
+  expect(await executeTool('propose_field', good)).toEqual({ ok: true, field_id: 'material', state: 'needs_review', value: '6061' });
+  expect(await executeTool('read_document', { doc_id: 'spec', section_id: 's1' })).toMatchObject({ doc_id: 'spec', section_id: 's1', regions: expect.any(Array) });
+  expect(await executeTool('list_rfq_documents', {})).toHaveProperty('documents');
+  const { getState } = await import('./state/store');
+  expect((getState() as { log?: unknown[] }).log).toHaveLength(13);
+});
