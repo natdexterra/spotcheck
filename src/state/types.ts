@@ -74,11 +74,11 @@ export interface Field {
 
 // Agent dispatcher action union — nothing else.
 export type AgentAction =
-  | { type: 'read' }
-  | { type: 'propose' }
-  | { type: 'report_conflict' }
-  | { type: 'report_missing' }
-  | { type: 'draft' };
+  | { type: 'read'; input?: unknown; at?: number }
+  | { type: 'propose'; input?: unknown; at?: number }
+  | { type: 'report_conflict'; input?: unknown; at?: number }
+  | { type: 'report_missing'; input?: unknown; at?: number }
+  | { type: 'draft'; input?: unknown; at?: number };
 
 // Human action union — the twelve members from build-spec.md.
 export type HumanAction =

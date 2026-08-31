@@ -1,7 +1,12 @@
-// Stub identity reducer. The real state machine (transitions matrix, locks,
-// invariants) is task P1; F1 only fixes the signature and the actor envelope.
 import type { AppState, DispatchedEvent } from './types';
 
-export function reduce(state: AppState, _event: DispatchedEvent): AppState {
+export function reduce(state: AppState, event: DispatchedEvent): AppState {
+  if (event.actor === 'agent' && event.action.type === 'propose') {
+    const input = event.action.input as { field_id?: string; value?: string } | undefined;
+    if (!input || typeof input.value !== 'string') return state;
+    return { ...state, fields: state.fields.map(field => field.id === input.field_id
+      ? { ...field, state: 'needs_review', value: input.value! }
+      : field) };
+  }
   return state;
 }
