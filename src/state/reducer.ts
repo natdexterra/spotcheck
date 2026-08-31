@@ -1,6 +1,11 @@
 import type { AppState, Candidate, DispatchedEvent } from './types';
 
 export function reduce(state: AppState, event: DispatchedEvent): AppState {
+  if (event.actor === 'human' && event.action.type === 'verify') {
+    const id = event.action.field_id;
+    return { ...state, fields: state.fields.map(field => field.id === id && field.state === 'needs_review'
+      ? { ...field, state: 'verified', locked: true } : field) };
+  }
   if (event.actor === 'agent' && event.action.type === 'propose') {
     const input = event.action.input as { field_id?: string; value?: string } | undefined;
     if (!input || typeof input.value !== 'string') return state;
