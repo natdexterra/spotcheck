@@ -3,7 +3,6 @@ import { reviewSession } from './session';
 
 export function reduce(state: AppState, event: DispatchedEvent): AppState {
   const next = transition(state, event);
-  if (next === state) return state;
   return { ...reviewSession(next), log: [...reviewSession(state).log, {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
     at: 'at' in event.action ? event.action.at ?? 0 : 0,
