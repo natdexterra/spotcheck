@@ -1,9 +1,15 @@
 // External store. React never owns this state: components subscribe through
 // useSyncExternalStore; tools call dispatchAgent, UI actions call dispatchHuman.
 import { reduce } from './reducer';
+import { createInitialState } from './session';
 import type { AgentAction, AppState, HumanAction } from './types';
 
-let state: AppState = { confirmed: false, fields: [] };
+let state: AppState = createInitialState();
+
+export function replaceState(next: AppState): void {
+  state = next;
+  notify();
+}
 
 const listeners = new Set<() => void>();
 
