@@ -1,6 +1,7 @@
 import type { AppState, Candidate, DispatchedEvent, Proposal } from './types';
 import { reviewSession } from './session';
 import { resolvesSource } from '../data/package';
+import { transitionHuman } from './human-transitions';
 
 const hasSources = (value: unknown): boolean => {
   if (!value || typeof value !== 'object') return false;
@@ -19,12 +20,7 @@ export function reduce(state: AppState, event: DispatchedEvent): AppState {
 }
 
 function transition(state: AppState, event: DispatchedEvent): AppState {
-  if (event.actor === 'human' && event.action.type === 'verify') {
-    const id = event.action.field_id;
-    return { ...state, fields: state.fields.map(field => field.id === id && field.state === 'needs_review' &&
-      (field.id !== 'overall_dimensions' || field.unit === 'in' || field.unit === 'mm')
-      ? { ...field, state: 'verified', locked: true } : field) };
-  }
+  if (event.actor === 'human') return transitionHuman(state, event.action);
   if (event.actor === 'agent' && event.action.type === 'propose') {
     const input = event.action.input as (Proposal & { field_id?: string }) | undefined;
     if (!input || typeof input.value !== 'string') return state;
