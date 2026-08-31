@@ -20,12 +20,10 @@ The agent proposes; only a person verifies, edits, resolves and confirms. The UI
 
 ## Visual direction — cool engineering drafting
 
-The workspace reads like a well-kept engineering document register, not a chat product: a cool gray-blue canvas with white working panels, near-black ink, 1px hairline rules instead of decorative boxes, sharp corners, one drafting-blue accent, and mono for everything that is *data* (values, units, ids, counts, timestamps). Density is high; hierarchy comes from type roles and rules, not from color.
-
-Grounding for the light, bright ground: reading performance on screens is driven by background luminance — dark text on a light, bright background constricts the pupil and sharpens the retinal image (Buchner, Mayr & Brandt 2009; Piepenbrock et al. 2013, both age groups) — while the hue tint of a near-white surface is preference territory with mixed evidence. So the canvas stays light and high-luminance, one step below pure white to soften large-field glare, with a cool cast.
+The workspace reads like a well-kept engineering document register, not a chat product: a cool gray-blue canvas with white working panels, near-black ink, 1px hairline rules instead of decorative boxes, sharp corners, one drafting-blue accent, and mono for everything that is *data* (values, units, ids, counts, timestamps). Density is high; hierarchy comes from type roles and rules, not from color. The canvas is light and high-luminance, one step below pure white so large fields do not glare, with a cool cast.
 
 - Light theme only. `color-scheme: light` is declared; a dark theme is out of scope for this codebase.
-- Elevation is used twice: the suggestion card and overlay sheets get `--shadow-1: 0 1px 2px rgba(14, 17, 22, 0.10), 0 2px 8px rgba(14, 17, 22, 0.06)`. Everything else sits flat on hairlines.
+- **No shadows, no blur.** Every surface is flat. The suggestion card and overlay sheets are set off by `--bg-raised` plus a 1px `--hairline-strong` border, never by elevation effects.
 - Borders, hairlines and dividers are **solid colors, never an alpha or `color-mix()` over the surface** — a translucent line renders differently on canvas and on raised panels and breaks the drafting register.
 - Corners: `--radius-1` (2px) for chips and badges, `--radius-2` (4px) for cards, panels and inputs. Nothing rounder.
 
@@ -77,7 +75,7 @@ Hard rules that follow:
 
 ## Typography — cap-height model, Geist + Geist Mono
 
-Dense data-UI physics: sizes target *observable cap-height* on a rem grid (Tonsky 2021; Capsize-computed), line-heights land on even pixel integers at the default root, and Sans + Mono come from one family so a single size token serves both. IBM Plex Sans + IBM Plex Mono were considered for the drafting-room voice but fail the dense-UI metric validation at the sm rung (Lovchikov, Evil Martians 2026, tier D); Geist + Geist Mono pass (tier A) and keep the technical voice. Both faces are OFL, self-hosted as woff2 under `public/fonts/` — the CSP allows no third-party origins. Fallback stacks end in `system-ui` / `ui-monospace` so OS-level accessibility fonts can cascade through; a Capsize `createFontStack` metric-matched fallback (`Geist Fallback`) prevents layout shift. `font-display: swap`; preload the sans woff2 with `crossorigin`.
+Dense data-UI physics: sizes target *observable cap-height* — the rendered height of capital letters — on a rem grid (values computed with Capsize), line-heights land on even pixel integers at the default root, and Sans + Mono come from one family, Geist + Geist Mono, whose matched vertical metrics let a single size token serve both. Both faces are OFL, self-hosted as woff2 under `public/fonts/` — the CSP allows no third-party origins. Fallback stacks end in `system-ui` / `ui-monospace` so OS-level accessibility fonts can cascade through; a Capsize `createFontStack` metric-matched fallback (`Geist Fallback`) prevents layout shift. `font-display: swap`; preload the sans woff2 with `crossorigin`.
 
 | Token | Cap-height | font-size | line-height | Use |
 |---|---|---|---|---|
