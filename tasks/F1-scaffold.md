@@ -1,7 +1,7 @@
 # F1 — Scaffold: Vite + React 18 + TypeScript, tests, CSP
 
-**Status:** built, awaiting QA
-**PR:** —
+**Status:** QA passed, in owner review
+**PR:** https://github.com/natdexterra/spotcheck/pull/1
 **Depends on:** nothing (first build task)
 
 ## Goal
