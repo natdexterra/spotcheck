@@ -82,7 +82,7 @@ export type AgentAction =
 
 // Human action union — the twelve members from build-spec.md.
 export type HumanAction =
-  | { type: 'verify' }
+  | { type: 'verify'; field_id?: FieldId; at?: number }
   | { type: 'edit' }
   | { type: 'edit_start' }
   | { type: 'enter' }

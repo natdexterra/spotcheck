@@ -46,3 +46,8 @@ test('invariant-04: only a human can exit a conflict', () => {
   expect(agent(before, 'propose').fields).toEqual(before.fields);
   expect(agent(before, 'report_missing', { field_id: 'material', searched: ['spec'] }).fields).toEqual(before.fields);
 });
+
+test('invariant-05: human verification always locks', () => {
+  const result = human(agent(state(), 'propose'), { type: 'verify', field_id: 'material' } as HumanAction);
+  expect(result.fields[0]).toMatchObject({ state: 'verified', locked: true });
+});
