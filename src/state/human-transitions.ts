@@ -1,4 +1,5 @@
 import type { AppState, Field, HumanAction, ResolutionKind } from './types';
+import { isGap, reviewSession } from './session';
 
 const hasUnit = (field: Field) => field.id !== 'overall_dimensions' || field.unit === 'in' || field.unit === 'mm';
 const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
@@ -6,6 +7,15 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'send') {
+    const session = reviewSession(state);
+    if (!session.draft || !action.subject?.trim() || !action.body?.trim() || !Array.isArray(action.covers)) return state;
+    if (action.covers.some(id => !session.draft!.covers.includes(id) || !state.fields.some(f => f.id === id && isGap(f)))) return state;
+    const { draft: _draft, ...rest } = session;
+    return { ...rest, sent: { subject: action.subject, body: action.body, covers: [...new Set(action.covers)] },
+      fields: state.fields.map(field => action.covers!.includes(field.id) ? resolve({ ...field, value: null,
+        ...(field.id === 'overall_dimensions' ? { unit: null } : {}) }, 'asked_customer', action.at ?? 0) : field) };
+  }
   if (action.type === 'ask_customer') return { ...state, fields: state.fields.map(field =>
     field.id === action.field_id && field.state !== 'verified' ? { ...field, locked: true, ask_customer: true } : field) };
   if (action.type === 'apply' || action.type === 'dismiss_suggestion') return { ...state, fields: state.fields.map(field => {

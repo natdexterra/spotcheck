@@ -77,3 +77,14 @@ test('ask_customer opens a gap and locks without verifying', () => {
   const result = act(propose(), { type: 'ask_customer', field_id: 'material' } as HumanAction);
   expect(get(result)).toMatchObject({ locked: true, state: 'needs_review', ask_customer: true });
 });
+
+test('send: resolves only selected current gaps and records one draft-versus-sent diff', () => {
+  const s = act(propose(), { type: 'ask_customer', field_id: 'material' });
+  const before = { ...reviewSession(s), draft: { subject: 'Draft', body: 'Which alloy?', covers: ['material' as const] } };
+  const result = act(before, { type: 'send', subject: 'Question', body: 'Please confirm alloy.', covers: ['material'], at: 25 } as HumanAction);
+  expect(get(result)).toMatchObject({ state: 'verified', locked: true, value: null, resolution: { kind: 'asked_customer' } });
+  expect(reviewSession(result).log).toHaveLength(before.log.length + 1);
+  expect(reviewSession(result).log.at(-1)?.diff).toMatchObject({ before: before.draft, after: { subject: 'Question', body: 'Please confirm alloy.', covers: ['material'] } });
+  expect(reviewSession(result).draft).toBeUndefined();
+  expect(get(result, 'quantity').state).toBe('empty');
+});

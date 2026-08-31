@@ -91,7 +91,7 @@ export type HumanAction =
   | { type: 'apply'; field_id?: FieldId; at?: number }
   | { type: 'dismiss_suggestion'; field_id?: FieldId; at?: number }
   | { type: 'ask_customer'; field_id?: FieldId; at?: number }
-  | { type: 'send' }
+  | { type: 'send'; subject?: string; body?: string; covers?: FieldId[]; at?: number }
   | { type: 'reopen' }
   | { type: 'confirm' };
 
