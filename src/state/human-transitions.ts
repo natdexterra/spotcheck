@@ -6,6 +6,11 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'dismiss') {
+    if (typeof action.reason !== 'string' || !action.reason.trim()) return state;
+    return { ...state, fields: state.fields.map(field => field.id !== action.field_id ? field :
+      resolve({ ...field, value: null, ...(field.id === 'overall_dimensions' ? { unit: null } : {}) }, 'dismissed', action.at ?? 0)) };
+  }
   if (action.type === 'pick') return { ...state, fields: state.fields.map(field => {
     if (field.id !== action.field_id || field.state !== 'conflict' || !Number.isInteger(action.index)) return field;
     const candidate = field.candidates?.[action.index!];

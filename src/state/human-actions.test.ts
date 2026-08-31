@@ -47,3 +47,13 @@ test('pick: resolves one existing candidate, preserving all candidates', () => {
   expect(get(picked).candidates).toEqual(get(s).candidates);
   expect(get(act(s, { type: 'pick', field_id: 'material', index: 8 } as HumanAction)).state).toBe('conflict');
 });
+
+test('dismiss: requires a reason and permits null dimensions as not required', () => {
+  const s = propose('overall_dimensions');
+  for (const reason of [undefined, '', ' ']) {
+    expect(get(act(s, { type: 'dismiss', field_id: 'overall_dimensions', reason } as HumanAction), 'overall_dimensions').state).toBe('needs_review');
+  }
+  const result = act(s, { type: 'dismiss', field_id: 'overall_dimensions', reason: 'Not required for this quote' } as HumanAction);
+  expect(get(result, 'overall_dimensions')).toMatchObject({ state: 'verified', locked: true, value: null, resolution: { kind: 'dismissed' } });
+  expect(reviewSession(result).log.at(-1)?.event.action).toMatchObject({ reason: 'Not required for this quote' });
+});
