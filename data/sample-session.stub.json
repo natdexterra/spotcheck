@@ -1,0 +1,314 @@
+{
+  "recorded_at": "Hand-written stub; not a live recording",
+  "steps": [
+    {
+      "actor": "agent",
+      "at": 900,
+      "call": {
+        "tool": "list_rfq_documents",
+        "input": {}
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1800,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s1"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 2700,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "customer_rfq_ref",
+          "value": "JW-001",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 4200,
+      "action": {
+        "type": "verify",
+        "field_id": "customer_rfq_ref"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 5100,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "part_name",
+          "value": "Bracket",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 6600,
+      "action": {
+        "type": "verify",
+        "field_id": "part_name"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 7500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "value": "6061-T6",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 9000,
+      "action": {
+        "type": "verify",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 9900,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "stock_thickness",
+          "value": ".080",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 11400,
+      "action": {
+        "type": "verify",
+        "field_id": "stock_thickness"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 12300,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "surface_finish",
+          "value": "Black coat",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 13800,
+      "action": {
+        "type": "verify",
+        "field_id": "surface_finish"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 14700,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "delivery",
+          "value": "Two weeks",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 16200,
+      "action": {
+        "type": "verify",
+        "field_id": "delivery"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 17100,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "value": "steel",
+          "source_refs": [
+            "spec:s1.1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 18600,
+      "action": {
+        "type": "dismiss_suggestion",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 19500,
+      "call": {
+        "tool": "report_conflict",
+        "input": {
+          "field_id": "quantity",
+          "candidates": [
+            {
+              "value": "800",
+              "source_refs": [
+                "spec:s1.1"
+              ]
+            },
+            {
+              "value": "750",
+              "source_refs": [
+                "email:p2"
+              ]
+            }
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 21000,
+      "action": {
+        "type": "pick",
+        "field_id": "quantity",
+        "index": 0
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 21900,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "overall_dimensions",
+          "value": "20 × 14.5",
+          "source_refs": [
+            "drawing:width"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 23400,
+      "action": {
+        "type": "edit",
+        "field_id": "overall_dimensions",
+        "value": "20 × 14.5",
+        "unit": "in"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 24300,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "general_tolerance",
+          "searched": [
+            "drawing",
+            "spec"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 25200,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_number",
+          "searched": [
+            "drawing",
+            "spec"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 26100,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_revision",
+          "searched": [
+            "drawing",
+            "spec"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 27000,
+      "call": {
+        "tool": "draft_clarification",
+        "input": {
+          "subject": "Open questions",
+          "body": "Please confirm tolerance, drawing number and revision.",
+          "covers": [
+            "general_tolerance",
+            "drawing_number",
+            "drawing_revision"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 28500,
+      "action": {
+        "type": "send",
+        "subject": "Drawing questions",
+        "body": "Please supply the tolerance, number and revision.",
+        "covers": [
+          "general_tolerance",
+          "drawing_number",
+          "drawing_revision"
+        ]
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 30000,
+      "action": {
+        "type": "confirm"
+      }
+    }
+  ]
+}
