@@ -27,6 +27,7 @@ export function createReplay(source: Fixture = sampleSession) {
   const viewerHandled = new Set<FieldId>();
   let applyingFixture = false;
   let seen = 0;
+  let lastFields = getState().fields;
   const unsubscribe = subscribe(() => {
     const state = getState();
     const log = reviewSession(state).log;
@@ -34,9 +35,15 @@ export function createReplay(source: Fixture = sampleSession) {
       if (entry.event.actor !== 'human') continue;
       const action = entry.event.action;
       const ids = 'field_id' in action && action.field_id ? [action.field_id] : action.type === 'send' ? action.covers ?? [] : [];
-      for (const id of ids) if (state.fields.some(f => f.id === id && f.locked)) viewerHandled.add(id);
+      // The reducer also logs no-op human actions; only a dispatch that actually
+      // mutated the field (fresh object identity) counts as viewer-handled.
+      for (const id of ids) {
+        const after = state.fields.find(f => f.id === id);
+        if (after?.locked && after !== lastFields.find(f => f.id === id)) viewerHandled.add(id);
+      }
     }
     seen = log.length;
+    lastFields = state.fields;
   });
   const pause = () => { playing = false; clearTimeout(timer); timer = undefined; };
   const schedule = () => {

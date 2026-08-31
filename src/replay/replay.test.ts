@@ -158,3 +158,22 @@ test('P1.1 replay: a partially viewer-covered send resolves the remaining fields
   expect(getState().confirmed).toBe(true);
   replay.dispose();
 });
+
+test('P1.1 replay: a viewer no-op on a fixture-locked field does not suppress later fixture steps', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+    { actor: 'estimator', at: 2, action: { type: 'verify', field_id: 'material' } },
+    { actor: 'estimator', at: 3, action: { type: 'reopen', field_id: 'material' } },
+  ] });
+  await replay.next();
+  await replay.next();
+  expect(getState().fields.find(f => f.id === 'material')?.state).toBe('verified');
+  // The viewer verifies an already-verified fixture-locked field: logged, but no state change.
+  dispatchHuman({ type: 'verify', field_id: 'material', at: 10 });
+  expect(getState().fields.find(f => f.id === 'material')?.resolution?.at).toBe(2);
+  await replay.next();
+  expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
+  replay.dispose();
+});
