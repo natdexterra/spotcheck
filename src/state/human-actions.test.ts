@@ -20,3 +20,14 @@ test('verify: resolves reviewable provenance at the action time, not empty/confl
   }
   expect(reviewSession(verified).log).toHaveLength(2);
 });
+
+test('edit_start locks immediately; edit saves and verifies with unit validation', () => {
+  const before = propose('overall_dimensions');
+  const typing = act(before, { type: 'edit_start', field_id: 'overall_dimensions', at: 15 } as HumanAction);
+  expect(get(typing, 'overall_dimensions')).toMatchObject({ locked: true, state: 'needs_review' });
+  const saved = act(typing, { type: 'edit', field_id: 'overall_dimensions', value: '20 × 14.5', unit: 'in', at: 20 } as HumanAction);
+  expect(get(saved, 'overall_dimensions')).toMatchObject({ locked: true, state: 'verified', unit: 'in', resolution: { kind: 'edited', at: 20 } });
+  expect(get(saved, 'overall_dimensions').proposal?.value).toBe('6061');
+  const bad = act(typing, { type: 'edit', field_id: 'overall_dimensions', value: '20', unit: 'ft' } as HumanAction);
+  expect(get(bad, 'overall_dimensions').state).toBe('needs_review');
+});
