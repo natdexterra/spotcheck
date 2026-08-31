@@ -19,7 +19,7 @@ export const modelContext = () => {
 };
 
 test('registration: six literal tools on load, exact descriptions, annotations and budgets', async () => {
-  const { roster } = modelContext();
+  const { roster, context } = modelContext();
   await import('./webmcp-tools');
   expect([...roster.keys()]).toEqual(['list_rfq_documents', 'read_document', 'propose_field', 'report_conflict', 'report_missing', 'get_review_state']);
   const spec = readFileSync('build-spec.md', 'utf8');
@@ -33,6 +33,7 @@ test('registration: six literal tools on load, exact descriptions, annotations a
   expect(roster.get('list_rfq_documents')?.annotations).toEqual({ readOnlyHint: true });
   expect(roster.get('read_document')?.annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true });
   expect(roster.get('get_review_state')?.annotations).toEqual({ readOnlyHint: true, untrustedContentHint: true });
+  for (const [, options] of context.registerTool.mock.calls) expect(options?.signal).toBeInstanceOf(AbortSignal);
 });
 
 test('validation: structured input errors and successful reads/proposals', async () => {
