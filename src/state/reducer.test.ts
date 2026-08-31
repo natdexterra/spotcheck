@@ -26,3 +26,17 @@ test('invariant-02: agent writes preserve the locked current field', () => {
     expect(agent(before, type).fields).toEqual(before.fields);
   }
 });
+
+test('invariant-03: reports never release locks or acquire human locks', () => {
+  for (const locked of [false, true]) {
+    const before = state({ locked });
+    for (const [type, input, expected] of [
+      ['report_missing', { field_id: 'material', searched: ['spec'] }, 'missing'],
+      ['report_conflict', { field_id: 'material', candidates: [proposal, { ...proposal, value: 'steel' }] }, 'conflict'],
+    ] as const) {
+      const result = agent(before, type, input);
+      expect(result.fields[0]?.locked).toBe(locked);
+      expect(result.fields[0]?.state).toBe(locked ? 'empty' : expected);
+    }
+  }
+});
