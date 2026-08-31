@@ -136,3 +136,25 @@ test('B8 preserves default human timestamps and rejected null tool input', async
   await importSession(exportSession());
   expect(getState()).toEqual(before);
 });
+
+test('P1.1 replay: a partially viewer-covered send resolves the remaining fields and still confirms', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const fixture = JSON.parse(readFileSync('data/sample-session.stub.json', 'utf8'));
+  const sendIndex = fixture.steps.findIndex((step: { action?: { type?: string } }) => step.action?.type === 'send');
+  expect(sendIndex).toBeGreaterThan(0);
+  const replay = createReplay(fixture);
+  while (replay.position < sendIndex) await replay.next();
+  dispatchHuman({ type: 'dismiss', field_id: 'drawing_number', reason: 'Not required', at: 27500 });
+  while (await replay.next()) { /* run the send and the confirm */ }
+  const fields = getState().fields;
+  expect(fields.find(f => f.id === 'general_tolerance')?.resolution?.kind).toBe('asked_customer');
+  expect(fields.find(f => f.id === 'drawing_revision')?.resolution?.kind).toBe('asked_customer');
+  expect(fields.find(f => f.id === 'drawing_number')?.resolution?.kind).toBe('dismissed');
+  const notes = reviewSession(getState()).log.flatMap(entry => entry.notes ?? []);
+  expect(notes).toContain('Skipped fixture step: viewer handled drawing_number');
+  expect(reviewSession(getState()).sent?.covers).toEqual(['general_tolerance', 'drawing_revision']);
+  expect(getState().confirmed).toBe(true);
+  replay.dispose();
+});
