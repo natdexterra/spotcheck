@@ -70,40 +70,41 @@ export function registerTools(): void {
   if (typeof window !== 'undefined' && window.top !== window) return;
   if (registered) return;
   registered = true;
+  const controller = new AbortController();
   document.modelContext.registerTool({
     name: 'list_rfq_documents',
     description: 'Lists the documents in the RFQ package with their section index. Call once at the start to learn what can be read; use the section ids with read_document.',
     inputSchema: schema(), annotations: { readOnlyHint: true }, execute: input => executeTool('list_rfq_documents', input),
-  });
+  }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'read_document',
     description: 'Reads one section of one document and returns its text as regions with stable ids. Use those region ids as source_refs when proposing values. One section per call; output is capped, so read the sections you need.',
     inputSchema: schema({ doc_id: text('Document id from list_rfq_documents: email, spec or drawing.'), section_id: text("Section id from that document's index, e.g. s3 or overall.") }),
     annotations: { readOnlyHint: true, untrustedContentHint: true }, execute: input => executeTool('read_document', input),
-  });
+  }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'propose_field',
     description: 'Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead.',
     inputSchema: schema({ field_id: field, value, unit, source_refs: refs, rationale: text('One sentence on why this value; the estimator reads it.') }),
     execute: input => executeTool('propose_field', input),
-  });
+  }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'report_conflict',
     description: 'Reports that the sources disagree about a field. Include every candidate with its value and sources — the estimator resolves the conflict; you cannot. A candidate may record an absence ("none stated") with the section where the value should have been.',
     inputSchema: schema({ field_id: field, candidates: { type: 'array', items: schema({ value, unit, source_refs: refs, note: { type: 'string' } }) }, note: { type: 'string' } }),
     execute: input => executeTool('report_conflict', input),
-  });
+  }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'report_missing',
     description: "Reports that a field's value is absent after a real search, naming where you looked. Use this instead of guessing; the estimator sees the searched places and decides what to do.",
     inputSchema: schema({ field_id: field, searched: { type: 'array', items: { type: 'string' } }, note: { type: 'string' } }),
     execute: input => executeTool('report_missing', input),
-  });
+  }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'get_review_state',
     description: 'Returns the whole review: every field with its state, value and lock, which fields are still unverified, and which are open gaps. Call it to plan your next step or to answer questions about the review.',
     inputSchema: schema(), annotations: { readOnlyHint: true, untrustedContentHint: true }, execute: input => executeTool('get_review_state', input),
-  });
+  }, { signal: controller.signal });
   subscribeReview(syncDraftTool);
   syncDraftTool();
 }
