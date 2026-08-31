@@ -22,7 +22,13 @@ function checkImports(entry: string, read: (path: string) => string = path => re
     const ts = tokens(read(file));
     for (let i = 0; i < ts.length; i++) {
       if (ts[i] !== 'import' && ts[i] !== 'export') continue;
-      if (ts[i] === 'import' && ts[i + 1] === '.') continue; // import.meta.glob: fixture data, not executable imports
+      if (ts[i] === 'import' && ts[i + 1] === '.') {
+        const open = ts.indexOf('(', i);
+        const pattern = ts[open + 1] ?? '';
+        if (ts[i + 4] !== 'glob' || !/^['"][^'"]+\.json['"]$/.test(pattern) || ![',', ')'].includes(ts[open + 2]!))
+          throw new Error('Only literal JSON fixture globs may bypass executable import traversal');
+        continue;
+      }
       if (ts[i + 1] === '(') throw new Error('Dynamic executable imports need an explicit capability review');
       const end = ts.indexOf(';', i);
       const statement = ts.slice(i, end < 0 ? ts.length : end);
@@ -53,6 +59,7 @@ test('T1: finished tool module imports no human capability, including transitive
     "export {dispatchHuman as run} from './state/store';",
     "export * from './state/store';",
     "import * as store from './state/store'; export const run = store.dispatchHuman;",
+    "const modules = import.meta.glob('./state/store.ts', { eager: true }); export const run = modules['./state/store.ts'].dispatchHuman;",
   ]) {
     const files = new Map([[resolve('src/probe.ts'), "import {run} from './wrapper'; run();"], [resolve('src/wrapper.ts'), wrapper]]);
     expect(() => checkImports(resolve('src/probe.ts'), path => files.get(path) ?? readFileSync(path, 'utf8'))).toThrow();
