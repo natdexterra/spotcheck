@@ -1,5 +1,8 @@
 import type { AppState } from './types';
 import { isGap } from './session';
+import { getState } from './store';
+
+export const selectToolResult = (_readOnly: boolean): Record<string, unknown> => selectReviewState(getState());
 
 export const selectGaps = (state: AppState) => state.fields.filter(isGap).map(field => field.id);
 export const selectBlockers = (state: AppState) => state.fields.filter(field => field.state !== 'verified').map(field => field.id);

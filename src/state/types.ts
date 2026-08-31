@@ -74,7 +74,7 @@ export interface Field {
 
 // Agent dispatcher action union — nothing else.
 export type AgentAction =
-  | { type: 'read'; input?: unknown; at?: number }
+  | { type: 'read'; input?: unknown; at?: number; operation?: 'list' | 'section' | 'review'; quiet?: boolean }
   | { type: 'propose'; input?: unknown; at?: number }
   | { type: 'report_conflict'; input?: unknown; at?: number }
   | { type: 'report_missing'; input?: unknown; at?: number }
