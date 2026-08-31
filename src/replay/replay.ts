@@ -54,14 +54,24 @@ export function createReplay(source: Fixture = sampleSession) {
     const startedGeneration = generation;
     try {
       let nextStep = step;
+      let dispatchReduced: (() => void) | undefined;
       if (step.actor === 'estimator') {
         const action = step.action;
         const ids = 'field_id' in action && action.field_id ? [action.field_id] : action.type === 'send' ? action.covers ?? [] : [];
         const overrides = ids.filter(id => viewerHandled.has(id));
-        if (overrides.length) nextStep = { ...step, action: { ...action, replay_skip: `viewer handled ${overrides.join(', ')}` } };
+        if (overrides.length === ids.length && overrides.length) {
+          // D14: skip the whole step only when the viewer already handled every covered field.
+          nextStep = { ...step, action: { ...action, replay_skip: `viewer handled ${overrides.join(', ')}` } };
+        } else if (overrides.length && action.type === 'send') {
+          // Partial coverage: log the dropped subset as a skip, then dispatch the reduced send.
+          nextStep = { ...step, action: { ...action, covers: overrides, replay_skip: `viewer handled ${overrides.join(', ')}` } };
+          const remaining = ids.filter(id => !viewerHandled.has(id));
+          dispatchReduced = () => dispatchHuman({ ...action, covers: remaining, at: step.at });
+        }
       }
       applyingFixture = true;
       const pending = runStep(nextStep);
+      dispatchReduced?.();
       applyingFixture = false;
       await pending;
       if (generation === startedGeneration) position++;
