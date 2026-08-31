@@ -7,6 +7,12 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 });
 
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
+  if (action.type === 'reopen') return { ...state, fields: state.fields.map(field => {
+    if (field.id !== action.field_id || field.state !== 'verified') return field;
+    const { resolution: _resolution, ...rest } = field;
+    return { ...rest, locked: true, ask_customer: false,
+      state: field.candidates?.length ? 'conflict' : field.searched ? 'missing' : field.proposal ? 'needs_review' : 'empty' };
+  }) };
   if (action.type === 'send') {
     const session = reviewSession(state);
     if (!session.draft || !action.subject?.trim() || !action.body?.trim() || !Array.isArray(action.covers)) return state;
