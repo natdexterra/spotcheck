@@ -102,3 +102,11 @@ test('invariant-10: confirmed writes are frozen and reads still log', () => {
   expect(human(before, { type: 'verify', field_id: 'material' })).toBe(before);
   expect(reviewSession(agent(before, 'read')).log).toHaveLength(1);
 });
+
+test('invariant-11: accepted proposals and every candidate require resolvable provenance', () => {
+  for (const source_refs of [[], ['spec:unknown'], ['spec:s1.1', 'bad']]) {
+    expect(agent(state(), 'propose', { ...proposal, source_refs }).fields[0]?.state).toBe('empty');
+    expect(agent(state(), 'report_conflict', { field_id: 'material', candidates: [proposal, { ...proposal, source_refs }] }).fields[0]?.state).toBe('empty');
+  }
+  expect(agent(state(), 'propose').fields[0]?.proposal?.source_refs).toEqual(['spec:s1.1']);
+});
