@@ -12,10 +12,14 @@ const hasSources = (value: unknown): boolean => {
 export function reduce(state: AppState, event: DispatchedEvent): AppState {
   if (state.confirmed && !(event.actor === 'agent' && event.action.type === 'read')) return state;
   const next = transition(state, event);
-  return { ...reviewSession(next), log: [...reviewSession(state).log, {
+  return { ...reviewSession(next),
+    ...(event.actor === 'agent' && event.action.type !== 'read' && reviewSession(state).startedAt === undefined
+      ? { startedAt: event.action.at ?? 0 } : {}),
+    log: [...reviewSession(state).log, {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
     at: 'at' in event.action ? event.action.at ?? 0 : 0,
     event: structuredClone(event),
+    ...(next.confirmed && !state.confirmed ? { notes: state.fields.filter(f => f.suggestion).map(f => `Auto-dismissed suggestion: ${f.id}`) } : {}),
     ...(event.actor === 'human' && event.action.type === 'send' && next !== state && reviewSession(state).draft && reviewSession(next).sent
       ? { diff: { before: reviewSession(state).draft!, after: reviewSession(next).sent! } } : {}),
   }] };

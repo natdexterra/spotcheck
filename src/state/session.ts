@@ -28,6 +28,8 @@ export interface ReviewSession extends AppState {
   log: LogEntry[];
   draft?: Draft;
   sent?: Draft;
+  startedAt?: number;
+  confirmedAt?: number;
 }
 
 export const reviewSession = (state: AppState): ReviewSession => ({
