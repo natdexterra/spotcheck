@@ -1,4 +1,5 @@
 import { executeTool } from '../webmcp-tools';
+import { resumePersistence, suspendPersistence } from './persistence';
 import type { ToolName } from '../webmcp-tools';
 import { dispatchHuman, getState, replaceState, subscribe } from '../state/store';
 import { createInitialState, reviewSession } from '../state/session';
@@ -23,6 +24,7 @@ export function createReplay(source: Fixture = sampleSession) {
   let disposed = false;
   let generation = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
+  suspendPersistence();
   replaceState(createInitialState());
   const viewerHandled = new Set<FieldId>();
   let applyingFixture = false;
@@ -91,6 +93,6 @@ export function createReplay(source: Fixture = sampleSession) {
     next, pause,
     play() { if (!disposed) { playing = true; schedule(); } },
     restart() { pause(); generation++; position = 0; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); },
-    dispose() { pause(); disposed = true; unsubscribe(); },
+    dispose() { pause(); if (!disposed) { disposed = true; unsubscribe(); resumePersistence(); } },
   };
 }
