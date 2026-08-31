@@ -1,0 +1,301 @@
+{
+  "recorded_at": "stub - hand-written until a live run is recorded",
+  "steps": [
+    {
+      "actor": "agent",
+      "at": 1000,
+      "call": {
+        "tool": "list_rfq_documents",
+        "input": {}
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 2000,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "email",
+          "section_id": "body"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 3000,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s3"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 4000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "customer_rfq_ref",
+          "value": "RFQ 26-0812",
+          "source_refs": [
+            "email:subject"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 4500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "part_name",
+          "value": "Hanging KVM mount bracket",
+          "source_refs": [
+            "spec:title",
+            "email:p1"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 5000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "value": "6061-T6 aluminum or equivalent",
+          "source_refs": [
+            "spec:s3.1",
+            "email:p3"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 5500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "stock_thickness",
+          "value": ".080 main / .035 support / 3/16 L",
+          "source_refs": [
+            "spec:s3.1"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 6000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "surface_finish",
+          "value": "Black powder coat",
+          "source_refs": [
+            "spec:s3.4",
+            "email:p4"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 6500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "delivery",
+          "value": "Two weeks from PO, FOB destination",
+          "source_refs": [
+            "email:p5"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 7000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "general_tolerance",
+          "value": "+/- 0.010",
+          "source_refs": [
+            "spec:s3.3"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 7500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "drawing_number",
+          "value": "C2.1 Attachment 2",
+          "source_refs": [
+            "spec:s3.0"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 8000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "drawing_revision",
+          "value": "A",
+          "source_refs": [
+            "email:p1"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 8500,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "quantity",
+          "value": "800",
+          "source_refs": [
+            "spec:s1.1"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 9000,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "overall_dimensions",
+          "value": "20 x 14.5",
+          "source_refs": [
+            "drawing:width",
+            "drawing:height"
+          ],
+          "rationale": "stub"
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 9500,
+      "action": {
+        "type": "edit",
+        "field_id": "overall_dimensions",
+        "value": "20 x 14.5",
+        "unit": "in"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 10000,
+      "action": {
+        "type": "verify",
+        "field_id": "customer_rfq_ref"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 10300,
+      "action": {
+        "type": "verify",
+        "field_id": "part_name"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 10600,
+      "action": {
+        "type": "verify",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 10900,
+      "action": {
+        "type": "verify",
+        "field_id": "stock_thickness"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 11200,
+      "action": {
+        "type": "verify",
+        "field_id": "surface_finish"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 11500,
+      "action": {
+        "type": "verify",
+        "field_id": "delivery"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 11800,
+      "action": {
+        "type": "verify",
+        "field_id": "general_tolerance"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 12100,
+      "action": {
+        "type": "verify",
+        "field_id": "drawing_number"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 12400,
+      "action": {
+        "type": "verify",
+        "field_id": "drawing_revision"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 12700,
+      "action": {
+        "type": "verify",
+        "field_id": "quantity"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 13000,
+      "action": {
+        "type": "confirm"
+      }
+    }
+  ]
+}
