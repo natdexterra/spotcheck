@@ -93,3 +93,12 @@ test('invariant-09: each unfrozen action emits one attributed log entry', () => 
   expect(reviewSession(result).log).toHaveLength(5);
   expect(reviewSession(result).log.at(-1)?.actor).toBe('estimator');
 });
+
+test('invariant-10: confirmed writes are frozen and reads still log', () => {
+  const before = { ...state(), confirmed: true };
+  for (const type of ['propose', 'report_conflict', 'report_missing', 'draft'] as const) {
+    expect(agent(before, type)).toBe(before);
+  }
+  expect(human(before, { type: 'verify', field_id: 'material' })).toBe(before);
+  expect(reviewSession(agent(before, 'read')).log).toHaveLength(1);
+});
