@@ -172,3 +172,22 @@ test('draft lifecycle: gap roster changes, idempotent registration and abort wai
   dispatchHuman({ type: 'dismiss', field_id: 'delivery', reason: 'Not required' });
   expect(roster.size).toBe(6);
 });
+
+test('registration is top-level only and unsupported browsers remain usable', async () => {
+  const { roster } = modelContext();
+  vi.stubGlobal('window', { top: {} });
+  await import('./webmcp-tools');
+  expect(roster.size).toBe(0);
+});
+
+test('malformed values never throw; all seven tool results in the hand stub fit the budget', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { dispatchHuman } = await import('./state/store');
+  for (const input of [null, [], {}, 42, 'text']) for (const tool of ['propose_field', 'report_conflict', 'report_missing', 'draft_clarification', 'read_document'] as const)
+    await expect(executeTool(tool, input)).resolves.toMatchObject({ ok: false });
+  for (const step of JSON.parse(readFileSync('data/sample-session.stub.json', 'utf8')).steps) {
+    if (step.actor === 'agent') expect(JSON.stringify(await executeTool(step.call.tool, step.call.input, step.at)).length).toBeLessThan(1500);
+    else dispatchHuman({ ...step.action, at: step.at });
+    expect(JSON.stringify(await executeTool('get_review_state', {})).length).toBeLessThan(1500);
+  }
+});

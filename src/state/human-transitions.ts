@@ -1,4 +1,4 @@
-import type { AppState, Field, HumanAction, ResolutionKind } from './types';
+import type { AppState, Field, FieldState, HumanAction, ResolutionKind } from './types';
 import { canConfirm, isGap, reviewSession } from './session';
 import type { ReviewSession } from './session';
 
@@ -17,8 +17,10 @@ export function transitionHuman(state: AppState, action: HumanAction): AppState 
   if (action.type === 'reopen') return { ...state, fields: state.fields.map(field => {
     if (field.id !== action.field_id || field.state !== 'verified') return field;
     const { resolution: _resolution, ...rest } = field;
+    const latest = [...reviewSession(state).log].reverse().find(entry => entry.actor === 'agent' && entry.result?.ok === true && entry.result.field_id === field.id);
+    const derived = latest?.result?.state as FieldState | undefined;
     return { ...rest, locked: true, ask_customer: false,
-      state: field.candidates?.length ? 'conflict' : field.searched ? 'missing' : field.proposal ? 'needs_review' : 'empty' };
+      state: derived ?? (field.candidates?.length ? 'conflict' : field.searched ? 'missing' : field.proposal ? 'needs_review' : 'empty') };
   }) };
   if (action.type === 'send') {
     const session = reviewSession(state);
@@ -54,6 +56,7 @@ export function transitionHuman(state: AppState, action: HumanAction): AppState 
     field.id === action.field_id ? { ...field, locked: true } : field) };
   if (action.type === 'edit' || action.type === 'enter') {
     if (typeof action.value !== 'string' || !action.value.trim()) return state;
+    if (action.field_id === 'quantity' && !/^\d+$/.test(action.value)) return state;
     return { ...state, fields: state.fields.map(field => {
       if (field.id !== action.field_id) return field;
       const next = { ...field, value: action.value!, ...(field.id === 'overall_dimensions' ? { unit: action.unit ?? field.unit } : {}) };

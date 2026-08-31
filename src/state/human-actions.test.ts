@@ -9,6 +9,19 @@ const propose = (id: FieldId = 'material', unit?: string) => reduce(createInitia
 const act = (state: AppState, action: HumanAction) => reduce(state, { actor: 'human', action });
 const get = (state: AppState, id: FieldId = 'material') => state.fields.find(f => f.id === id)!;
 
+test('reopen derives the latest accepted agent state, not superseded missing evidence', () => {
+  const missing = reduce(createInitialState(), { actor: 'agent', action: { type: 'report_missing', input: { field_id: 'material', searched: ['spec'] }, at: 1 } });
+  const proposed = reduce(missing, { actor: 'agent', action: { type: 'propose', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] }, at: 2 } });
+  const verified = act(proposed, { type: 'verify', field_id: 'material', at: 3 });
+  const reopened = act(verified, { type: 'reopen', field_id: 'material', at: 4 });
+  expect(get(reopened)).toMatchObject({ state: 'needs_review', locked: true, value: 'steel' });
+  expect(get(reopened).searched).toEqual({ searched: ['spec'] });
+});
+
+test('human quantity entry obeys integer-text taxonomy', () => {
+  for (const value of ['1.5', 'many', '']) expect(get(act(createInitialState(), { type: 'enter', field_id: 'quantity', value }), 'quantity').state).toBe('empty');
+});
+
 test('verify: resolves reviewable provenance at the action time, not empty/conflict/missing', () => {
   const verified = act(propose(), { type: 'verify', field_id: 'material', at: 20 });
   expect(get(verified)).toMatchObject({ state: 'verified', locked: true, resolution: { kind: 'verified', at: 20 } });
@@ -105,7 +118,7 @@ test('reopen: derive agent state while keeping the human value and lock', () => 
 test('confirm: all verified gate, timer stops, suggestions auto-dismiss within one entry', () => {
   expect(act(propose(), { type: 'confirm' }).confirmed).toBe(false);
   let s = propose();
-  for (const f of s.fields) s = act(s, { type: 'enter', field_id: f.id, value: 'human', ...(f.id === 'overall_dimensions' ? { unit: 'mm' } : {}) });
+  for (const f of s.fields) s = act(s, { type: 'enter', field_id: f.id, value: f.id === 'quantity' ? '800' : 'human', ...(f.id === 'overall_dimensions' ? { unit: 'mm' } : {}) });
   get(s).suggestion = { value: 'agent', source_refs: ['spec:s1.1'] };
   const result = act(s, { type: 'confirm', at: 50 } as HumanAction);
   expect(result.confirmed).toBe(true);
