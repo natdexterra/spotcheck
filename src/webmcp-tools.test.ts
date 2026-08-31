@@ -1,7 +1,7 @@
 import { afterEach, expect, test, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 
-afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
+afterEach(() => { vi.useRealTimers(); vi.unstubAllGlobals(); vi.resetModules(); });
 
 export interface TestTool {
   name: string; description: string; inputSchema: { properties?: Record<string, { description?: string }> };
@@ -152,6 +152,7 @@ test('fixture output budgets, read provenance/privacy, S4 units and quiet inject
 });
 
 test('draft lifecycle: gap roster changes, idempotent registration and abort waits for pending calls', async () => {
+  vi.useFakeTimers();
   const { roster, events } = modelContext();
   const { registerTools, executeTool } = await import('./webmcp-tools');
   registerTools();
@@ -163,9 +164,16 @@ test('draft lifecycle: gap roster changes, idempotent registration and abort wai
   expect(readFileSync('build-spec.md', 'utf8')).toContain('> ' + draft.description);
   // execute returns a pending Promise; the synchronous human event closes the last gap before it settles.
   const pending = draft.execute({ subject: 'Question', body: 'Number?', covers: ['drawing_number'] });
+  let settled = false;
+  void pending.then(() => { settled = true; });
+  const registration = (document.modelContext!.registerTool as ReturnType<typeof vi.fn>).mock.calls.find(([tool]) => tool.name === 'draft_clarification')!;
+  let settledWhenAborted: boolean | undefined;
+  registration[1].signal.addEventListener('abort', () => { settledWhenAborted = settled; });
   dispatchHuman({ type: 'dismiss', field_id: 'drawing_number', reason: 'Not required' });
   expect(roster.has('draft_clarification')).toBe(true);
   await pending;
+  await vi.runAllTimersAsync();
+  expect(settledWhenAborted).toBe(true);
   expect(roster.size).toBe(6);
   await executeTool('report_missing', { field_id: 'delivery', searched: ['email'] });
   expect(roster.size).toBe(7);

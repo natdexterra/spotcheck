@@ -30,7 +30,11 @@ export async function executeTool(name: ToolName, input: unknown, at = Date.now(
   const result = selectToolResult(name === 'list_rfq_documents' || name === 'read_document' || name === 'get_review_state');
   return await Promise.resolve(structuredClone(result));
   } finally {
-    if (name === 'draft_clarification') { draftInFlight--; syncDraftTool(); }
+    if (name === 'draft_clarification') {
+      // Finally still runs inside the returned Promise. Release the registration on the next turn,
+      // after that Promise and its caller's settlement handlers have completed.
+      setTimeout(() => { draftInFlight--; syncDraftTool(); }, 0);
+    }
   }
 }
 
