@@ -16,7 +16,7 @@ const toolForAction = (action: AgentAction): ToolName => {
 export function exportSession(recorded_at = new Date().toISOString()): string {
   const steps: Step[] = reviewSession(getState()).log.map(entry => {
     if (entry.event.actor === 'agent') return { actor: 'agent', at: entry.at,
-      call: { tool: toolForAction(entry.event.action), input: entry.event.action.input ?? {} } };
+      call: { tool: toolForAction(entry.event.action), input: entry.event.action.input } };
     const { at: _at, ...action } = entry.event.action;
     return { actor: 'estimator', at: entry.at, action };
   });

@@ -16,7 +16,7 @@ export function reduce(state: AppState, event: DispatchedEvent): AppState & Part
     log: [...reviewSession(state).log, {
     actor: event.actor === 'human' ? 'estimator' : 'agent',
     at: 'at' in event.action ? event.action.at ?? 0 : 0,
-    event: structuredClone(event),
+    event: structuredClone({ ...event, action: { ...event.action, at: event.action.at ?? 0 } }),
     ...(result ? { result } : {}),
     ...(agent?.notes ? { notes: agent.notes } : {}),
     ...(skip ? { notes: [`Skipped fixture step: ${skip}`] } : {}),
