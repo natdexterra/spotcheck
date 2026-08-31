@@ -39,7 +39,7 @@ Actors: the **estimator** (the person reviewing the quote request) and the **age
 | B7 | Agent mistakes are answered, not swallowed | Unknown field, unknown region id, schema violation, wrong types | Unit tests per error code; eval: the agent self-corrects after `INVALID_SOURCE_REF` |
 | B8 | Export the session | A button exports the tool-call log as JSON in the fixture format; importing it replays identically | Unit test: export → import → same final state |
 | B9 | Keyboard review | `j` / `k` move between flagged fields, `Enter` verifies, `Esc` closes the source panel; focus visible; Escape restores focus | Playwright keyboard run; a11y audit |
-| B10 | Narrow screens | Below 900 px the layout is a single column; the source opens over the field list; touch targets ≥ 44 px; the sample session is the primary call to action | Playwright at 390 and 820 px widths |
+| B10 | Narrow screens | Below 1024 px the layout is a single column; the source opens over the field list; touch targets ≥ 44 px; the sample session is the primary call to action | Playwright at 390 and 820 px widths |
 | B11 | Reduced motion and announcements | Field entry animation off under `prefers-reduced-motion`; state changes announced through a live region | Playwright with the media query emulated; a11y audit |
 
 ## T — trust and data boundaries

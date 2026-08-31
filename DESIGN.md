@@ -122,7 +122,7 @@ Rules the builder must not trade away:
   1. 1920 → ~1400: margins give way (80 → 28); the source pane absorbs the rest; the field pane holds 640px.
   2. → 1280: the source pane reaches its comfortable minimum (document measure ≥ 52ch); document padding steps 48 → 32.
   3. 1280 → down: the field pane gives way 640 → 480; pane gap 24 → 16.
-  4. Below 900px: one column; the source pane opens as a sheet over the list (shell rules in the spec). On one-column widths above ~600px the content column caps at 680px, centered.
+  4. Below 1024px: one column; the source pane opens as a sheet over the list (shell rules in the spec). On one-column widths above ~600px the content column caps at 680px, centered.
   - Anti-overlap is a rule, not a hope: each pane has an explicit min-width; values wrap and are never truncated; badges are `flex-shrink: 0`; action rows wrap. Grid: `minmax(480px, 640px) minmax(460px, 1fr)`.
 - The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
 - Hit targets: ≥ 24×24 CSS px everywhere (WCAG 2.5.8), ≥ 44px on the narrow layout. Dense text buttons reach it with padding (`min-height: 1.5rem` desktop, `2.75rem` narrow), not with larger type.
