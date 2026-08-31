@@ -85,7 +85,7 @@ export type HumanAction =
   | { type: 'verify'; field_id?: FieldId; at?: number }
   | { type: 'edit'; field_id?: FieldId; value?: string; unit?: string | null; at?: number }
   | { type: 'edit_start'; field_id?: FieldId; at?: number }
-  | { type: 'enter' }
+  | { type: 'enter'; field_id?: FieldId; value?: string; unit?: string | null; at?: number }
   | { type: 'pick' }
   | { type: 'dismiss' }
   | { type: 'apply' }

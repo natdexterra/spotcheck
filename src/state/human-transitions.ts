@@ -8,12 +8,12 @@ const resolve = (field: Field, kind: ResolutionKind, at: number): Field => ({
 export function transitionHuman(state: AppState, action: HumanAction): AppState {
   if (action.type === 'edit_start') return { ...state, fields: state.fields.map(field =>
     field.id === action.field_id ? { ...field, locked: true } : field) };
-  if (action.type === 'edit') {
+  if (action.type === 'edit' || action.type === 'enter') {
     if (typeof action.value !== 'string' || !action.value.trim()) return state;
     return { ...state, fields: state.fields.map(field => {
       if (field.id !== action.field_id) return field;
       const next = { ...field, value: action.value!, ...(field.id === 'overall_dimensions' ? { unit: action.unit ?? field.unit } : {}) };
-      return hasUnit(next) ? resolve(next, 'edited', action.at ?? 0) : field;
+      return hasUnit(next) ? resolve(next, action.type === 'enter' ? 'entered' : 'edited', action.at ?? 0) : field;
     }) };
   }
   if (action.type !== 'verify') return state;
