@@ -82,3 +82,28 @@ test('rejection precedence: confirmed > locked > conflict > input; no silent mer
   }
   expect(await executeTool('get_review_state', {})).toHaveProperty('confirmed', true);
 });
+
+test('suggestions require valid provenance; equal value agrees; locked reports only add valid notes', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { dispatchHuman, getState } = await import('./state/store');
+  const { reviewSession } = await import('./state/session');
+  dispatchHuman({ type: 'enter', field_id: 'material', value: 'human steel' });
+  const before = structuredClone(getState().fields.find(f => f.id === 'material'));
+  const proposal = { field_id: 'material', value: 'aluminum', source_refs: ['spec:s3.1'] };
+  for (const source_refs of [[], ['bad']]) {
+    expect(await executeTool('propose_field', { ...proposal, source_refs })).toMatchObject({ code: 'FIELD_LOCKED', suggestion_recorded: false });
+    expect(getState().fields.find(f => f.id === 'material')).toEqual(before);
+  }
+  expect(await executeTool('propose_field', proposal)).toMatchObject({ code: 'FIELD_LOCKED', suggestion_recorded: true, current: { value: 'human steel', state: 'verified', resolution: 'entered' } });
+  const suggested = getState().fields.find(f => f.id === 'material')!;
+  expect(suggested.suggestion).toMatchObject({ value: 'aluminum', source_refs: ['spec:s3.1'] });
+  const { suggestion: _suggestion, ...decision } = suggested;
+  expect(decision).toEqual(before);
+  expect(await executeTool('propose_field', { ...proposal, value: 'human steel' })).toMatchObject({ suggestion_recorded: false });
+  expect(getState().fields.find(f => f.id === 'material')?.suggestion).toEqual(suggested.suggestion);
+  expect(reviewSession(getState()).log.at(-1)?.notes).toContain('agent independently agrees');
+  await executeTool('report_missing', { field_id: 'material', searched: ['spec'], note: 'looked again' });
+  expect(reviewSession(getState()).log.at(-1)?.notes).toContain('looked again');
+  await executeTool('report_missing', { field_id: 'material', searched: [], note: 'invalid note' });
+  expect(reviewSession(getState()).log.at(-1)?.notes).toBeUndefined();
+});
