@@ -110,3 +110,10 @@ test('invariant-11: accepted proposals and every candidate require resolvable pr
   }
   expect(agent(state(), 'propose').fields[0]?.proposal?.source_refs).toEqual(['spec:s1.1']);
 });
+
+test('invariant-12: unit-bearing value cannot verify without a unit', () => {
+  const before = agent(state({ id: 'overall_dimensions' }), 'propose', { ...proposal, field_id: 'overall_dimensions' });
+  expect(human(before, { type: 'verify', field_id: 'overall_dimensions' }).fields[0]?.state).toBe('needs_review');
+  const withUnit = agent(state({ id: 'overall_dimensions' }), 'propose', { ...proposal, field_id: 'overall_dimensions', unit: 'in' });
+  expect(human(withUnit, { type: 'verify', field_id: 'overall_dimensions' }).fields[0]?.state).toBe('verified');
+});

@@ -21,7 +21,8 @@ export function reduce(state: AppState, event: DispatchedEvent): AppState {
 function transition(state: AppState, event: DispatchedEvent): AppState {
   if (event.actor === 'human' && event.action.type === 'verify') {
     const id = event.action.field_id;
-    return { ...state, fields: state.fields.map(field => field.id === id && field.state === 'needs_review'
+    return { ...state, fields: state.fields.map(field => field.id === id && field.state === 'needs_review' &&
+      (field.id !== 'overall_dimensions' || field.unit === 'in' || field.unit === 'mm')
       ? { ...field, state: 'verified', locked: true } : field) };
   }
   if (event.actor === 'agent' && event.action.type === 'propose') {
@@ -30,6 +31,7 @@ function transition(state: AppState, event: DispatchedEvent): AppState {
     if (!hasSources(input)) return state;
     return { ...state, fields: state.fields.map(field => field.id === input.field_id && !field.locked && field.state !== 'conflict'
       ? { ...field, state: 'needs_review', value: input.value, proposal: structuredClone(input),
+          ...(field.id === 'overall_dimensions' ? { unit: input.unit ?? null } : {}),
           ...(field.proposal ? { revised: { was: field.value, at: event.action.at ?? 0 } } : {}) }
       : field) };
   }
