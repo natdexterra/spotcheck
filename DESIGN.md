@@ -18,40 +18,62 @@ The agent proposes; only a person verifies, edits, resolves and confirms. The UI
 - Locked fields show a small lock glyph beside the badge; the lock never releases and the glyph never disappears.
 - Reads are visible: the source tab shows a "reading" marker and the section briefly highlights during a live `read_document` call, so the reviewer sees exactly what the agent received.
 
-## Visual direction — engineering paper
+## Visual direction — cool engineering drafting
 
-The workspace reads like a well-kept drafting document, not a chat product: warm paper ground, graphite ink, 1px hairline rules instead of shadows, sharp corners, a single drawing-blue accent, and mono for everything that is *data* (values, units, ids, counts, timestamps). Density is high; hierarchy comes from type roles and rules, not from boxes.
+The workspace reads like a well-kept engineering document register, not a chat product: a cool gray-blue canvas with white working panels, near-black ink, 1px hairline rules instead of decorative boxes, sharp corners, one drafting-blue accent, and mono for everything that is *data* (values, units, ids, counts, timestamps). Density is high; hierarchy comes from type roles and rules, not from color.
+
+Grounding for the light, bright ground: reading performance on screens is driven by background luminance — dark text on a light, bright background constricts the pupil and sharpens the retinal image (Buchner, Mayr & Brandt 2009; Piepenbrock et al. 2013, both age groups) — while the hue tint of a near-white surface is preference territory with mixed evidence. So the canvas stays light and high-luminance, one step below pure white to soften large-field glare, with a cool cast.
 
 - Light theme only. `color-scheme: light` is declared; a dark theme is out of scope for this codebase.
-- Elevation is used twice: the suggestion card and overlay sheets get `--shadow-1: 0 1px 2px rgba(33, 32, 28, 0.10), 0 2px 8px rgba(33, 32, 28, 0.06)`. Everything else sits flat on hairlines.
+- Elevation is used twice: the suggestion card and overlay sheets get `--shadow-1: 0 1px 2px rgba(14, 17, 22, 0.10), 0 2px 8px rgba(14, 17, 22, 0.06)`. Everything else sits flat on hairlines.
+- Borders, hairlines and dividers are **solid colors, never an alpha or `color-mix()` over the surface** — a translucent line renders differently on canvas and on raised panels and breaks the drafting register.
 - Corners: `--radius-1` (2px) for chips and badges, `--radius-2` (4px) for cards, panels and inputs. Nothing rounder.
 
 ## Color tokens
 
-All text colors pass WCAG 2.2 AA (≥ 4.5:1) against `--paper` and `--paper-raised`; state tints are decorative only — state is always carried by icon + label (see State iconography).
+State is always carried by icon + label (see State iconography); tints are decorative reinforcement only.
 
 | Token | Value | Use |
 |---|---|---|
-| `--paper` | `#FAF9F5` | page ground |
-| `--paper-raised` | `#FFFFFF` | cards, panels, inputs, sheets |
-| `--ink` | `#21201C` | primary text, primary buttons |
-| `--ink-secondary` | `#57544B` | labels, secondary text, agent notes |
-| `--ink-tertiary` | `#757164` | timestamps, placeholders, disabled text (md size and up only) |
-| `--hairline` | `#DAD7CC` | rules, borders, dividers |
-| `--hairline-strong` | `#B9B5A7` | input borders, focused-adjacent rules |
-| `--accent` | `#2456B3` | links, provenance chips, focus ring, interactive icons |
-| `--highlight` | `#FFF1BF` | provenance flash background (both panes) |
-| `--highlight-edge` | `#E5B800` | provenance flash outline, active region marker |
-| `--state-conflict` | `#B3261E` | conflict icon + label text |
-| `--state-conflict-tint` | `#FBECEA` | conflict row tint |
-| `--state-missing` | `#8F5B00` | missing icon + label text |
-| `--state-missing-tint` | `#FBF2DC` | missing row tint |
-| `--state-verified` | `#3A6B21` | verified icon + resolution label |
-| `--state-verified-tint` | `#EFF4E9` | verified row tint |
+| `--bg-canvas` | `#F5F7FA` | page ground |
+| `--bg-raised` | `#FFFFFF` | cards, panels, inputs, sheets |
+| `--ink` | `#0E1116` | primary text, primary buttons |
+| `--ink-secondary` | `#5A6573` | labels, secondary text, agent notes |
+| `--ink-muted` | `#626D7A` | timestamps, placeholders (md size and up only) |
+| `--ink-faint` | `#9AA4B2` | disabled text, decorative glyphs — never for readable text |
+| `--hairline` | `#E3E8EE` | rules, dividers, card borders |
+| `--hairline-strong` | `#CBD2DB` | emphasized dividers (decorative only) |
+| `--border-input` | `#808A99` | input and editor boundaries (must hold ≥ 3:1) |
+| `--accent-text` | `#1A56C4` | links, provenance chip text |
+| `--accent` | `#1F6FEB` | focus ring, active markers, graphical accents |
+| `--highlight` | `#E7F0FE` | provenance flash background (both panes) |
+| `--highlight-edge` | `#1F6FEB` | active region outline, reading marker |
+| `--state-conflict` | `#C2293A` | conflict icon + label text |
+| `--state-conflict-tint` | `#FCE8EA` | conflict row tint |
+| `--state-missing` | `#8A5A00` | missing icon + label text |
+| `--state-missing-tint` | `#FFF4E0` | missing row tint |
+| `--state-verified` | `#0E7A45` | verified icon + resolution label |
+| `--state-verified-tint` | `#E4F6EC` | verified row tint |
 | `--state-neutral` | value of `--ink-secondary` | needs_review icon + label |
-| `--state-empty` | value of `--ink-tertiary` | empty icon + label |
+| `--state-empty` | value of `--ink-muted` | empty icon + label |
 
-Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Buttons: primary is ink-filled (`--ink` ground, `--paper` text), secondary is hairline-outlined on paper; the confirm button is the only primary button in the field pane.
+Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Buttons: primary is ink-filled (`--ink` ground, `--bg-raised` text), secondary is hairline-outlined on the panel; the confirm button is the only primary button in the field pane.
+
+### Contrast ledger (computed 2026-08-31, WCAG 2.x)
+
+Re-run whenever a color token changes; this table is the current state, not a permanent truth.
+
+- on `--bg-raised` (white): ink 18.91 · ink-secondary 5.93 · ink-muted 5.27 · accent-text 6.62 · conflict 5.72 · missing 5.93 · verified 5.40 · accent (graphical) 4.63 · border-input (graphical) 3.49
+- on `--bg-canvas`: ink 17.62 · ink-secondary 5.52 · ink-muted 4.91 · accent-text 6.17 · conflict 5.33 · missing 5.52 · verified 5.03 · accent (graphical) 4.32 · border-input (graphical) 3.25
+- state text on its own tint: conflict on conflict-tint 4.87 · missing on missing-tint 5.44 · verified on verified-tint 4.81 · accent-text on highlight 5.77
+- `--highlight-edge` on `--highlight`: 4.04 (graphical, floor 3)
+- `--ink-faint` measures 2.52 on white — that is why it is fenced to disabled and decorative use.
+
+Hard rules that follow:
+
+- Readable text uses `--ink`, `--ink-secondary` or `--ink-muted`; state label text uses its state color; nothing else carries prose.
+- `--accent` (`#1F6FEB`) is graphical: focus rings, markers, icon strokes. Text-sized accent content (links, chips) uses `--accent-text`.
+- Hairlines never carry meaning; the input border is the only boundary that must clear the 3:1 graphical floor, and it has its own token.
 
 ## Typography — cap-height model, Geist + Geist Mono
 
@@ -84,7 +106,9 @@ Rules the builder must not trade away:
 
 ## State iconography
 
-Icons are an own inline-SVG set: 16×16 viewBox, 1.5px stroke, `currentColor`, no icon package. Every state and resolution renders icon + text label — color is never the only carrier (WCAG 1.4.1).
+Base set: **MynaUI Icons** (mynaui.com/icons, MIT, no attribution required) — line variant, 24×24 grid, 1.5px stroke, `currentColor`. Icons are inlined as SVG components in the repo (no icon package at runtime, nothing crosses the CSP); the MIT license text ships alongside the copied SVGs (`src/icons/LICENSE`). Icons render at 16px (12px for the lock marker); if the scaled stroke reads too light next to Geist at sm/md, thicken `stroke-width` in the copied source to 1.75 — one value for the whole set, never per icon. The few glyphs the set lacks (composites like fork-to-check, envelope-with-clock) are drawn custom on the same grid and stroke.
+
+Every state and resolution renders icon + text label — color is never the only carrier (WCAG 1.4.1).
 
 | State / resolution | Icon | Label |
 |---|---|---|
@@ -99,7 +123,7 @@ Icons are an own inline-SVG set: 16×16 viewBox, 1.5px stroke, `currentColor`, n
 | verified / `dismissed` | minus in circle | Not required |
 | verified / `applied` | arrow into check | Applied |
 | verified / `asked_customer` | envelope with clock | Asked customer |
-| lock marker | closed padlock, 12×12 | paired with the badge; `aria-hidden`, text equivalent lives in the badge |
+| lock marker | closed padlock, 12px | paired with the badge; `aria-hidden`, text equivalent lives in the badge |
 
 `dismissed` and `asked_customer` are the null-value resolutions: their icons must not read as a check.
 
@@ -119,10 +143,11 @@ Icons are an own inline-SVG set: 16×16 viewBox, 1.5px stroke, `currentColor`, n
 ## Non-negotiables checklist (QA gates against this file)
 
 - [ ] No color-only state distinction anywhere
-- [ ] Text contrast ≥ 4.5:1 on both grounds; UI component boundaries ≥ 3:1
+- [ ] Text contrast ≥ 4.5:1 on both grounds (ledger above re-run after any color change); input borders and graphical accents ≥ 3:1
+- [ ] Borders and hairlines are solid colors — no alpha, no `color-mix()` over a surface
 - [ ] Root font-size 100%; all type tokens rem; 200% browser zoom leaves the layout usable
 - [ ] No `font:` shorthand; tabular figures on all numeric runs; mono for data
 - [ ] Focus visible on every interactive element; focus return rules honored
 - [ ] Reduced-motion path exercised, not just declared
 - [ ] Untrusted text rendered as text, styled as quoted material where agent-attributed
-- [ ] No third-party font, script or style origin
+- [ ] No third-party font, script, style or icon origin; MynaUI SVGs are copied in with their MIT license text
