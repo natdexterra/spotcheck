@@ -1,4 +1,8 @@
-import type { AppState, DispatchedEvent } from './types';
+import type { AppState, DispatchedEvent, Field } from './types';
+
+export const isGap = (field: Field): boolean => field.state !== 'verified' &&
+  (field.state === 'conflict' || field.state === 'missing' || field.ask_customer === true);
+export const canDraft = (state: AppState): boolean => !state.confirmed && state.fields.some(isGap);
 
 export interface LogEntry {
   actor: 'agent' | 'estimator';
