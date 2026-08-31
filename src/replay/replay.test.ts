@@ -130,6 +130,7 @@ test('B8 preserves default human timestamps and rejected null tool input', async
   const { dispatchHuman, getState } = await import('../state/store');
   const { exportSession, importSession } = await import('./serialization');
   await executeTool('propose_field', null, 1);
+  await executeTool('list_rfq_documents', undefined, 2);
   dispatchHuman({ type: 'enter', field_id: 'material', value: 'steel' });
   const before = structuredClone(getState());
   await importSession(exportSession());
