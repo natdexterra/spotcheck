@@ -1397,6 +1397,12 @@
     overflow: visible;
   }
 
+  /* The header carries the count and the how-it-works line: keep it, and give
+     back the room through padding instead (S6/A9). */
+  .field-list__header {
+    padding: var(--space-4);
+  }
+
   .field-row {
     padding-inline-end: var(--space-4);
   }

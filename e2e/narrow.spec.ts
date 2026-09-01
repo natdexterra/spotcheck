@@ -18,6 +18,11 @@ for (const width of [390, 820]) {
     await expect(close).toBeVisible();
     expect((await close.boundingBox())?.height).toBeGreaterThanOrEqual(44);
 
+    // S6/A9: the header keeps the count and the how-it-works line at every width.
+    await expect(page.locator('.field-list__header')).toBeVisible();
+    await expect(page.getByText('0 of 11 verified')).toBeVisible();
+    await expect(page.getByText(/Your agent reads the documents/)).toBeVisible();
+
     // A1/S9: focus moves into the sheet and Tab cycles inside it.
     const inside = () => page.evaluate(() => {
       const sheet = document.querySelector('.source-pane--sheet');
