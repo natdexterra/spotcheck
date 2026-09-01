@@ -40,6 +40,24 @@ for (const width of [390, 820]) {
     await close.click();
     await expect(sourceLink).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+
+    // Every target reaches 44px: choice rows do it through their label, not
+    // through a bigger box, so the row is measured instead of the input.
+    const small = await page.evaluate(() => {
+      const targets = [
+        ...document.querySelectorAll<HTMLElement>(
+          'button, a[href], input:not([type="radio"]):not([type="checkbox"]), textarea, label.choice',
+        ),
+      ];
+      return targets
+        .filter(element => element.getClientRects().length > 0)
+        .map(element => ({
+          name: (element.textContent || element.getAttribute('aria-label') || element.tagName).trim().slice(0, 40),
+          height: Math.round(element.getBoundingClientRect().height),
+        }))
+        .filter(target => target.height < 44);
+    });
+    expect(small).toEqual([]);
   });
 }
 

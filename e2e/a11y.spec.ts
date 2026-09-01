@@ -31,12 +31,27 @@ test('reduced motion, announcements, keyboard map, and same-origin boundary hold
     window as unknown as { __spotcheckAnnouncements: string[] }
   ).__spotcheckAnnouncements)).toContain('general tolerance: reported missing');
 
+  const tolerance = page.locator('[data-field-id="general_tolerance"]');
   await page.keyboard.press('j');
-  await expect(page.locator('[data-field-id="general_tolerance"]')).toBeFocused();
-  await page.keyboard.press('e');
-  await expect(page.locator('[data-field-id="general_tolerance"] input').first()).toBeFocused();
+  await expect(tolerance).toBeFocused();
+  await page.keyboard.press('j');
+  await expect(page.locator('[data-field-id="material"]')).toBeFocused();
+  await page.keyboard.press('k');
+  await expect(tolerance).toBeFocused();
+
+  // Enter runs the row's primary action; e opens the editor; Esc returns focus.
+  await page.keyboard.press('Enter');
+  await expect(tolerance.locator('input').first()).toBeFocused();
   await page.keyboard.press('Escape');
-  await expect(page.locator('[data-field-id="general_tolerance"]').getByRole('button', { name: 'Enter value' })).toBeFocused();
+  const enterValue = tolerance.getByRole('button', { name: 'Enter value' });
+  await expect(enterValue).toBeFocused();
+
+  // The focused control wears the global ring.
+  const ring = await enterValue.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { color: style.outlineColor, style: style.outlineStyle, width: style.outlineWidth };
+  });
+  expect(ring).toEqual({ color: 'rgb(31, 111, 235)', style: 'solid', width: '2px' });
 
   const animation = await page.locator('[data-field-id="material"]').evaluate(element => getComputedStyle(element).animationName);
   expect(animation).toBe('none');
