@@ -1,0 +1,1335 @@
+/* One hairline closes every row and bar. */
+.header,
+.status-strip,
+.field-list__header,
+.field-row,
+.field-list__verified-summary,
+.change-log__header,
+.change-log__entries li,
+.source-pane__tabs,
+.field-pane__draft-entry {
+  border-bottom: var(--rule-width) solid var(--hairline);
+}
+
+/* The md label voice: buttons, field labels, group headings, input labels. */
+.button,
+.field-row__label,
+.field-list__header h2,
+.field-list__group-heading,
+.clarification__label,
+.inline-editor__label,
+.not-required-picker__legend {
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: 500;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-2);
+  font-family: var(--font-sans);
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease-1),
+    background-color var(--dur-1) var(--ease-1);
+}
+
+.button--compact {
+  min-height: var(--control-compact);
+  padding-block: calc(var(--space-1) + var(--radius-1));
+  padding-inline: var(--space-3);
+}
+
+.button--large {
+  min-height: var(--control-large);
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+}
+
+.button--primary {
+  color: var(--bg-raised);
+  background-color: var(--ink);
+  font-weight: 600;
+}
+
+.button--primary:hover:not(:disabled) {
+  background-color: var(--ink-hover);
+}
+
+.button--primary:active:not(:disabled) {
+  background-color: var(--ink-active);
+}
+
+.button--primary:disabled {
+  background-color: var(--ink-faint);
+}
+
+.button--secondary,
+.button--text[aria-pressed="true"]:hover:not(:disabled),
+.source-pane__tab:hover {
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background-color: var(--hairline);
+}
+
+.button--secondary:active:not(:disabled) {
+  background-color: var(--hairline-strong);
+}
+
+.button--secondary:disabled {
+  color: var(--ink-faint);
+  background-color: var(--bg-subtle);
+}
+
+.button--text {
+  color: var(--accent-text);
+  background-color: transparent;
+  font-weight: 400;
+}
+
+.button--text:hover:not(:disabled) {
+  color: var(--accent-strong);
+  background-color: var(--bg-subtle);
+}
+
+.button--text:active:not(:disabled) {
+  background-color: var(--hairline);
+}
+
+.button--text[aria-pressed="true"] {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.button--text:disabled {
+  color: var(--ink-faint);
+  background-color: transparent;
+}
+
+.button:disabled {
+  cursor: default;
+}
+
+.inline-link {
+  color: var(--accent-text);
+  text-underline-offset: calc((var(--space-1) + var(--radius-1)) / 2);
+  text-decoration-thickness: var(--radius-1);
+  transition: color var(--dur-1) var(--ease-1);
+}
+
+.inline-link:hover {
+  color: var(--accent-strong);
+}
+
+/* Mono is for data: values, units, ids, source refs, counts, clock times. */
+.status-strip code,
+.inline-link--provenance,
+.change-log__time,
+.field-row__value,
+.field-row__revision,
+.field-row__agent-original,
+.candidate-option__value,
+.suggestion-card__value,
+.inline-editor__input,
+.inline-editor__segment,
+.confirm-summary__line,
+.drawing-sheet__caption {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.numeric,
+.confirm-summary__count,
+.confirm-summary__timer,
+.field-row__badge {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.inline-link--provenance {
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: auto;
+}
+
+.inline-link--provenance:hover {
+  text-decoration-style: solid;
+}
+
+.inline-link--jump {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: auto;
+}
+
+.icon {
+  display: inline-block;
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-4);
+}
+
+.icon--lock {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+.header,
+.status-strip,
+.change-log {
+  padding-inline: var(--page-margin);
+  background-color: var(--bg-raised);
+}
+
+/* One md line in the secondary ink: every meta, note and action row. */
+.header__package,
+.status-strip,
+.field-list__header p,
+.confirm-footer__status,
+.field-row__sources,
+.field-row__agent-note,
+.field-row__revision,
+.field-row__agent-original,
+.field-list__verified-summary,
+.change-log__entry,
+.inline-editor__hint,
+.inline-editor__error,
+.candidate-option__note,
+.suggestion-card__reason,
+.suggestion-card__current,
+.clarification__subtitle,
+.clarification__hint,
+.not-required-picker__hint {
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
+}
+
+/* The bars that frame the workspace stand on one height. */
+.header,
+.change-log__header,
+.source-pane__tabs,
+.source-pane__header {
+  min-height: calc(var(--space-8) + var(--space-8));
+}
+
+.header,
+.field-list__title-line,
+.field-pane__draft-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.header__identity,
+.status-strip__line,
+.status-strip__summary,
+.status-strip__roster li,
+.change-log__collapsed,
+.change-log__entry,
+.change-log__header {
+  display: flex;
+  align-items: center;
+}
+
+.header__identity,
+.status-strip__summary {
+  gap: var(--space-2);
+}
+
+.header__product {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 600;
+}
+
+.status-strip {
+  min-height: var(--control-large);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Before the first tool call the strip says what the page is; the two lines
+   then need the row padding the one-line states get from their min-height. */
+.status-strip--no-api,
+.status-strip--waiting {
+  padding-block: var(--space-3);
+}
+
+.status-strip__intro {
+  margin: 0;
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
+}
+
+.status-strip__line {
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.status-strip__summary {
+  flex-wrap: wrap;
+}
+
+/* The sentence shrinks so the state dot stays on its line instead of wrapping
+   onto one of its own. */
+.status-strip__text {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
+.status-strip__summary strong {
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.status-strip__summary code {
+  padding: var(--space-1) var(--space-2);
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+  white-space: nowrap;
+}
+
+.status-strip__dot,
+.field-row__badge-dot,
+.source-pane__reading,
+.source-pane__draft-dot {
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: 50%;
+}
+
+.status-strip__dot,
+.field-row__badge-dot {
+  flex: none;
+}
+
+.source-pane__reading,
+.source-pane__draft-dot {
+  display: inline-block;
+  margin-inline-start: var(--space-1);
+}
+
+.status-strip__dot {
+  background-color: var(--state-empty);
+}
+
+.status-strip__dot--settled {
+  background-color: var(--state-verified);
+}
+
+.status-strip__roster {
+  position: absolute;
+  z-index: 1;
+  inset-block-start: 100%;
+  inset-inline: var(--page-margin);
+  margin: 0;
+  padding: var(--space-2);
+  list-style: none;
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline-strong);
+}
+
+.status-strip__roster li {
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-2);
+}
+
+.change-log {
+  border-top: var(--rule-width) solid var(--hairline);
+}
+
+.change-log__collapsed,
+.change-log__entry,
+.change-log__header {
+  gap: var(--space-3);
+}
+
+.change-log__collapsed {
+  min-height: var(--control-large);
+  justify-content: space-between;
+}
+
+.change-log__entry {
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.change-log__time {
+  color: var(--ink-muted);
+}
+
+.change-log__sheet {
+  max-height: 40vh;
+  overflow-y: auto;
+  background-color: var(--bg-raised);
+}
+
+.change-log__header {
+  justify-content: space-between;
+  padding-inline: var(--page-margin);
+}
+
+.change-log__header h2,
+.change-log__empty {
+  margin: 0;
+}
+
+.change-log__entries {
+  margin: 0;
+  padding: 0 var(--page-margin);
+  list-style: none;
+}
+
+.change-log__entries li {
+  padding-block: var(--space-3);
+}
+
+.field-list__header p {
+  margin: var(--space-3) 0 0;
+}
+
+.field-list__count {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.workspace {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(var(--pane-field-min), var(--pane-field-max)) minmax(var(--pane-source-min), 1fr);
+  gap: var(--space-6);
+  min-width: 0;
+  min-height: 0;
+  padding: var(--space-6) var(--page-margin);
+}
+
+/* Scroll model (DESIGN.md § Layout ladder): on the desktop layout the page
+   itself never scrolls — the workspace takes the height left under the header
+   and strip, and each pane scrolls inside it. */
+@media (width >= 64rem) {
+  .app-shell {
+    height: 100vh;
+    overflow: hidden;
+  }
+}
+
+.field-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+  border-radius: var(--radius-2);
+}
+
+.field-pane__draft-entry {
+  padding: var(--space-3) var(--space-4);
+  background-color: var(--bg-raised);
+}
+
+.confirm-footer {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--bg-raised);
+  border-top: var(--rule-width) solid var(--hairline);
+}
+
+.confirm-footer > .button {
+  width: 100%;
+}
+
+.confirm-footer__status {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  text-align: center;
+}
+
+.confirm-summary {
+  padding: var(--space-8) var(--page-margin);
+}
+
+/* One title voice: summary, clarification draft and document (exports 07, 08). */
+.confirm-summary__header h2,
+.clarification__title,
+.clarification__sent-subject,
+.document-text__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: 600;
+}
+
+.confirm-summary__timer,
+.confirm-summary__agreement {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-secondary);
+}
+
+.confirm-summary__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-6) var(--space-2);
+}
+
+.confirm-summary__count {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-1);
+  background-color: var(--bg-subtle);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  white-space: nowrap;
+}
+
+.confirm-summary__details,
+.confirm-summary__log {
+  max-width: var(--pane-field-max);
+  margin-block-start: var(--space-6);
+  padding: var(--space-4);
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+  border-radius: var(--radius-2);
+}
+
+/* Section labels are captions, not headings in the type ladder (exports 07, 08). */
+.confirm-summary__caption,
+.clarification__caption,
+.document-section__caption {
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  color: var(--ink-muted);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.confirm-summary__section + .confirm-summary__section {
+  margin-block-start: var(--space-6);
+}
+
+/* Plain rows, no markers: the summary lists are records, not an agenda. */
+.confirm-summary__section ul,
+.confirm-summary__log-entries {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.confirm-summary__section li + li,
+.confirm-summary__log-entries li + li {
+  margin-block-start: var(--space-2);
+}
+
+.confirm-summary__actions {
+  margin-block-start: var(--space-6);
+}
+
+.source-pane {
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+  border-radius: var(--radius-2);
+}
+
+/* The two regions that scroll inside the shell. */
+.summary-main,
+.source-pane__panel {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.source-pane__tabs {
+  flex: none;
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+  padding-inline: var(--document-gutter);
+  overflow-x: auto;
+}
+
+.source-pane__tab {
+  min-width: max-content;
+  min-height: var(--control-large);
+  padding-inline: var(--space-3);
+  color: var(--ink-secondary);
+  background-color: transparent;
+  border: 0;
+  border-bottom: var(--radius-1) solid transparent;
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.source-pane__tab--active {
+  color: var(--ink);
+  border-bottom-color: var(--ink);
+  font-weight: 500;
+}
+
+.document-text,
+.source-pane__panel--clarification {
+  padding: var(--space-8) var(--document-gutter);
+}
+
+.document-section + .document-section {
+  margin-block-start: var(--space-6);
+}
+
+.document-region + .document-region {
+  margin-block-start: var(--space-4);
+}
+
+.document-region__text {
+  margin: var(--space-2) 0 0;
+  line-height: var(--leading-lg-loose);
+}
+
+.document-section,
+.document-region {
+  transition: background-color var(--dur-3) var(--ease-1);
+}
+
+.document-section--highlighted,
+.document-region--highlighted,
+.document-section--reading {
+  background-color: var(--highlight);
+  transition-duration: var(--dur-1);
+}
+
+.drawing-sheet {
+  margin: 0;
+  padding: var(--space-6) var(--document-gutter);
+}
+
+.drawing-sheet__image-wrap {
+  position: relative;
+  border: var(--rule-width) solid var(--hairline-strong);
+  background-color: var(--bg-raised);
+}
+
+.drawing-sheet__image-wrap--reading {
+  outline: var(--rule-width) solid var(--highlight-edge);
+  outline-offset: var(--radius-1);
+}
+
+.drawing-sheet__image {
+  width: 100%;
+  display: block;
+}
+
+.drawing-sheet__overlays {
+  position: absolute;
+  inset: 0;
+}
+
+.drawing-overlay {
+  position: absolute;
+  min-width: var(--space-6);
+  min-height: var(--space-6);
+  padding: 0;
+  color: var(--accent-text);
+  background-color: transparent;
+  border: var(--rule-width) dashed var(--highlight-edge);
+  border-radius: var(--radius-1);
+  cursor: pointer;
+}
+
+.drawing-overlay--active {
+  background-color: var(--highlight);
+  outline: var(--rule-width) solid var(--highlight-edge);
+}
+
+.drawing-sheet__caption {
+  display: grid;
+  gap: var(--space-2);
+  margin-block-start: var(--space-3);
+  color: var(--ink-secondary);
+}
+
+.source-pane--sheet {
+  position: fixed;
+  z-index: 1;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  border: 0;
+  border-radius: 0;
+}
+
+.source-pane__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding-inline: var(--space-4);
+  border-bottom: var(--rule-width) solid var(--hairline);
+}
+
+.source-pane__title {
+  margin: 0;
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: 600;
+}
+
+.source-pane--sheet .source-pane__tabs {
+  padding-inline: var(--space-4);
+}
+
+.source-pane__footer {
+  padding: var(--space-3) var(--space-4);
+  border-top: var(--rule-width) solid var(--hairline);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .document-section--highlighted,
+  .document-region--highlighted,
+  .document-section--reading {
+    background-color: var(--bg-raised);
+    outline: var(--ring-width) solid var(--highlight-edge);
+  }
+}
+
+.source-pane__reading {
+  background-color: var(--highlight-edge);
+}
+
+.source-pane__draft-dot {
+  background-color: var(--accent);
+}
+
+.clarification {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.clarification__field,
+.clarification__intro {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.clarification__input,
+.clarification__textarea {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg-loose);
+}
+
+/* The draft is read, not scrolled: the box grows to the text it holds, and its
+   floor is the twelve lines the approved export shows. */
+.clarification__textarea {
+  field-sizing: content;
+  min-height: calc(var(--leading-lg-loose) * 12);
+  resize: vertical;
+}
+
+.clarification__covers {
+  display: grid;
+  gap: var(--space-1);
+}
+
+
+.clarification__subtitle,
+.clarification__hint,
+.clarification__sent-line,
+.clarification__sent-body {
+  margin: 0;
+}
+
+.clarification__hint {
+  color: var(--ink-muted);
+}
+
+.clarification__sent-body {
+  line-height: var(--leading-lg-loose);
+}
+
+.inline-editor,
+.not-required-picker,
+.suggestion-card,
+.candidate-option {
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-2);
+  background-color: var(--bg-subtle);
+}
+
+.inline-editor {
+  border: var(--rule-width) solid var(--border-input);
+}
+
+.inline-editor__controls {
+  display: flex;
+  align-items: end;
+  gap: var(--space-2);
+}
+
+.inline-editor__field {
+  min-width: 0;
+  flex: 1;
+}
+
+.inline-editor__field,
+.inline-editor__units {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.inline-editor__units,
+.not-required-picker__choices,
+.clarification__covers {
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.change-log__agent-note,
+.change-log__empty,
+.clarification__label,
+.clarification__sent-line,
+.inline-editor__label,
+.not-required-picker__legend {
+  color: var(--ink-secondary);
+}
+
+.inline-editor__input,
+.not-required-picker__other-input,
+.clarification__input,
+.clarification__textarea {
+  width: 100%;
+  min-height: var(--control-input);
+  padding: var(--space-3);
+  color: var(--ink);
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--border-input);
+  border-radius: var(--radius-2);
+}
+
+/* Segmented control (DESIGN.md § Choice controls): one box around the group,
+   hairline separators inside, each segment the height of the input beside it. */
+.inline-editor__segments {
+  display: flex;
+  overflow: hidden;
+  border: var(--rule-width) solid var(--border-input);
+  border-radius: var(--radius-2);
+}
+
+.inline-editor__segment {
+  min-height: var(--control-input);
+  display: grid;
+  place-items: center;
+  padding-inline: var(--space-4);
+  color: var(--ink-secondary);
+  background-color: var(--bg-raised);
+  cursor: pointer;
+}
+
+.inline-editor__segment + .inline-editor__segment {
+  border-inline-start: var(--rule-width) solid var(--hairline-strong);
+}
+
+.inline-editor__segment:has(input:checked) {
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+  font-weight: 500;
+}
+
+/* Radios, checkboxes: the app's own drawing on the native input. */
+.choice {
+  position: relative;
+  min-height: var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.choice__input {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+  margin: 0;
+  appearance: none;
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--border-input);
+  cursor: pointer;
+}
+
+.choice--radio .choice__input {
+  border-radius: 50%;
+}
+
+.choice--checkbox .choice__input {
+  border-radius: var(--radius-1);
+}
+
+.choice__input:hover:not(:disabled) {
+  border-color: var(--ink-secondary);
+}
+
+.choice--radio .choice__input:checked {
+  background-image: radial-gradient(
+    circle at center,
+    var(--accent) 0 calc(var(--choice-dot) / 2),
+    transparent calc(var(--choice-dot) / 2)
+  );
+  border-width: var(--choice-ring);
+  border-color: var(--accent);
+}
+
+.choice--checkbox .choice__input:checked {
+  background-color: var(--ink);
+  border-color: var(--ink);
+}
+
+.choice__mark {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.choice__input:checked ~ .choice__mark {
+  visibility: visible;
+}
+
+.choice--checkbox .choice__mark .icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  color: var(--bg-raised);
+}
+
+.choice__label {
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.choice__input:disabled {
+  border-color: var(--ink-faint);
+  cursor: default;
+}
+
+.choice__input:disabled ~ .choice__label {
+  color: var(--ink-faint);
+}
+
+.inline-editor__error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: var(--space-2) 0 0;
+  color: var(--state-conflict);
+}
+
+.inline-editor__input[aria-invalid="true"] {
+  border-color: var(--state-conflict);
+}
+
+.inline-editor__actions,
+.not-required-picker__actions,
+.suggestion-card__actions,
+.candidate-option__sources,
+.suggestion-card__sources {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block-start: var(--space-2);
+}
+
+/* Reason picker (export 12): preset rows 4px apart, then Other reason as a
+   fourth radio with its input inline beside it. */
+.not-required-picker__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin-block-end: var(--space-3);
+}
+
+.not-required-picker__legend {
+  margin-block-end: var(--space-2);
+}
+
+.not-required-picker__other {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.not-required-picker__other-input {
+  min-width: 0;
+  flex: 1;
+}
+
+
+.conflict-panel__candidates {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  list-style: none;
+}
+
+.candidate-option {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+}
+
+.candidate-option__value,
+.candidate-option__note,
+.suggestion-card__value,
+.suggestion-card__reason,
+.suggestion-card__current {
+  margin: 0;
+}
+
+.candidate-option__value,
+.suggestion-card__value {
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: 500;
+}
+
+.candidate-option__sources,
+.candidate-option__note {
+  grid-column: 1;
+}
+
+.candidate-option > .button {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+
+.suggestion-card {
+  border: var(--rule-width) solid var(--hairline-strong);
+  background-color: var(--bg-raised);
+}
+
+.suggestion-card__sources {
+  margin-block-end: var(--space-2);
+}
+
+.field-list {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.field-list__header {
+  padding: var(--space-6);
+}
+
+.field-list__header h2,
+.field-list__group-heading {
+  margin: 0;
+}
+
+.field-list__group-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-4) var(--space-6) var(--space-2);
+  color: var(--ink-secondary);
+}
+
+.field-row {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--space-2);
+  padding-block: var(--space-3);
+  padding-inline: var(--row-padding-inline) var(--space-6);
+  border-inline-start: var(--marker-width) solid var(--hairline-strong);
+  background-color: var(--bg-raised);
+  animation: field-arrival var(--dur-2) var(--ease-1);
+}
+
+.field-row--conflict {
+  border-inline-start-color: var(--state-conflict);
+}
+
+.field-row--missing {
+  border-inline-start-color: var(--state-missing);
+}
+
+.field-row--verified {
+  border-inline-start-color: var(--state-verified);
+}
+
+.field-row > * {
+  grid-column: 1 / -1;
+}
+
+.field-row__label {
+  grid-column: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--ink-secondary);
+}
+
+.field-row__value {
+  grid-column: 1;
+  overflow-wrap: anywhere;
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg);
+  font-weight: 500;
+}
+
+.field-row__badge {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  display: inline-flex;
+  align-items: center;
+  align-self: start;
+  gap: var(--space-1);
+  color: var(--state-neutral);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.field-list__group-heading--conflict,
+.field-row__badge--conflict {
+  color: var(--state-conflict);
+}
+
+.field-list__group-heading--missing,
+.field-row__badge--missing {
+  color: var(--state-missing);
+}
+
+.field-list__verified-summary,
+.field-row__badge--verified {
+  color: var(--state-verified);
+}
+
+.field-row__badge-dot {
+  background-color: currentColor;
+}
+
+.field-row__sources,
+.field-row__actions,
+.clarification__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.field-row__sources,
+.field-row__agent-note,
+.field-row__revision,
+.field-row__agent-original {
+  margin: 0;
+}
+
+.field-list__verified-summary {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+}
+
+.field-list__verified-summary .button {
+  margin-inline-start: auto;
+}
+
+@keyframes field-arrival {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-2));
+  }
+}
+
+@media (width < 80rem) and (width >= 64rem) {
+  .workspace {
+    gap: var(--space-4);
+  }
+
+  /* Ladder step 2: the document lane steps 48 to 32 below 1280. */
+  .source-pane__tabs,
+  .document-text,
+  .drawing-sheet {
+    padding-inline: var(--space-8);
+  }
+}
+
+@media (width < 64rem) {
+  .header {
+    min-height: auto;
+    padding-block: var(--space-3);
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-1);
+  }
+
+  .status-strip {
+    padding-block: var(--space-3);
+  }
+
+  .status-strip__line {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-strip__summary code {
+    white-space: normal;
+  }
+
+  .status-strip .button--primary,
+  .status-strip .button--secondary {
+    width: 100%;
+  }
+
+  /* Live: the quiet line, then Show tools under it — one column. */
+  .status-strip__summary .button {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    padding-inline: 0;
+  }
+
+  .change-log__sheet {
+    position: fixed;
+    z-index: 1;
+    inset: 0;
+    max-height: none;
+  }
+
+  .change-log,
+  .change-log__header,
+  .change-log__entries,
+  .confirm-footer,
+  .workspace {
+    width: 100%;
+    max-width: var(--narrow-content-max);
+    display: block;
+    margin-inline: auto;
+  }
+
+  /* change-log keeps its own padding-inline: var(--page-margin) rules (base
+     .change-log, .change-log__header, .change-log__entries) so the bar and the
+     expanded sheet stay on the gutter lane; only these two zero it out. */
+  .confirm-footer,
+  .workspace {
+    padding: 0;
+  }
+
+  /* Collapsed bar: sentence above, the disclosure button on its own line below,
+     left-aligned on the gutter lane. */
+  .change-log__collapsed {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding-block: var(--space-3);
+  }
+
+  /* The disclosure's label, not its pill, sits on the lane. */
+  .change-log__collapsed > .button--text {
+    margin-inline-start: calc(-1 * var(--space-3));
+  }
+
+  .confirm-footer {
+    position: sticky;
+    inset-block-end: 0;
+    z-index: 1;
+  }
+
+  .confirm-summary {
+    padding: var(--space-6) var(--space-4);
+  }
+
+  .source-pane__panel--clarification {
+    padding-inline: var(--space-4);
+  }
+
+  .inline-editor__controls {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .inline-editor__segment {
+    flex: 1;
+  }
+
+  /* Choice rows reach the narrow target through padding, not bigger boxes. */
+  .choice,
+  .drawing-overlay,
+  .button,
+  .inline-link {
+    min-height: var(--control-large);
+  }
+
+  .drawing-overlay {
+    min-width: var(--control-large);
+  }
+
+  .field-pane {
+    border-inline: 0;
+    border-radius: 0;
+  }
+
+  .field-list {
+    overflow: visible;
+  }
+
+  /* The header carries the count and the how-it-works line: keep it, and give
+     back the room through padding instead (S6/A9). */
+  .field-list__header {
+    padding: var(--space-4);
+  }
+
+  .field-row {
+    padding-inline-end: var(--space-4);
+  }
+
+  .inline-link {
+    display: inline-flex;
+    align-items: center;
+  }
+}
