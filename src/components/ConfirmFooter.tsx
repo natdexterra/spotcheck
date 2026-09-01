@@ -51,7 +51,7 @@ export function ConfirmFooter() {
         ) : null}
         {suggestionCount > 0 ? (
           <span className="confirm-footer__suggestions">
-            {blockerGroups.length > 0 ? ' · ' : null}
+            {blockerGroups.length > 0 ? ' · ' : null}
             {`${suggestionCount} ${suggestionCount === 1 ? 'suggestion' : 'suggestions'} pending`}
           </span>
         ) : null}

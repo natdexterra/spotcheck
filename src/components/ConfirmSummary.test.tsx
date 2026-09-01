@@ -86,7 +86,7 @@ describe('ConfirmSummary', () => {
     render(<ConfirmSummary />);
 
     expect(screen.getByRole('heading', { name: 'Confirmed with 4 open questions' })).toBeInTheDocument();
-    expect(screen.getByText("Reviewed in 1:48 — from the agent's first write to confirm")).toBeInTheDocument();
+    expect(screen.getByText('Reviewed in 1:48 — from the agent’s first write to confirm')).toBeInTheDocument();
 
     const counts = screen.getByLabelText('Resolution counts');
     for (const text of ['2 verified', '1 edited', '1 entered', '1 picked', '1 not required', '1 applied', '4 asked customer']) {

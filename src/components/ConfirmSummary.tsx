@@ -65,7 +65,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
         </h2>
         {timer !== null ? (
           <p className="confirm-summary__timer">
-            Reviewed in {duration(timer)} — from the agent's first write to confirm
+            Reviewed in {duration(timer)} — from the agent’s first write to confirm
           </p>
         ) : null}
       </header>
@@ -89,7 +89,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
             <h3 className="confirm-summary__caption" id="confirm-edits-title">Edits</h3>
             <ul>
               {edits.map(field => (
-                <li key={field.id}>
+                <li className="confirm-summary__line" key={field.id}>
                   {fieldLabel(field.id)} · agent “{displayValue(field.proposal?.value ?? null, field.proposal?.unit)}” → yours “{displayValue(field.value, field.unit)}”
                 </li>
               ))}
@@ -106,7 +106,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
                   candidate.value !== field.value || candidate.unit !== field.unit,
                 ) ?? [];
                 return (
-                  <li key={field.id}>
+                  <li className="confirm-summary__line" key={field.id}>
                     {fieldLabel(field.id)} · picked {displayValue(field.value, field.unit)}
                     {losing.length > 0 ? ` · losing ${losing.length === 1 ? 'candidate' : 'candidates'} ${losing.map(candidate => displayValue(candidate.value, candidate.unit)).join(', ')}` : null}
                   </li>
@@ -121,7 +121,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
             <h3 className="confirm-summary__caption" id="confirm-dismissals-title">Not required</h3>
             <ul>
               {dismissals.map(field => (
-                <li key={field.id}>{fieldLabel(field.id)} · {dismissReason(log, field.id) ?? 'No reason recorded'}</li>
+                <li className="confirm-summary__line" key={field.id}>{fieldLabel(field.id)} · {dismissReason(log, field.id) ?? 'No reason recorded'}</li>
               ))}
             </ul>
           </section>
@@ -130,14 +130,14 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
         {openQuestions.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-pending-title">
             <h3 className="confirm-summary__caption" id="confirm-pending-title">Pending customer answer</h3>
-            <p>{fieldList(openQuestions)}</p>
+            <p className="confirm-summary__line">{fieldList(openQuestions)}</p>
           </section>
         ) : null}
 
         {autoDismissed.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-suggestions-title">
             <h3 className="confirm-summary__caption" id="confirm-suggestions-title">Suggestions auto-dismissed at confirm</h3>
-            <p>{autoDismissed.join(' · ')}</p>
+            <p className="confirm-summary__line">{autoDismissed.join(' · ')}</p>
           </section>
         ) : null}
       </div>

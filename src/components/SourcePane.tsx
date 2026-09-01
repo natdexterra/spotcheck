@@ -203,14 +203,14 @@ export function SourcePane({
 
   const content = (
     <>
-      <header className="source-pane__header">
-        <h2 className="source-pane__title">{activeTitle}</h2>
-        {narrow && (
+      {narrow && (
+        <header className="source-pane__header">
+          <h2 className="source-pane__title">{activeTitle}</h2>
           <Button variant="text" onClick={close}>
             <CrossIcon /> Close
           </Button>
-        )}
-      </header>
+        </header>
+      )}
       <div aria-label="Source documents" className="source-pane__tabs" role="tablist">
         {sourceTabs.map(tab => (
           <button

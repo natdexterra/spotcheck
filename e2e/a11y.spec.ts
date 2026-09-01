@@ -95,9 +95,7 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
 
   await radio.check();
   expect((await box(radio)).borderColor).toBe(ACCENT);
-  const dot = tolerance.locator('.choice--radio .choice__input:checked ~ .choice__mark .choice__dot');
-  await expect(dot).toBeVisible();
-  expect(await dot.evaluate(element => getComputedStyle(element).backgroundColor)).toBe(ACCENT);
+  expect(await radio.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(ACCENT);
 
   // The picker still dispatches dismiss with the chosen reason.
   await tolerance.getByRole('button', { name: 'Mark not required' }).last().click();
