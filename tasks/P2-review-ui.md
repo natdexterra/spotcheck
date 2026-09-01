@@ -1,7 +1,7 @@
 # P2 — Review UI: two panes, provenance both ways, resolutions
 
-**Status:** queued (ready for the builder)
-**PR:** —
+**Status:** in review
+**PR:** #4 `P2: review UI`
 **Depends on:** P1.1 (branches from `main`)
 
 ## Goal
