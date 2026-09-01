@@ -27,6 +27,9 @@ describe('tokens.css', () => {
     ['--highlight-edge', '#1F6FEB'],
     ['--dur-1', '120ms'],
     ['--dur-2', '200ms'],
+    ['--control-compact', '1.875rem'],
+    ['--control-input', '2.625rem'],
+    ['--control-large', '2.75rem'],
   ])('%s is %s', (name, value) => {
     expect(tokenValue(name)).toBe(value);
   });
