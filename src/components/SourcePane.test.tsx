@@ -115,13 +115,14 @@ describe('source documents', () => {
 
     // A later unrelated update — the clarification tab arriving — must not
     // relight a marker for a read the agent finished long ago.
-    act(() => replaceState({
+    const drafted: ReviewSession = {
       ...session,
       fields: session.fields.map(field => field.id === 'general_tolerance'
         ? { ...field, state: 'missing' as const, searched: { searched: ['drawing'] } }
         : field),
       draft: { subject: 'Open questions', body: 'Please confirm.', covers: ['general_tolerance'] },
-    }));
+    };
+    act(() => replaceState(drafted));
 
     expect(screen.getByRole('tab', { name: 'Clarification' })).toHaveAttribute('aria-selected', 'true');
     expect(screen.queryByRole('img', { name: 'reading' })).toBeNull();
