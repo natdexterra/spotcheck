@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import { createInitialState } from '../state/session';
+import { createInitialState, type ReviewSession } from '../state/session';
 import { replaceState } from '../state/store';
 import type { Field, FieldId, FieldState, ResolutionKind } from '../state/types';
 import { FieldList } from './FieldList';
@@ -79,9 +79,10 @@ describe('FieldRow', () => {
     render(<FieldRow field={field('delivery', 'missing', {
       searched: { searched: ['email', 'spec:s3'], note: 'No delivery date was stated.' },
     })} />);
-    expect(screen.getByLabelText('Searched documents')).toHaveTextContent('email');
-    expect(screen.getByLabelText('Searched documents')).toHaveTextContent('spec §3');
-    expect(screen.getByText('Agent: No delivery date was stated.')).toBeInTheDocument();
+    expect(screen.getByText(
+      'Agent: No delivery date was stated. Searched the email and spec §3.',
+    )).toBeInTheDocument();
+    expect(document.querySelector('.field-row__chip')).toBeNull();
     expect(screen.getByRole('button', { name: 'Enter value' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mark not required' })).toBeInTheDocument();
   });
@@ -146,6 +147,34 @@ describe('FieldList', () => {
       .map(row => row.getAttribute('data-field-id'));
     expect(verifiedRows).toEqual(['customer_rfq_ref', 'drawing_number']);
     expect(screen.getByRole('button', { name: 'Hide' })).toHaveAttribute('aria-expanded', 'true');
+  });
+
+  test('names a report the agent made after the estimator had already set the field', async () => {
+    const session: ReviewSession = {
+      confirmed: false,
+      fields: [field('material', 'verified', { value: '6061-T6' })],
+      log: [{
+        actor: 'agent',
+        at: 2_000,
+        event: {
+          actor: 'agent',
+          action: {
+            type: 'report_conflict',
+            at: 2_000,
+            input: { field_id: 'material', candidates: [] },
+          },
+        },
+        result: { ok: false, code: 'FIELD_LOCKED' },
+      }],
+    };
+    act(() => replaceState(session));
+    render(<FieldList />);
+    await userEvent.click(screen.getByRole('button', { name: 'Show' }));
+
+    expect(screen.getByText(
+      /Agent: reported a conflict on this field after you set it/,
+    )).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'see log' })).toHaveAttribute('href', '#change-log');
   });
 
   test('reveals a verified row when it receives a pending suggestion', () => {

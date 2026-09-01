@@ -93,7 +93,11 @@ export const ChangeLogDrawer = () => {
   useSheetDialog({ active: expanded && narrow, onClose: close, returnFocusRef: disclosureRef, sheetRef });
 
   return (
-    <aside aria-label="Change log" className={`change-log${expanded ? ' change-log--expanded' : ''}`}>
+    <aside
+      aria-label="Change log"
+      className={`change-log${expanded ? ' change-log--expanded' : ''}`}
+      id="change-log"
+    >
       {!expanded ? (
         <div className="change-log__collapsed">
           {latest ? <LogLine entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}

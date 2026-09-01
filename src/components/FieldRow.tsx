@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { fieldLabel, sourceHref, sourceLabel } from '../lib/format';
+import { fieldLabel, searchedSentence, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { Badge } from './Badge';
+import { JumpLink } from './JumpLink';
 import { ConflictPanel } from './ConflictPanel';
 import { InlineEditor } from './InlineEditor';
 import { NotRequiredPicker } from './NotRequiredPicker';
@@ -13,6 +14,8 @@ import { SuggestionCard } from './SuggestionCard';
 
 export interface FieldRowProps {
   field: Field;
+  /** Set when the agent's newest call on this locked field was a rejected report. */
+  lockedReport?: string;
   onSource?: (ref: string, fieldId: FieldId) => void;
   now?: number;
 }
@@ -22,7 +25,7 @@ const fieldSources = (field: Field): string[] => {
   return [];
 };
 
-export function FieldRow({ field, now, onSource }: FieldRowProps) {
+export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const rowRef = useRef<HTMLElement>(null);
@@ -32,7 +35,10 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
   // trigger button of its own, so the row itself is the fallback (WCAG 2.4.3).
   const returnFocusRef = useRef<HTMLElement | null>(null);
   const sources = fieldSources(field);
-  const note = field.proposal?.rationale ?? field.searched?.note;
+  const searched = field.searched ? searchedSentence(field.searched.searched) : '';
+  const note = [field.proposal?.rationale ?? field.searched?.note, searched]
+    .filter(Boolean)
+    .join(' ');
   const showAgentOriginal = field.proposal && (
     (field.state === 'verified' &&
       (field.resolution?.kind === 'edited' || field.resolution?.kind === 'picked' || field.resolution?.kind === 'applied')) ||
@@ -79,7 +85,7 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
       <div className="field-row__value">{value}</div>
       <Badge field={field} now={now} />
 
-      {sources.length > 0 ? (
+      {sources.length > 0 && !showAgentOriginal ? (
         <div className="field-row__sources">
           {sources.map(ref => (
             <ProvenanceLink href={sourceHref(ref)} key={ref} onClick={openSource?.(ref)}>
@@ -89,16 +95,23 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
         </div>
       ) : null}
 
-      {field.searched ? (
-        <div className="field-row__searched" aria-label="Searched documents">
-          {field.searched.searched.map(ref => <span className="field-row__chip" key={ref}>{sourceLabel(ref)}</span>)}
-        </div>
-      ) : null}
-
       {note ? <p className="field-row__agent-note">Agent: {note}</p> : null}
+      {lockedReport ? (
+        <p className="field-row__agent-note">
+          Agent: {lockedReport} <JumpLink href="#change-log">see log</JumpLink>
+        </p>
+      ) : null}
       {field.revised ? <p className="field-row__revision">was: {field.revised.was ?? '—'}</p> : null}
       {showAgentOriginal ? (
-        <p className="field-row__agent-original">agent {showAgentOriginal.value}</p>
+        <p className="field-row__agent-original">
+          agent {showAgentOriginal.value}
+          {showAgentOriginal.source_refs.map(ref => (
+            <span key={ref}>
+              {' \u00b7 '}
+              <ProvenanceLink href={sourceHref(ref)} onClick={openSource?.(ref)}>{sourceLabel(ref)}</ProvenanceLink>
+            </span>
+          ))}
+        </p>
       ) : null}
 
       {field.state === 'needs_review' ? (
