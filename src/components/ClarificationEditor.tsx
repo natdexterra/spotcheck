@@ -106,7 +106,7 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
         ))}
       </fieldset>
       <div className="clarification__actions">
-        <Button disabled={!canSend} size="compact" type="submit" variant="primary">Send</Button>
+        <Button disabled={!canSend} type="submit" variant="primary">Send</Button>
         <p className="clarification__hint">mock send — your edits vs the agent’s draft go to the change log</p>
       </div>
     </form>

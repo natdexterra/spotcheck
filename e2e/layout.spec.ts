@@ -110,3 +110,18 @@ test('the change log expands in place on desktop, not as a full-screen sheet', a
   expect(box!.height).toBeLessThan(600);
   expect(await page.evaluate(() => document.scrollingElement!.scrollHeight === window.innerHeight)).toBe(true);
 });
+
+test('control heights: the sample button is compact, Confirm is large', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+
+  // Waiting state (no agent activity yet): the sample button defaults to the
+  // secondary/compact treatment — 30px.
+  const sample = page.getByRole('button', { name: 'Play sample session' });
+  await expect(sample).toBeVisible();
+  expect(Math.round((await sample.boundingBox())!.height)).toBe(30);
+
+  await seed(page);
+  const confirm = page.getByRole('button', { name: 'Confirm quote request' });
+  expect(Math.round((await confirm.boundingBox())!.height)).toBe(44);
+});

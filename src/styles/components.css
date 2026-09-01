@@ -29,7 +29,6 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-1);
-  min-height: var(--space-6);
   margin: 0;
   border: 0;
   border-radius: var(--radius-2);
@@ -41,11 +40,13 @@
 }
 
 .button--compact {
+  min-height: var(--control-compact);
   padding-block: calc(var(--space-1) + var(--radius-1));
   padding-inline: var(--space-3);
 }
 
 .button--large {
+  min-height: var(--control-large);
   padding-block: var(--space-3);
   padding-inline: var(--space-4);
 }
@@ -254,7 +255,7 @@
 }
 
 .status-strip {
-  min-height: calc(var(--space-8) + var(--space-3));
+  min-height: var(--control-large);
   position: relative;
   justify-content: space-between;
   gap: var(--space-4);
@@ -339,7 +340,7 @@
 }
 
 .change-log__collapsed {
-  min-height: calc(var(--space-8) + var(--space-3));
+  min-height: var(--control-large);
   justify-content: space-between;
 }
 
@@ -577,6 +578,7 @@
 
 .source-pane__tab {
   min-width: max-content;
+  min-height: var(--control-large);
   padding-inline: var(--space-3);
   color: var(--ink-secondary);
   background-color: transparent;
@@ -842,7 +844,7 @@
 .clarification__input,
 .clarification__textarea {
   width: 100%;
-  min-height: calc(var(--space-8) + var(--space-3));
+  min-height: var(--control-input);
   padding: var(--space-3);
   color: var(--ink);
   background-color: var(--bg-raised);
@@ -860,7 +862,7 @@
 }
 
 .inline-editor__segment {
-  min-height: calc(var(--space-8) + var(--space-3));
+  min-height: var(--control-input);
   display: grid;
   place-items: center;
   padding-inline: var(--space-4);
@@ -1300,11 +1302,11 @@
   .drawing-overlay,
   .button,
   .inline-link {
-    min-height: calc(var(--space-8) + var(--space-3));
+    min-height: var(--control-large);
   }
 
   .drawing-overlay {
-    min-width: calc(var(--space-8) + var(--space-3));
+    min-width: var(--control-large);
   }
 
   .field-pane {
