@@ -136,7 +136,11 @@ for (const width of [390, 320]) {
     expect(buttonBox.height).toBeLessThanOrEqual(44);
     expect(buttonBox.y).toBeGreaterThanOrEqual(sentenceBox.y + sentenceBox.height);
     expect(Math.abs(sentenceBox.x - laneX)).toBeLessThanOrEqual(1);
-    expect(Math.abs(buttonBox.x - laneX)).toBeLessThanOrEqual(1);
+    // The label, not the pill, sits on the lane; the bar keeps 12px above the sentence.
+    const buttonPad = Number.parseFloat(await button.evaluate(element => getComputedStyle(element).paddingLeft));
+    expect(Math.abs(buttonBox.x + buttonPad - laneX)).toBeLessThanOrEqual(1);
+    const barTop = (await page.locator('.change-log').boundingBox())!.y;
+    expect(sentenceBox.y - barTop).toBeGreaterThanOrEqual(12);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 }
