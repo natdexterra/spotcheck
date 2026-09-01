@@ -59,9 +59,7 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
     const covers = availableCovers.filter(fieldId => selectedCovers.includes(fieldId));
     dispatchHuman({ type: 'send', subject, body, covers, at: Date.now() });
     const firstCovered = covers[0];
-    if (!firstCovered) return;
-    onFocusField?.(firstCovered);
-    document.querySelector<HTMLElement>(`[data-field-badge="${firstCovered}"]`)?.focus();
+    if (firstCovered) onFocusField?.(firstCovered);
   };
   const canSend = subject.trim().length > 0 && body.trim().length > 0;
 

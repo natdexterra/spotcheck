@@ -62,16 +62,11 @@ describe('clarification lifecycle', () => {
     expect(screen.getByRole('textbox', { name: 'Subject' })).toHaveValue('Edited subject');
   });
 
-  test('sends edited content and checked covers, then shows the sent record and focuses the first badge', async () => {
+  test('sends edited content and checked covers, then shows the sent record and asks for the first badge', async () => {
     const user = userEvent.setup();
     const onFocusField = vi.fn();
     act(() => replaceState(draftSession()));
-    render(
-      <>
-        <span data-field-badge="general_tolerance" tabIndex={-1}>Tolerance badge</span>
-        <SourcePane onFocusField={onFocusField} />
-      </>,
-    );
+    render(<SourcePane onFocusField={onFocusField} />);
 
     const subject = screen.getByRole('textbox', { name: 'Subject' });
     await user.clear(subject);
@@ -85,7 +80,6 @@ describe('clarification lifecycle', () => {
       covers: ['general_tolerance'],
     });
     expect(onFocusField).toHaveBeenCalledWith('general_tolerance');
-    expect(screen.getByText('Tolerance badge')).toHaveFocus();
     expect(screen.getByText('Sent · 1 field asked')).toBeInTheDocument();
     expect(screen.getByText('Tolerance question')).toBeInTheDocument();
     expect(screen.queryByRole('textbox', { name: 'Subject' })).not.toBeInTheDocument();

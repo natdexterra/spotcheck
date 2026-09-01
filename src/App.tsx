@@ -12,6 +12,7 @@ import { useKeyboardMap } from './hooks/useKeyboardMap';
 import { useNarrowLayout } from './hooks/useNarrowLayout';
 import { useReview } from './hooks/useReview';
 import { createReplay } from './replay/replay';
+import type { FocusRequest } from './components/FieldList';
 import type { FieldId } from './state/types';
 
 export function App() {
@@ -19,6 +20,7 @@ export function App() {
   const narrow = useNarrowLayout();
   const [sourceOpen, setSourceOpen] = useState(false);
   const [sourceTarget, setSourceTarget] = useState<SourceTarget>();
+  const [focusRequest, setFocusRequest] = useState<FocusRequest>();
   const sourceReturnRef = useRef<HTMLElement | null>(null);
   const replayRef = useRef<ReturnType<typeof createReplay>>();
   useKeyboardMap();
@@ -35,11 +37,11 @@ export function App() {
     setSourceTarget({ ref, fieldId });
     setSourceOpen(true);
   };
+  // The field list owns the move: a row that has collapsed into the verified
+  // group has to be expanded before it can take focus (WCAG 2.4.3).
   const focusField = (fieldId: FieldId) => {
     setSourceOpen(false);
-    const row = document.querySelector<HTMLElement>(`[data-field-id="${fieldId}"]`);
-    row?.scrollIntoView?.({ block: 'center' });
-    (row?.querySelector<HTMLElement>('[data-field-badge]') ?? row)?.focus();
+    setFocusRequest(previous => ({ fieldId, nonce: (previous?.nonce ?? 0) + 1 }));
   };
   const quiet = typeof location !== 'undefined' && new URLSearchParams(location.search).get('quiet') === '1';
 
@@ -60,7 +62,7 @@ export function App() {
                 <Button variant="text" onClick={() => { setSourceTarget(undefined); setSourceOpen(true); }}>Open</Button>
               </div>
             ) : null}
-            <FieldList onSource={openSource} />
+            <FieldList focusRequest={focusRequest} onSource={openSource} />
             <ConfirmFooter />
           </section>
           {!narrow ? <SourcePane onFocusField={focusField} quiet={quiet} target={sourceTarget} /> : null}

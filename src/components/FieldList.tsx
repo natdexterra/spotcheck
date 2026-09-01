@@ -12,7 +12,13 @@ import type { FieldId, FieldState } from '../state/types';
 import { Button } from './Button';
 import { FieldRow } from './FieldRow';
 
+export interface FocusRequest {
+  fieldId: FieldId;
+  nonce: number;
+}
+
 export interface FieldListProps {
+  focusRequest?: FocusRequest;
   onSource?: (ref: string, fieldId: FieldId) => void;
 }
 
@@ -32,16 +38,31 @@ const groupHeading = (state: FieldState, count: number): string => {
   return `${count} verified`;
 };
 
-export function FieldList({ onSource }: FieldListProps) {
+export function FieldList({ focusRequest, onSource }: FieldListProps) {
   const { groups, verifiedCount } = useReview();
   const [verifiedOpen, setVerifiedOpen] = useState(false);
   const verified = groups.find(group => group.state === 'verified');
   const hasPendingSuggestion = verified?.fields.some(field => field.suggestion !== undefined) === true;
   const openGroups = groups.filter(group => group.state !== 'verified');
 
+  const requestedFieldIsVerified = focusRequest !== undefined &&
+    verified?.fields.some(field => field.id === focusRequest.fieldId) === true;
+
   useEffect(() => {
     if (hasPendingSuggestion) setVerifiedOpen(true);
   }, [hasPendingSuggestion]);
+
+  useEffect(() => {
+    if (requestedFieldIsVerified) setVerifiedOpen(true);
+  }, [focusRequest?.nonce, requestedFieldIsVerified]);
+
+  useEffect(() => {
+    if (!focusRequest) return;
+    const row = document.querySelector<HTMLElement>(`[data-field-id="${focusRequest.fieldId}"]`);
+    if (!row) return;
+    row.scrollIntoView?.({ block: 'center' });
+    (row.querySelector<HTMLElement>('[data-field-badge]') ?? row).focus();
+  }, [focusRequest?.nonce, verifiedOpen]);
 
   return (
     <section className="field-list" aria-labelledby="field-list-title">
