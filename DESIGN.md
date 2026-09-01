@@ -69,7 +69,7 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 |---|---|---|---|---|
 | Primary (Confirm, Send, Play sample session) | `--ink` fill, `--bg-raised` text | `--ink-hover` fill | `--ink-active` fill | `--ink-faint` fill, no hover, default cursor |
 | Secondary (Verify, Pick, Enter value, Export, Pause) | `--bg-subtle` fill, ink text, no border | `--hairline` fill | `--hairline-strong` fill | `--bg-subtle` fill, `--ink-faint` text |
-| Text button (Dismiss, Edit, Ask customer, Show tools ▾) | `--accent-text`, no underline ever | `--bg-subtle` pill, `--accent-strong` text | `--hairline` pill | `--ink-faint` text |
+| Text button (Dismiss, Edit, Ask customer, Show tools ▾, Back to {field} in a sheet footer) | `--accent-text`, no underline ever | `--bg-subtle` pill, `--accent-strong` text | `--hairline` pill | `--ink-faint` text |
 | Inline link — provenance ref (`spec §1.1`) | `--accent-text`, dotted underline, offset 3px | `--accent-strong`, solid underline | — | — |
 | Inline link — jump link ("2 conflicts") | `--accent-text`, solid underline, offset 3px | `--accent-strong` | — | — |
 
