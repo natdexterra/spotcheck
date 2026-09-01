@@ -118,7 +118,8 @@
           "value": "Black coat",
           "source_refs": [
             "spec:s1.1"
-          ]
+          ],
+          "rationale": "The finish is named, but no coating thickness or standard is stated."
         }
       }
     },
@@ -217,7 +218,8 @@
           "value": "20 × 14.5",
           "source_refs": [
             "drawing:width"
-          ]
+          ],
+          "rationale": "The drawing states the dimensions without a unit note."
         }
       }
     },
@@ -241,7 +243,8 @@
           "searched": [
             "drawing",
             "spec"
-          ]
+          ],
+          "note": "The drawing and specification do not state a general tolerance."
         }
       }
     },
@@ -255,7 +258,8 @@
           "searched": [
             "drawing",
             "spec"
-          ]
+          ],
+          "note": "The title area has no drawing number."
         }
       }
     },
@@ -269,7 +273,8 @@
           "searched": [
             "drawing",
             "spec"
-          ]
+          ],
+          "note": "The re-issued drawing has no revision letter in the title area."
         }
       }
     },

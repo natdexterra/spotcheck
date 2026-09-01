@@ -147,4 +147,17 @@ describe('FieldList', () => {
     expect(verifiedRows).toEqual(['customer_rfq_ref', 'drawing_number']);
     expect(screen.getByRole('button', { name: 'Hide' })).toHaveAttribute('aria-expanded', 'true');
   });
+
+  test('reveals a verified row when it receives a pending suggestion', () => {
+    act(() => replaceState({
+      confirmed: false,
+      fields: [field('material', 'verified', {
+        suggestion: { value: 'Steel', source_refs: ['email:p3'], rationale: 'The email names steel.' },
+      })],
+    }));
+    render(<FieldList />);
+
+    expect(screen.getByText('Steel')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+  });
 });

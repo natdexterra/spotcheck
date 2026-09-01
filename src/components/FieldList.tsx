@@ -1,4 +1,4 @@
-import { useState, type ComponentType } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import { useReview } from '../hooks/useReview';
 import {
   CheckCircleIcon,
@@ -36,7 +36,12 @@ export function FieldList({ onSource }: FieldListProps) {
   const { groups, verifiedCount } = useReview();
   const [verifiedOpen, setVerifiedOpen] = useState(false);
   const verified = groups.find(group => group.state === 'verified');
+  const hasPendingSuggestion = verified?.fields.some(field => field.suggestion !== undefined) === true;
   const openGroups = groups.filter(group => group.state !== 'verified');
+
+  useEffect(() => {
+    if (hasPendingSuggestion) setVerifiedOpen(true);
+  }, [hasPendingSuggestion]);
 
   return (
     <section className="field-list" aria-labelledby="field-list-title">
