@@ -10,7 +10,7 @@ export type Step = { actor: 'agent'; at: number; call: { tool: ToolName; input: 
   { actor: 'estimator'; at: number; action: HumanAction };
 export interface Fixture { recorded_at: string; steps: Step[] }
 const fixtures = import.meta.glob<Fixture>('../../data/sample-session*.json', { eager: true, import: 'default' });
-export const sampleSession = fixtures['../../data/sample-session.json'] ?? fixtures['../../data/sample-session.stub.json']!;
+export const sampleSession = fixtures['../../data/sample-session.stub.json'] ?? fixtures['../../data/sample-session.json']!;
 
 export async function runStep(step: Step): Promise<void> {
   if (step.actor === 'agent') await executeTool(step.call.tool, step.call.input, step.at);
