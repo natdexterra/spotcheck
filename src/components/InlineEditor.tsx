@@ -92,6 +92,7 @@ export const InlineEditor = ({ field, onClose, returnFocusRef }: InlineEditorPro
                 <label className="inline-editor__segment" key={option}>
                   <input
                     checked={unit === option}
+                    className="visually-hidden"
                     name={`${field.id}-unit`}
                     onChange={() => {
                       startEditing();

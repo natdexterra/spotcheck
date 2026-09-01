@@ -4,6 +4,7 @@ import type { Draft } from '../state/session';
 import { dispatchHuman } from '../state/store';
 import type { FieldId } from '../state/types';
 import { Button } from './Button';
+import { Choice } from './Choice';
 
 export interface ClarificationEditorProps {
   draft?: Draft;
@@ -86,14 +87,14 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
       <fieldset className="clarification__covers">
         <legend className="clarification__legend">Fields covered</legend>
         {availableCovers.map(fieldId => (
-          <label className="clarification__cover" key={fieldId}>
-            <input
-              checked={selectedCovers.includes(fieldId)}
-              onChange={event => toggleCover(fieldId, event.currentTarget.checked)}
-              type="checkbox"
-            />
-            <span>{fieldLabel(fieldId)}</span>
-          </label>
+          <Choice
+            checked={selectedCovers.includes(fieldId)}
+            key={fieldId}
+            onChange={checked => toggleCover(fieldId, checked)}
+            type="checkbox"
+          >
+            {fieldLabel(fieldId)}
+          </Choice>
         ))}
       </fieldset>
       <div className="clarification__actions">
