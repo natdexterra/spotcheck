@@ -63,7 +63,7 @@ Only the two alarming agent flags (conflict, missing) and the human-only verifie
 
 ## Interaction states
 
-Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen.
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time.
 
 | Class | Default | Hover | Active | Disabled |
 |---|---|---|---|---|
@@ -167,6 +167,8 @@ Every state and resolution renders icon + text label — color is never the only
 `dismissed` and `asked_customer` are the null-value resolutions: their icons must not read as a check.
 
 **Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …". The sentence is for the person reading the row; the short label is for everything that counts, lists or announces. Neither wording ever comes from the state name of a `verified` field.
+
+**Dot or icon.** In a field row the badge of an agent state (`empty`, `needs_review`, `conflict`, `missing`, and a reopened row) is an 8px dot in the state color plus the human wording; the badge of a `verified` row replaces the dot with the resolution icon from the table, because seven resolutions must be told apart and the null-value kinds must not read as a check. The agent-state icons from the table appear where the short label appears: group headings, the blocker line, the confirm summary. One icon set, two placements.
 
 ## Focus and keyboard
 
