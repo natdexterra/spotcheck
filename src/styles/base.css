@@ -19,6 +19,23 @@ body {
   font-synthesis: none;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.untrusted {
+  white-space: pre-wrap;
+}
+
 :focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
