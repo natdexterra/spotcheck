@@ -25,8 +25,12 @@ const fieldSources = (field: Field): string[] => {
 export function FieldRow({ field, now, onSource }: FieldRowProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const rowRef = useRef<HTMLElement>(null);
   const editorButtonRef = useRef<HTMLButtonElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
+  // Where focus goes when the editor or picker closes. Not every state has a
+  // trigger button of its own, so the row itself is the fallback (WCAG 2.4.3).
+  const returnFocusRef = useRef<HTMLElement | null>(null);
   const sources = fieldSources(field);
   const note = field.proposal?.rationale ?? field.searched?.note;
   const showAgentOriginal = field.proposal && (
@@ -49,16 +53,24 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
     }
     : undefined;
   const openEditor = () => {
+    returnFocusRef.current = editorButtonRef.current ?? rowRef.current;
     setPickerOpen(false);
     setEditorOpen(true);
   };
   const openPicker = () => {
+    returnFocusRef.current = pickerButtonRef.current ?? rowRef.current;
     setEditorOpen(false);
     setPickerOpen(true);
   };
 
   return (
-    <article className={`field-row field-row--${field.state}`} id={`field-${field.id}`} data-field-id={field.id}>
+    <article
+      className={`field-row field-row--${field.state}`}
+      data-field-id={field.id}
+      id={`field-${field.id}`}
+      ref={rowRef}
+      tabIndex={-1}
+    >
       <div className="field-row__label">
         <span>{fieldLabel(field.id)}</span>
         {field.locked ? <LockIcon /> : null}
@@ -115,7 +127,12 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
       ) : null}
 
       {field.state === 'conflict' ? (
-        <ConflictPanel field={field} onOpenEditor={openEditor} onSource={openSource} />
+        <ConflictPanel
+          editorButtonRef={editorButtonRef}
+          field={field}
+          onOpenEditor={openEditor}
+          onSource={openSource}
+        />
       ) : null}
 
       {field.state === 'missing' || field.state === 'empty' ? (
@@ -137,10 +154,10 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
       ) : null}
 
       {editorOpen ? (
-        <InlineEditor field={field} onClose={() => setEditorOpen(false)} returnFocusRef={editorButtonRef} />
+        <InlineEditor field={field} onClose={() => setEditorOpen(false)} returnFocusRef={returnFocusRef} />
       ) : null}
       {pickerOpen ? (
-        <NotRequiredPicker field={field} onClose={() => setPickerOpen(false)} returnFocusRef={pickerButtonRef} />
+        <NotRequiredPicker field={field} onClose={() => setPickerOpen(false)} returnFocusRef={returnFocusRef} />
       ) : null}
       {field.suggestion ? <SuggestionCard field={field} onSource={openSource} /> : null}
     </article>

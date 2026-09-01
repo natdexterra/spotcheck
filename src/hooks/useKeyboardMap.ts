@@ -10,7 +10,8 @@ const rowFor = (fieldId: string) => document.querySelector<HTMLElement>(`[data-f
 
 const focusRow = (row: HTMLElement | null) => {
   if (!row) return;
-  row.tabIndex = -1;
+  // Rows carry tabIndex -1 already; set it for any row that does not.
+  if (!row.hasAttribute('tabindex')) row.tabIndex = -1;
   row.focus();
 };
 

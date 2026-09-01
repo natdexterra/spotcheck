@@ -1,14 +1,16 @@
+import type { Ref } from 'react';
 import type { Field } from '../state/types';
 import { Button } from './Button';
 import { CandidateOption, type SourceHandler } from './CandidateOption';
 
 export interface ConflictPanelProps {
+  editorButtonRef?: Ref<HTMLButtonElement>;
   field: Field;
   onOpenEditor: () => void;
   onSource?: SourceHandler;
 }
 
-export const ConflictPanel = ({ field, onOpenEditor, onSource }: ConflictPanelProps) => (
+export const ConflictPanel = ({ editorButtonRef, field, onOpenEditor, onSource }: ConflictPanelProps) => (
   <section aria-label={`Conflicting values for ${field.id}`} className="conflict-panel">
     <ul className="conflict-panel__candidates">
       {field.candidates?.map((candidate, index) => (
@@ -21,6 +23,6 @@ export const ConflictPanel = ({ field, onOpenEditor, onSource }: ConflictPanelPr
         />
       ))}
     </ul>
-    <Button onClick={onOpenEditor} variant="text">Enter another value</Button>
+    <Button onClick={onOpenEditor} ref={editorButtonRef} variant="text">Enter another value</Button>
   </section>
 );
