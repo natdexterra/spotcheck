@@ -129,7 +129,8 @@ describe('FieldList', () => {
     }));
     render(<FieldList />);
 
-    expect(screen.getByRole('heading', { name: '2 of 11 verified' })).toBeInTheDocument();
+    expect(screen.getByText('2 of 11 verified')).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: '2 of 11 verified' })).not.toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '1 conflict' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '1 missing' })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '1 to review' })).toBeInTheDocument();

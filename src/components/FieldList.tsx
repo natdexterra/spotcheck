@@ -95,7 +95,7 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
       <header className="field-list__header">
         <div className="field-list__title-line">
           <h2 id="field-list-title">Quote request</h2>
-          <h3 className="field-list__count numeric">{verifiedCount} of 11 verified</h3>
+          <p className="field-list__count numeric">{verifiedCount} of 11 verified</p>
         </div>
         <p>Your agent reads the documents → fields fill with sources → you verify and confirm.</p>
       </header>
