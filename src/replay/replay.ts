@@ -4,7 +4,7 @@ import { parseFixture } from './serialization';
 import type { ToolName } from '../webmcp-tools';
 import { dispatchHuman, getState, replaceState, subscribe } from '../state/store';
 import { createInitialState, reviewSession } from '../state/session';
-import type { FieldId, HumanAction } from '../state/types';
+import type { Field, FieldId, HumanAction } from '../state/types';
 
 export type Step = { actor: 'agent'; at: number; call: { tool: ToolName; input: unknown } } |
   { actor: 'estimator'; at: number; action: HumanAction };
@@ -16,6 +16,13 @@ export async function runStep(step: Step): Promise<void> {
   if (step.actor === 'agent') await executeTool(step.call.tool, step.call.input, step.at);
   else dispatchHuman({ ...step.action, at: step.at });
 }
+
+const contentChanged = (before: Field | undefined, after: Field): boolean => {
+  if (!before) return true;
+  const { locked: _b, ...b } = before;
+  const { locked: _a, ...a } = after;
+  return JSON.stringify(a) !== JSON.stringify(b);
+};
 
 export function createReplay(source: Fixture = sampleSession) {
   const fixture = parseFixture(JSON.stringify(source));
@@ -38,11 +45,12 @@ export function createReplay(source: Fixture = sampleSession) {
       if (entry.event.actor !== 'human') continue;
       const action = entry.event.action;
       const ids = 'field_id' in action && action.field_id ? [action.field_id] : action.type === 'send' ? action.covers ?? [] : [];
-      // The reducer also logs no-op human actions; only a dispatch that actually
-      // mutated the field (fresh object identity) counts as viewer-handled.
+      // The reducer also logs no-op human actions, and a lock-only write
+      // (edit_start, then cancel) is not handling either: the field counts as
+      // viewer-handled only when its content beyond `locked` changed.
       for (const id of ids) {
         const after = state.fields.find(f => f.id === id);
-        if (after?.locked && after !== lastFields.find(f => f.id === id)) viewerHandled.add(id);
+        if (after?.locked && contentChanged(lastFields.find(f => f.id === id), after)) viewerHandled.add(id);
       }
     }
     seen = log.length;
@@ -93,7 +101,7 @@ export function createReplay(source: Fixture = sampleSession) {
     get playing() { return playing; },
     next, pause,
     play() { if (!disposed) { playing = true; schedule(); } },
-    restart() { pause(); generation++; position = 0; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); },
+    restart() { if (disposed) return; pause(); generation++; position = 0; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); },
     dispose() { pause(); if (!disposed) { disposed = true; unsubscribe(); resumePersistence(); } },
   };
 }
