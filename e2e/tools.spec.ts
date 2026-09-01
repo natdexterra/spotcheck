@@ -41,6 +41,11 @@ test('registered tools drive risk order and protect human decisions', async ({ p
     note: 'The sources disagree.',
   });
 
+  // B5: a candidate's source link drives the two-way highlight like any other.
+  await page.locator('[data-field-id="quantity"]').getByRole('link', { name: 'spec §1.1' }).click();
+  await expect(page.getByRole('tab', { name: 'Spec' })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[id="spec:s1.1"]')).toHaveClass(/document-region--highlighted/);
+
   const visibleOrder = await page.locator('.field-row').evaluateAll(rows => rows.map(row => row.getAttribute('data-field-id')));
   expect(visibleOrder.slice(0, 2)).toEqual(['quantity', 'general_tolerance']);
   await expect(page.locator('[data-field-id="quantity"]')).toContainText('800');

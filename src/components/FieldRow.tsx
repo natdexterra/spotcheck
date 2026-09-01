@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { fieldLabel } from '../lib/format';
+import { fieldLabel, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -16,15 +16,6 @@ export interface FieldRowProps {
   onSource?: (ref: string, fieldId: FieldId) => void;
   now?: number;
 }
-
-const sourceLabel = (ref: string): string => {
-  const [document, region] = ref.split(':', 2);
-  if (!region) return ref;
-  if (document === 'spec') return `spec §${region.replace(/^s/, '')}`;
-  if (document === 'email') return `email ¶${region.replace(/^p/, '')}`;
-  if (document === 'drawing') return `drawing ${region.replaceAll('_', ' ')}`;
-  return ref;
-};
 
 const fieldSources = (field: Field): string[] => {
   if (field.proposal) return field.proposal.source_refs;
@@ -51,6 +42,12 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
         ? 'Awaiting customer'
         : '—'
     : `${field.locked && field.state !== 'verified' ? 'your entry: ' : ''}${field.value}${field.unit ? ` ${field.unit}` : ''}`;
+  const openSource = onSource
+    ? (ref: string) => (event: { preventDefault: () => void }) => {
+      event.preventDefault();
+      onSource(ref, field.id);
+    }
+    : undefined;
   const openEditor = () => {
     setPickerOpen(false);
     setEditorOpen(true);
@@ -73,15 +70,7 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
       {sources.length > 0 ? (
         <div className="field-row__sources">
           {sources.map(ref => (
-            <ProvenanceLink
-              href={`#source-${encodeURIComponent(ref)}`}
-              key={ref}
-              onClick={event => {
-                if (!onSource) return;
-                event.preventDefault();
-                onSource(ref, field.id);
-              }}
-            >
+            <ProvenanceLink href={sourceHref(ref)} key={ref} onClick={openSource?.(ref)}>
               {sourceLabel(ref)}
             </ProvenanceLink>
           ))}
@@ -125,7 +114,9 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
         </div>
       ) : null}
 
-      {field.state === 'conflict' ? <ConflictPanel field={field} onOpenEditor={openEditor} /> : null}
+      {field.state === 'conflict' ? (
+        <ConflictPanel field={field} onOpenEditor={openEditor} onSource={openSource} />
+      ) : null}
 
       {field.state === 'missing' || field.state === 'empty' ? (
         <div className="field-row__actions">
@@ -151,7 +142,7 @@ export function FieldRow({ field, now, onSource }: FieldRowProps) {
       {pickerOpen ? (
         <NotRequiredPicker field={field} onClose={() => setPickerOpen(false)} returnFocusRef={pickerButtonRef} />
       ) : null}
-      {field.suggestion ? <SuggestionCard field={field} /> : null}
+      {field.suggestion ? <SuggestionCard field={field} onSource={openSource} /> : null}
     </article>
   );
 }
