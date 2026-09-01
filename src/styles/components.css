@@ -280,6 +280,128 @@
   }
 }
 
+.confirm-footer {
+  position: sticky;
+  inset-block-end: 0;
+  z-index: 1;
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-6);
+  background-color: var(--bg-raised);
+  border-top: var(--rule-width) solid var(--hairline);
+}
+
+.confirm-footer > .button {
+  width: 100%;
+}
+
+.confirm-footer__status {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
+  text-align: center;
+}
+
+.confirm-summary {
+  padding: var(--space-8) var(--page-margin);
+}
+
+.confirm-summary__header h1 {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: 600;
+}
+
+.confirm-summary__timer,
+.confirm-summary__agreement {
+  margin: var(--space-2) 0 0;
+  color: var(--ink-secondary);
+}
+
+.confirm-summary__timer,
+.confirm-summary__count {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.confirm-summary__counts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-block: var(--space-6) var(--space-2);
+}
+
+.confirm-summary__count {
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-1);
+  background-color: var(--bg-subtle);
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.confirm-summary__details,
+.confirm-summary__log {
+  max-width: var(--pane-field-max);
+  margin-block-start: var(--space-6);
+  padding: var(--space-4);
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+  border-radius: var(--radius-2);
+}
+
+.confirm-summary__section + .confirm-summary__section {
+  margin-block-start: var(--space-6);
+}
+
+.confirm-summary__section h2,
+.confirm-summary__log h2 {
+  margin: 0 0 var(--space-2);
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: 500;
+}
+
+.confirm-summary__section ul,
+.confirm-summary__log ol {
+  margin: 0;
+  padding-inline-start: var(--space-6);
+}
+
+.confirm-summary__section li,
+.confirm-summary__section p,
+.confirm-summary__log li {
+  font-family: var(--font-mono);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
+  font-feature-settings: "zero" 1;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.confirm-summary__section p {
+  margin: 0;
+}
+
+.confirm-summary__actions {
+  display: flex;
+  gap: var(--space-2);
+  margin-block-start: var(--space-6);
+}
+
+@media (width < 64rem) {
+  .confirm-footer {
+    padding-inline: var(--space-4);
+  }
+
+  .confirm-summary {
+    padding: var(--space-6) var(--space-4);
+  }
+}
+
 .source-pane {
   min-width: 0;
   overflow: hidden;
