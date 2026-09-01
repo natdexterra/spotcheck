@@ -14,6 +14,7 @@ test('registered tools drive risk order and protect human decisions', async ({ p
     field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'], rationale: 'The material callout names this alloy.',
   });
   await expect(page.getByText('Live', { exact: true })).toBeVisible();
+  await page.getByRole('button', { name: /Show tools/ }).click();
   const material = page.locator('[data-field-id="material"]');
   await material.getByRole('button', { name: 'Verify' }).click();
   await expect(page.getByText('1 more verified · Material')).toBeVisible();
@@ -58,6 +59,14 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await expect(page.locator('[data-field-id="quantity"]')).toContainText('750');
   await expect.poll(() => page.evaluate(() => Object.keys((window as unknown as { __spotcheckTools: object }).__spotcheckTools).length)).toBe(7);
 
+  // S7/B6: the count names the change and the row called is lit, both for two
+  // seconds; then the count settles and the marker clears.
+  await expect(page.locator('.status-strip')).toContainText('6 → 7 tools');
+  await expect(page.locator('.status-strip__roster-row--called')).toHaveCount(1);
+  await expect(page.locator('.status-strip')).not.toContainText('6 → 7 tools', { timeout: 6_000 });
+  await expect(page.locator('.status-strip')).toContainText('7 tools');
+  await expect(page.locator('.status-strip__roster-row--called')).toHaveCount(0);
+
   await executeTool(page, 'draft_clarification', {
     subject: 'Open quote question', body: 'Please confirm the general tolerance.', covers: ['general_tolerance'],
   });
@@ -71,6 +80,7 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await tolerance.getByRole('radio', { name: 'Not required for this quote' }).check();
   await tolerance.getByRole('button', { name: 'Mark not required' }).last().click();
   await expect.poll(() => page.evaluate(() => Object.keys((window as unknown as { __spotcheckTools: object }).__spotcheckTools).length)).toBe(6);
+  await expect(page.locator('.status-strip')).toContainText('7 → 6 tools');
 });
 
 test('agent tools cannot create verified state and quiet mode omits the injected note', async ({ page }) => {

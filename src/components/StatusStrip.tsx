@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
@@ -6,6 +6,7 @@ import type { AgentAction } from '../state/types';
 import { Button } from './Button';
 
 const PROMPT = 'Extract this RFQ into a quote request';
+const MARKER_MS = 2_000;
 const NO_API_LONG = 'Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app’s browser, or Chrome 149+ with the WebMCP flag.';
 const NO_API_SHORT = 'Live mode needs a WebMCP-capable desktop browser.';
 
@@ -63,7 +64,30 @@ export function StatusStrip({
     });
   }, [agentEntries, dynamicAvailable]);
   const lastAgent = agentEntries.at(-1);
+  const lastCalled = lastAgent ? toolForAction(lastAgent.event.action as AgentAction) : undefined;
   const live = agentEntries.length > 0;
+
+  // The row last called stays lit for two seconds, and a roster that grows or
+  // shrinks says so in the count for the same two seconds.
+  const [markedTool, setMarkedTool] = useState<string>();
+  useEffect(() => {
+    if (!lastCalled) return;
+    setMarkedTool(lastCalled);
+    const timer = window.setTimeout(() => setMarkedTool(undefined), MARKER_MS);
+    return () => window.clearTimeout(timer);
+  }, [agentEntries.length, lastCalled]);
+
+  const rosterSize = tools.length;
+  const previousSize = useRef(rosterSize);
+  const [sizeChange, setSizeChange] = useState<string>();
+  useEffect(() => {
+    const before = previousSize.current;
+    previousSize.current = rosterSize;
+    if (before === rosterSize) return;
+    setSizeChange(`${before} → ${rosterSize} tools`);
+    const timer = window.setTimeout(() => setSizeChange(undefined), MARKER_MS);
+    return () => window.clearTimeout(timer);
+  }, [rosterSize]);
   // Precedence per the task's status-strip table: a replay started in a browser
   // without the API is live from its first step, and the sample button leaves.
   const state = confirmed ? 'confirmed' : live ? 'live' : apiAvailable ? 'waiting' : 'no-api';
@@ -86,7 +110,7 @@ export function StatusStrip({
         {state === 'live' && (
           <>
             <strong>Live</strong>
-            <span className="numeric">{tools.length} tools · {agentEntries.length} calls</span>
+            <span className="numeric">{sizeChange ?? `${rosterSize} tools`} · {agentEntries.length} calls</span>
             <span>{lastActivity(lastAgent?.event.action as AgentAction | undefined)} · just now</span>
             <Button variant="text" aria-expanded={toolsOpen} onClick={() => setToolsOpen(open => !open)}>
               Show tools <ChevronDownIcon />
@@ -104,7 +128,10 @@ export function StatusStrip({
       {toolsOpen && state === 'live' && (
         <ul className="status-strip__roster">
           {tools.map(tool => (
-            <li key={tool.name}>
+            <li
+              className={tool.name === markedTool ? 'status-strip__roster-row--called' : undefined}
+              key={tool.name}
+            >
               <code>{tool.name}</code>
               <span>{tool.readOnly ? 'read' : 'write'}</span>
               <span className="numeric">{tool.calls} calls</span>
