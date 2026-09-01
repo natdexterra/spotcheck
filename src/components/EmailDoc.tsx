@@ -1,4 +1,11 @@
-import { findDocument, sectionRegions, type DocumentData } from '../data/package';
+import { findDocument, sectionRegions, type DocumentData, type Section } from '../data/package';
+
+// "s3" reads as "3 · TECHNICAL SPECIFICATIONS"; the uppercase is the stylesheet's.
+const sectionCaption = (section: Section): string | undefined => {
+  if (!section.title) return undefined;
+  const number = /^s(\d+)$/.exec(section.id)?.[1];
+  return number ? `${number} · ${section.title}` : section.title;
+};
 
 export interface DocumentTextProps {
   document: DocumentData;
@@ -42,7 +49,9 @@ export function DocumentText({
             role={sectionHighlighted ? 'button' : undefined}
             tabIndex={sectionHighlighted ? 0 : undefined}
           >
-            {section.title && <h3 className="document-section__title">{section.title}</h3>}
+            {section.id === 'title' || !sectionCaption(section)
+              ? null
+              : <h4 className="document-section__caption">{sectionCaption(section)}</h4>}
             {sectionRegions(document.id, section)
               .filter(region => !region.private && !(quiet && (region.injection || region.id === 'email:note')))
               .map(region => {
@@ -66,8 +75,9 @@ export function DocumentText({
                     role={highlighted ? 'button' : undefined}
                     tabIndex={highlighted ? 0 : undefined}
                   >
-                    <code className="document-region__id">{region.id}</code>
-                    <p className="document-region__text">{region.text}</p>
+                    {section.id === 'title'
+                      ? <h3 className="document-text__title">{region.text}</h3>
+                      : <p className="document-region__text">{region.text}</p>}
                   </div>
                 );
               })}

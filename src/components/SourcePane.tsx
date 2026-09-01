@@ -196,7 +196,6 @@ export function SourcePane({
         {sourceTabs.map(tab => (
           <button
             aria-controls={`source-panel-${tab}`}
-            aria-label={`${TAB_LABELS[tab]}${readingVisible && reading?.docId === tab ? ' reading' : ''}`}
             aria-selected={activeTab === tab}
             className={[
               'source-pane__tab',
@@ -211,7 +210,7 @@ export function SourcePane({
           >
             {TAB_LABELS[tab]}
             {readingVisible && reading?.docId === tab && (
-              <span className="source-pane__reading"> reading</span>
+              <span aria-label="reading" className="source-pane__reading" role="img" />
             )}
             {tab === 'clarification' && draft && !sent && (
               <span aria-hidden="true" className="source-pane__draft-dot" />
