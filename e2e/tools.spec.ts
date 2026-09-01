@@ -46,6 +46,12 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await expect(page.getByRole('tab', { name: 'Spec' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('[id="spec:s1.1"]')).toHaveClass(/document-region--highlighted/);
 
+  // S5: the searched places read as a sentence in the agent line, never as chips.
+  await expect(page.locator('[data-field-id="general_tolerance"]')).toContainText(
+    'Agent: No general tolerance was stated. Searched the drawing and the specification.',
+  );
+  await expect(page.locator('.field-row__chip')).toHaveCount(0);
+
   const visibleOrder = await page.locator('.field-row').evaluateAll(rows => rows.map(row => row.getAttribute('data-field-id')));
   expect(visibleOrder.slice(0, 2)).toEqual(['quantity', 'general_tolerance']);
   await expect(page.locator('[data-field-id="quantity"]')).toContainText('800');

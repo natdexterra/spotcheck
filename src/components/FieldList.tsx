@@ -8,7 +8,8 @@ import {
   OpposingArrowsIcon,
 } from '../icons';
 import { fieldLabel } from '../lib/format';
-import type { FieldId, FieldState } from '../state/types';
+import type { LogEntry } from '../state/session';
+import type { Field, FieldId, FieldState } from '../state/types';
 import { Button } from './Button';
 import { FieldRow } from './FieldRow';
 
@@ -38,8 +39,33 @@ const groupHeading = (state: FieldState, count: number): string => {
   return `${count} verified`;
 };
 
+const REPORT_WORDING: Record<string, string> = {
+  report_conflict: 'reported a conflict on this field after you set it \u00b7',
+  report_missing: 'reported this field missing after you set it \u00b7',
+};
+
+/**
+ * A locked field the agent tried to flag afterwards: the newest call it made on
+ * the field was a report tool, and the lock turned that call into a rejection.
+ */
+const lockedReportFor = (field: Field, log: LogEntry[]): string | undefined => {
+  if (!field.locked) return undefined;
+  for (let index = log.length - 1; index >= 0; index -= 1) {
+    const entry = log[index]!;
+    const action = entry.event.action;
+    const input = 'input' in action && typeof action.input === 'object' && action.input !== null
+      ? action.input as Record<string, unknown>
+      : {};
+    const fieldId = 'field_id' in action ? action.field_id : input.field_id;
+    if (fieldId !== field.id) continue;
+    if (entry.actor !== 'agent' || entry.result?.ok !== false) return undefined;
+    return REPORT_WORDING[action.type];
+  }
+  return undefined;
+};
+
 export function FieldList({ focusRequest, onSource }: FieldListProps) {
-  const { groups, verifiedCount } = useReview();
+  const { groups, log, verifiedCount } = useReview();
   const [verifiedOpen, setVerifiedOpen] = useState(false);
   const verified = groups.find(group => group.state === 'verified');
   const hasPendingSuggestion = verified?.fields.some(field => field.suggestion !== undefined) === true;
@@ -82,7 +108,14 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
               <GroupIcon />
               {groupHeading(group.state, group.fields.length)}
             </h3>
-            {group.fields.map(field => <FieldRow field={field} key={field.id} onSource={onSource} />)}
+            {group.fields.map(field => (
+              <FieldRow
+                field={field}
+                key={field.id}
+                lockedReport={lockedReportFor(field, log)}
+                onSource={onSource}
+              />
+            ))}
           </section>
         );
       })}
@@ -103,7 +136,14 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
             </Button>
           </div>
           {verifiedOpen
-            ? verified.fields.map(field => <FieldRow field={field} key={field.id} onSource={onSource} />)
+            ? verified.fields.map(field => (
+              <FieldRow
+                field={field}
+                key={field.id}
+                lockedReport={lockedReportFor(field, log)}
+                onSource={onSource}
+              />
+            ))
             : null}
         </section>
       ) : null}

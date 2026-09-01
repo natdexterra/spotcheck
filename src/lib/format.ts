@@ -58,6 +58,31 @@ export function sourceLabel(ref: string): string {
   return `${documentId} ${region.replaceAll('_', ' ')}`;
 }
 
+const DOCUMENT_WORDS: Record<string, string> = {
+  spec: 'the specification',
+  email: 'the email',
+  drawing: 'the drawing',
+};
+
+/** A searched place in prose: spec:s3 reads spec \u00a73, a bare drawing reads the drawing. */
+export function searchedLabel(ref: string): string {
+  const [documentId, section] = ref.split(':', 2);
+  if (!section) return DOCUMENT_WORDS[ref] ?? ref;
+  if (documentId === 'spec' && /^s\d/.test(section)) return `spec \u00a7${section.slice(1)}`;
+  if (documentId === 'email' && /^p\d/.test(section)) return `email \u00b6${section.slice(1)}`;
+  return DOCUMENT_WORDS[documentId ?? ''] ?? ref;
+}
+
+/** The places the agent looked, as a sentence: "Searched spec \u00a73 and the drawing." */
+export function searchedSentence(searched: readonly string[]): string {
+  const places = [...new Set(searched.map(searchedLabel))];
+  if (places.length === 0) return '';
+  const list = places.length === 1
+    ? places[0]!
+    : `${places.slice(0, -1).join(', ')} and ${places.at(-1)}`;
+  return `Searched ${list}.`;
+}
+
 /** The bare fragment: with no handler the link still lands on the region. */
 export function sourceHref(ref: string): string {
   return `#${ref}`;
