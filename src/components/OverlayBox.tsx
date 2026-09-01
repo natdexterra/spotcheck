@@ -29,8 +29,6 @@ export function OverlayBox({ active = false, box, label, onActivate, sourceRef }
         width: percentage(width),
       }}
       type="button"
-    >
-      <span className="drawing-overlay__label">{label}</span>
-    </button>
+    />
   );
 }

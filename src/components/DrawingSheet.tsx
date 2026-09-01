@@ -53,7 +53,8 @@ export function DrawingSheet({
         </div>
       </div>
       <figcaption className="drawing-sheet__caption">
-        Sheet {String(document.sheet ?? '1 of 4')} · regions are clickable
+        <span aria-label="drawing:title_area">{titleAreaCaption}</span>
+        <span>Sheet {String(document.sheet ?? '1 of 4')} · regions are clickable</span>
       </figcaption>
     </figure>
   );
