@@ -166,6 +166,8 @@ Every state and resolution renders icon + text label — color is never the only
 
 `dismissed` and `asked_customer` are the null-value resolutions: their icons must not read as a check.
 
+**Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …". The sentence is for the person reading the row; the short label is for everything that counts, lists or announces. Neither wording ever comes from the state name of a `verified` field.
+
 ## Focus and keyboard
 
 - `:focus-visible` everywhere: `outline: 2px solid var(--accent); outline-offset: 2px;` — never `outline: none` without a same-or-stronger replacement, never box-shadow-only focus.
