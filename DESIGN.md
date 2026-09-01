@@ -73,7 +73,7 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 | Inline link — provenance ref (`spec §1.1`) | `--accent-text`, dotted underline, offset 3px | `--accent-strong`, solid underline | — | — |
 | Inline link — jump link ("2 conflicts") | `--accent-text`, solid underline, offset 3px | `--accent-strong` | — | — |
 
-The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline.
+The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline. Inputs carry a visible label above them and no placeholder text; a hint is a separate muted line, never text inside the field. A choice control beside an input (the unit `in | mm` segments) matches the input's height exactly.
 
 ### Contrast ledger (computed 2026-08-31, WCAG 2.x)
 
@@ -145,7 +145,7 @@ Rules the builder must not trade away:
 
 ## State iconography
 
-Base set: **MynaUI Icons** (mynaui.com/icons, MIT, no attribution required) — line variant, 24×24 grid, 1.5px stroke, `currentColor`. Icons are inlined as SVG components in the repo (no icon package at runtime, nothing crosses the CSP); the MIT license text ships alongside the copied SVGs (`src/icons/LICENSE`). Icons render at 16px (12px for the lock marker); if the scaled stroke reads too light next to Geist at sm/md, thicken `stroke-width` in the copied source to 1.75 — one value for the whole set, never per icon. The few glyphs the set lacks (composites like fork-to-check, envelope-with-clock) are drawn custom on the same grid and stroke.
+Base set: **MynaUI Icons** (mynaui.com/icons, MIT, no attribution required) — line variant, 24×24 grid, 1.5px stroke, `currentColor`. Icons are inlined as SVG components in the repo (no icon package at runtime, nothing crosses the CSP); the MIT license text ships alongside the copied SVGs (`src/icons/LICENSE`). Icons render at 16px (12px for the lock marker); if the scaled stroke reads too light next to Geist at sm/md, thicken `stroke-width` in the copied source to 1.75 — one value for the whole set, never per icon. **No composites and no custom glyphs:** every icon is one glyph from the set. In a badge the icon carries one distinction only — settled *with* a value (check) or settled *without* one (minus, envelope); how the value was settled is the label's job and the line under the value. Arrows, crosses and chevrons in the interface are icons from the set, never text characters.
 
 Every state and resolution renders icon + text label — color is never the only carrier (WCAG 1.4.1).
 
@@ -155,13 +155,9 @@ Every state and resolution renders icon + text label — color is never the only
 | `needs_review` | hollow circle, center dot | Needs review |
 | `conflict` | two opposing arrows | Conflict |
 | `missing` | dashed hollow circle | Missing |
-| verified / `verified` | check in circle | Verified |
-| verified / `edited` | pencil over check | Edited |
-| verified / `entered` | plus in circle | Entered |
-| verified / `picked` | fork converging to check | Picked |
+| verified / `verified`, `edited`, `entered`, `picked`, `applied` | check in circle | Verified · Edited · Entered · Picked · Applied |
 | verified / `dismissed` | minus in circle | Not required |
-| verified / `applied` | arrow into check | Applied |
-| verified / `asked_customer` | envelope with clock | Asked customer |
+| verified / `asked_customer` | envelope | Asked customer |
 | lock marker | closed padlock, 12px | paired with the badge; `aria-hidden`, text equivalent lives in the badge |
 
 `dismissed` and `asked_customer` are the null-value resolutions: their icons must not read as a check.
