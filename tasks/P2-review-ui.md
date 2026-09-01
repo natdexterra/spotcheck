@@ -1,7 +1,7 @@
 # P2 — Review UI: two panes, provenance both ways, resolutions
 
-**Status:** queued (ready for the builder)
-**PR:** —
+**Status:** done — 2026-09-01
+**PR:** #4 `P2: review UI`
 **Depends on:** P1.1 (branches from `main`)
 
 ## Goal
@@ -29,7 +29,7 @@ Create under `src/components/` (one component per file, `.tsx`; styles in `src/s
 | `src/lib/contrast.ts` + test | WCAG contrast of two hex colors; the test re-runs the `DESIGN.md` ledger pairs against `tokens.css` |
 | `src/hooks/useReview.ts` | `useSyncExternalStore(subscribe, getState)` + memoised selectors (risk order, groups, gaps, blockers, draft, timer) |
 | `src/hooks/useKeyboardMap.ts` | `j` / `k` / `Enter` / `e` / `n` / `Esc` per § Keyboard; inert while an input has focus |
-| `Header.tsx` | product name, tagline, package title from `data/package.json` |
+| `Header.tsx` | product name and package title from `data/package.json` |
 | `StatusStrip.tsx` | states `no-api` / `waiting` / `live` / `confirmed`; quiet summary line; `Show tools` disclosure with the roster; copyable prompt; `Play sample session` button (wired to `createReplay().play()`; controls are P3) |
 | `FieldList.tsx` | risk sort, group headings with counts, collapsed verified group, the empty-state header line |
 | `FieldRow.tsx` | marker bar, label, value + unit, badge (icon + text), lock glyph, provenance links, agent note / rationale, `was: X`, actions per state, suggestion-card slot |
@@ -44,7 +44,7 @@ Create under `src/components/` (one component per file, `.tsx`; styles in `src/s
 | `ConfirmFooter.tsx`, `ConfirmSummary.tsx` | disabled button with the blocker line and jump links; the summary |
 | `ChangeLogDrawer.tsx` | collapsed with the last entry; expanded full log; the narrow full-height sheet; Export / Import controls are P3 |
 | `LiveRegion.tsx` | the one polite region with the batching rules |
-| `src/icons/*.tsx`, `src/icons/LICENSE` | MynaUI line icons copied in as inline SVG components (MIT text alongside) plus the custom composites from the `DESIGN.md` table |
+| `src/icons/*.tsx`, `src/icons/LICENSE` | MynaUI line icons copied in as inline SVG components (MIT text alongside), one glyph per entry in the `DESIGN.md` § State iconography table — no composites, no custom glyphs |
 | `src/App.tsx`, `src/main.tsx` (modify) | boot: `registerTools()` when `typeof document.modelContext?.registerTool === "function"`, `startPersistence()`, `?quiet=1` flag into context; layout shell |
 | `vite.config.ts` (modify) | `test.include` also `src/**/*.test.tsx`; component tests declare `// @vitest-environment jsdom` per file so reducer tests stay in node |
 | `e2e/review.spec.ts`, `e2e/tools.spec.ts`, `e2e/narrow.spec.ts`, `e2e/a11y.spec.ts` | see § Tests |
@@ -57,6 +57,7 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 
 - Header, strip, workspace and log drawer take inline padding from `--page-margin`; content inside a pane sits on the gutter lane. Every left edge lands on one of the two lanes.
 - Desktop ≥ 1024px: `grid-template-columns: minmax(480px, 640px) minmax(460px, 1fr)`, gap `--space-6`; below 1024px one column, content capped at 680px above ~600px. No horizontal page scroll at 320px.
+- Scroll model per `DESIGN.md` § Layout ladder: desktop — the page does not scroll, each pane scrolls on its own inside the viewport, the confirm footer is the field pane's last child (not sticky); narrow — one scrolling column, sticky footer, sheets lock body scroll.
 - First load (screen 1): field-pane header "0 of 11 verified", eleven rows "— · Not extracted", one line "Your agent reads the documents → fields fill with sources → you verify and confirm", Email tab open, Confirm disabled with "11 to check", drawer "No activity yet".
 
 ### Status strip
@@ -64,9 +65,14 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 | State | When | Text | Control |
 |---|---|---|---|
 | `no-api` | `typeof document.modelContext?.registerTool !== "function"` | "Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app's browser, or Chrome 149+ with the WebMCP flag." | `Play sample session` (primary) |
-| `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono with a `Copy` text button | `Play sample session` (secondary) |
+| `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono, never broken across lines — it scrolls in its own wrapper on a lane too narrow for it — with a `Copy` text button | `Play sample session` (secondary) |
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
+
+- Before the first tool call (`no-api` and `waiting` only) the strip is two lines. The first orients a reader arriving cold — "This page holds a customer's RFQ package: email, spec and drawing. Your agent fills the 11 quote-request fields through the page's tools; you check each against its source and confirm." — in `--ink`, no dot, `--space-2` above the status line, which keeps the dot. Line 1 holds one line from 1366 up; at 1280 it wraps to two — accepted. `live` and `confirmed` are one line and never carry it.
+- Precedence: `confirmed` → `live` → `no-api` / `waiting`. A replay started in a browser without the API is `live` from its first step; the sample button leaves with the pre-live state. Strip state is derived, never stored.
+- Narrow (< 1024px): the `no-api` text is the short form "Live mode needs a WebMCP-capable desktop browser." with the dot inline before it (never on its own line) and a full-width primary button; `waiting` keeps the prompt line and a full-width secondary button; `live` is the quiet line + `Show tools` in one column.
+- First load in `no-api` at any width shows the eleven empty rows under the strip (screen 01 with the strip from 09). Exports 04/05 draw the pre-play strip over mid-play rows — two moments in one frame; the rule wins.
 
 Roster (disclosure open): one row per registered tool in registration order — name in mono, read/write marker mirroring `readOnlyHint`, call count; a tool whose last call was rejected shows the code. The last-called row is highlighted for 2 s. When `draft_clarification` registers its row enters highlighted and the count reads "6 → 7 tools" for 2 s; when it unregisters the row leaves. No countdown, no auto-start.
 
@@ -101,7 +107,7 @@ Relative times update once a minute; tabular figures; mono.
 
 - Opens from `Edit`, `Enter value`, `Enter another value`, `Add unit`, `e`, or `Enter` on a unit-less `overall_dimensions`. Opening does not lock; the **first keystroke dispatches `edit_start` exactly once** per editor session.
 - Value input prefilled with the current value (empty for `empty`); on `overall_dimensions` a two-option unit control beside it (`in` | `mm`, a radio group styled as a segmented control, same height as the input — never free text); it shows the field's current unit when there is one and **nothing preselected when there is none** (the unit is the estimator's decision, S4 — never default it); the app line "no unit given" while none is selected. No placeholder text in any editor input; the micro-label above the input names it.
-- `Enter` or `Save` dispatches `edit` (or `enter` on an `empty` field) with value and unit — save is verify. `Esc` or `Cancel` dispatches nothing, closes, returns focus to the row's primary action.
+- `Enter` or `Save` dispatches `edit`, or `enter` whenever the field has no value yet (`empty` or `missing`), with value and unit — save is verify. `Esc` or `Cancel` dispatches nothing, closes, returns focus to the row's primary action.
 - Validation before dispatch: empty value → "Enter a value or cancel"; `quantity` non-integer → "Quantity is a whole number"; `overall_dimensions` without unit → "Choose in or mm". Error line in `--state-conflict` with an icon; input border in the same color; `aria-describedby` on the input.
 - While an editor is open, an incoming agent proposal on that field arrives as a suggestion card under the editor (the field is locked); the editor keeps its value and focus.
 

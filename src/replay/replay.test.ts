@@ -170,9 +170,10 @@ test('P1.1 replay: a viewer no-op on a fixture-locked field does not suppress la
   await replay.next();
   await replay.next();
   expect(getState().fields.find(f => f.id === 'material')?.state).toBe('verified');
+  const fixtureResolvedAt = getState().fields.find(f => f.id === 'material')?.resolution?.at;
   // The viewer verifies an already-verified fixture-locked field: logged, but no state change.
   dispatchHuman({ type: 'verify', field_id: 'material', at: 10 });
-  expect(getState().fields.find(f => f.id === 'material')?.resolution?.at).toBe(2);
+  expect(getState().fields.find(f => f.id === 'material')?.resolution?.at).toBe(fixtureResolvedAt);
   await replay.next();
   expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
   replay.dispose();
@@ -223,7 +224,8 @@ test('P1.1 replay: a viewer lock-only write (edit_start, then cancel) does not m
   await replay.next();
   const after = getState().fields.find(f => f.id === 'material');
   expect(after?.state).toBe('verified');
-  expect(after?.resolution?.at).toBe(2);
+  // The resolution carries the replayed step's stamp, not the viewer's edit_start.
+  expect(after?.resolution?.at).not.toBe(10);
   replay.dispose();
 });
 
@@ -245,4 +247,33 @@ test('P1.1 replay: restart() after dispose() is a no-op and leaves the live sess
   expect(getState().fields.find(f => f.id === 'quantity')?.value).toBe('800');
   expect(values.get('spotcheck.session.v1')).toBe(saved);
   session.stop();
+});
+
+test('B3: replayed steps carry wall-clock stamps, not the fixture offsets', async () => {
+  const { createReplay } = await import('./replay');
+  const { getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const { badgeText } = await import('../lib/format');
+  const fixture = JSON.parse(readFileSync('data/sample-session.stub.json', 'utf8'));
+  const fixtureSpan = Math.max(...fixture.steps.map((step: { at: number }) => step.at));
+
+  const runStart = Date.now();
+  const replay = createReplay(fixture);
+  while (await replay.next()) { /* deterministic manual stepping */ }
+  const runEnd = Date.now();
+  replay.dispose();
+
+  const session = reviewSession(getState());
+  expect(session.log.length).toBeGreaterThan(0);
+  for (const entry of session.log) {
+    expect(entry.at).toBeGreaterThanOrEqual(runStart);
+    expect(entry.at).toBeLessThanOrEqual(runEnd + fixtureSpan);
+  }
+  expect(session.log.some(entry => entry.at === 1000 || entry.at === 900)).toBe(false);
+
+  // "Reviewed in" stays under a minute for a fast-forwarded run.
+  expect((session.confirmedAt ?? 0) - (session.startedAt ?? 0)).toBeLessThan(60_000);
+
+  const verified = getState().fields.find(field => field.id === 'part_name')!;
+  expect(badgeText(verified, Date.now())).toMatch(/ · 0:\d{2} ago$/);
 });

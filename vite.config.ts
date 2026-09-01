@@ -9,6 +9,6 @@ export default defineConfig({
   plugins: [react()],
   test: {
     // Playwright owns e2e/; vitest runs the unit tests under src/ only.
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.ts', 'src/**/*.test.tsx'],
   },
 });
