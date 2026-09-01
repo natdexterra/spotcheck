@@ -140,13 +140,18 @@ export function SourcePane({
     if (!tab) return;
     setActiveTab(tab);
     setHighlightedRef(target.ref);
-    const element = document.getElementById(target.ref);
-    element?.scrollIntoView?.({ block: 'center' });
     const timeout = window.setTimeout(() => {
       setHighlightedRef(current => current === target.ref ? undefined : current);
     }, 2_000);
     return () => window.clearTimeout(timeout);
   }, [target?.fieldId, target?.ref]);
+
+  // Scrolling waits for the tab switch to commit: until the panel is visible the
+  // region has no box, so scrollIntoView would be a no-op (B1 — scroll model).
+  useEffect(() => {
+    if (!target) return;
+    document.getElementById(target.ref)?.scrollIntoView?.({ block: 'center' });
+  }, [activeTab, target?.fieldId, target?.ref]);
 
   useEffect(() => {
     tabsRef.current[activeTab]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });

@@ -1,5 +1,7 @@
 import { useRef, useState } from 'react';
+import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
+import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon } from '../icons';
 import { fieldLabel } from '../lib/format';
 import type { LogEntry } from '../state/session';
@@ -77,12 +79,18 @@ export const ChangeLogDrawer = () => {
   const { log, state } = useReview();
   const [expanded, setExpanded] = useState(false);
   const disclosureRef = useRef<HTMLButtonElement>(null);
+  const sheetRef = useRef<HTMLDivElement>(null);
+  const narrow = useNarrowLayout();
   const latest = log.at(-1);
 
   const close = () => {
     setExpanded(false);
     requestAnimationFrame(() => disclosureRef.current?.focus());
   };
+
+  // Narrow only: the expanded log is a full-height sheet over the page, so it
+  // owns focus while it is open. On desktop it expands in place inside the bar.
+  useSheetDialog({ active: expanded && narrow, onClose: close, returnFocusRef: disclosureRef, sheetRef });
 
   return (
     <aside aria-label="Change log" className={`change-log${expanded ? ' change-log--expanded' : ''}`}>
@@ -95,9 +103,15 @@ export const ChangeLogDrawer = () => {
           </Button>
         </div>
       ) : (
-        <div className="change-log__sheet">
+        <div
+          className="change-log__sheet"
+          ref={sheetRef}
+          {...(narrow
+            ? { 'aria-labelledby': 'change-log-title', 'aria-modal': true, role: 'dialog', tabIndex: -1 }
+            : {})}
+        >
           <header className="change-log__header">
-            <h2>Change log</h2>
+            <h2 id="change-log-title">Change log</h2>
             <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
           {log.length ? (
