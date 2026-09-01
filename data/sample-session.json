@@ -1,9 +1,9 @@
 {
-  "recorded_at": "stub - hand-written until a live run is recorded",
+  "recorded_at": "2026-09-01 - hand-written walk-through of the sample package",
   "steps": [
     {
       "actor": "agent",
-      "at": 1000,
+      "at": 900,
       "call": {
         "tool": "list_rfq_documents",
         "input": {}
@@ -11,7 +11,7 @@
     },
     {
       "actor": "agent",
-      "at": 2000,
+      "at": 1800,
       "call": {
         "tool": "read_document",
         "input": {
@@ -22,18 +22,7 @@
     },
     {
       "actor": "agent",
-      "at": 3000,
-      "call": {
-        "tool": "read_document",
-        "input": {
-          "doc_id": "spec",
-          "section_id": "s3"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 4000,
+      "at": 2700,
       "call": {
         "tool": "propose_field",
         "input": {
@@ -42,13 +31,21 @@
           "source_refs": [
             "email:subject"
           ],
-          "rationale": "stub"
+          "rationale": "The subject line carries the RFQ number."
         }
       }
     },
     {
+      "actor": "estimator",
+      "at": 4200,
+      "action": {
+        "type": "verify",
+        "field_id": "customer_rfq_ref"
+      }
+    },
+    {
       "actor": "agent",
-      "at": 4500,
+      "at": 5100,
       "call": {
         "tool": "propose_field",
         "input": {
@@ -58,13 +55,21 @@
             "spec:title",
             "email:p1"
           ],
-          "rationale": "stub"
+          "rationale": "The specification title and the email name the same part."
         }
       }
     },
     {
+      "actor": "estimator",
+      "at": 6600,
+      "action": {
+        "type": "verify",
+        "field_id": "part_name"
+      }
+    },
+    {
       "actor": "agent",
-      "at": 5000,
+      "at": 7500,
       "call": {
         "tool": "propose_field",
         "input": {
@@ -74,13 +79,21 @@
             "spec:s3.1",
             "email:p3"
           ],
-          "rationale": "stub"
+          "rationale": "The material callout names the alloy; the email allows an equivalent."
         }
       }
     },
     {
+      "actor": "estimator",
+      "at": 9000,
+      "action": {
+        "type": "verify",
+        "field_id": "material"
+      }
+    },
+    {
       "actor": "agent",
-      "at": 5500,
+      "at": 9900,
       "call": {
         "tool": "propose_field",
         "input": {
@@ -89,13 +102,21 @@
           "source_refs": [
             "spec:s3.1"
           ],
-          "rationale": "stub"
+          "rationale": "Three thicknesses, one for each piece."
         }
       }
     },
     {
+      "actor": "estimator",
+      "at": 11400,
+      "action": {
+        "type": "verify",
+        "field_id": "stock_thickness"
+      }
+    },
+    {
       "actor": "agent",
-      "at": 6000,
+      "at": 12300,
       "call": {
         "tool": "propose_field",
         "input": {
@@ -105,194 +126,207 @@
             "spec:s3.4",
             "email:p4"
           ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 6500,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "delivery",
-          "value": "Two weeks from PO, FOB destination",
-          "source_refs": [
-            "email:p5"
-          ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 7000,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "general_tolerance",
-          "value": "+/- 0.010",
-          "source_refs": [
-            "spec:s3.3"
-          ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 7500,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "drawing_number",
-          "value": "C2.1 Attachment 2",
-          "source_refs": [
-            "spec:s3.0"
-          ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 8000,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "drawing_revision",
-          "value": "A",
-          "source_refs": [
-            "email:p1"
-          ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 8500,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "quantity",
-          "value": "800",
-          "source_refs": [
-            "spec:s1.1"
-          ],
-          "rationale": "stub"
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 9000,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "overall_dimensions",
-          "value": "20 x 14.5",
-          "source_refs": [
-            "drawing:width",
-            "drawing:height"
-          ],
-          "rationale": "stub"
+          "rationale": "The finish is named, but no coating thickness or standard is stated."
         }
       }
     },
     {
       "actor": "estimator",
-      "at": 9500,
-      "action": {
-        "type": "edit",
-        "field_id": "overall_dimensions",
-        "value": "20 x 14.5",
-        "unit": "in"
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 10000,
-      "action": {
-        "type": "verify",
-        "field_id": "customer_rfq_ref"
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 10300,
-      "action": {
-        "type": "verify",
-        "field_id": "part_name"
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 10600,
-      "action": {
-        "type": "verify",
-        "field_id": "material"
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 10900,
-      "action": {
-        "type": "verify",
-        "field_id": "stock_thickness"
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 11200,
+      "at": 13800,
       "action": {
         "type": "verify",
         "field_id": "surface_finish"
       }
     },
     {
+      "actor": "agent",
+      "at": 14700,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "delivery",
+          "value": "Two weeks from PO, FOB destination",
+          "source_refs": [
+            "email:p5",
+            "spec:s2.6"
+          ],
+          "rationale": "The email sets two weeks; the specification names the destination."
+        }
+      }
+    },
+    {
       "actor": "estimator",
-      "at": 11500,
+      "at": 16200,
       "action": {
         "type": "verify",
         "field_id": "delivery"
       }
     },
     {
-      "actor": "estimator",
-      "at": 11800,
-      "action": {
-        "type": "verify",
-        "field_id": "general_tolerance"
+      "actor": "agent",
+      "at": 17100,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "value": "5052-H32 aluminum",
+          "source_refs": [
+            "email:p3"
+          ],
+          "rationale": "The email allows “or equivalent”; 5052 is the stocked equivalent."
+        }
       }
     },
     {
       "actor": "estimator",
-      "at": 12100,
+      "at": 18600,
       "action": {
-        "type": "verify",
-        "field_id": "drawing_number"
+        "type": "dismiss_suggestion",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 19500,
+      "call": {
+        "tool": "report_conflict",
+        "input": {
+          "field_id": "quantity",
+          "candidates": [
+            {
+              "value": "800",
+              "source_refs": [
+                "spec:s1.1",
+                "spec:s4.1"
+              ],
+              "note": "stated twice in the specification"
+            },
+            {
+              "value": "750",
+              "source_refs": [
+                "email:p2"
+              ],
+              "note": "the email asks for 750"
+            }
+          ],
+          "note": "The specification and the email disagree on the quantity."
+        }
       }
     },
     {
       "actor": "estimator",
-      "at": 12400,
+      "at": 21000,
       "action": {
-        "type": "verify",
-        "field_id": "drawing_revision"
+        "type": "pick",
+        "field_id": "quantity",
+        "index": 0
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 21900,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "overall_dimensions",
+          "value": "20 × 14.5",
+          "source_refs": [
+            "drawing:width",
+            "drawing:height",
+            "spec:s3.2"
+          ],
+          "rationale": "The drawing states the dimensions and neither source names a unit."
+        }
       }
     },
     {
       "actor": "estimator",
-      "at": 12700,
+      "at": 23400,
       "action": {
-        "type": "verify",
-        "field_id": "quantity"
+        "type": "edit",
+        "field_id": "overall_dimensions",
+        "value": "20 × 14.5",
+        "unit": "in"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 24300,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "general_tolerance",
+          "searched": [
+            "spec:s3",
+            "drawing"
+          ],
+          "note": "the spec keeps a template placeholder — “[e.g., +/- 0.010”]”."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 25200,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_number",
+          "searched": [
+            "spec:s3",
+            "drawing"
+          ],
+          "note": "the spec names the attachment file; the sheet carries no number."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 26100,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_revision",
+          "searched": [
+            "email:body",
+            "drawing"
+          ],
+          "note": "the email asks for Rev A; the title area carries no revision letter."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 27000,
+      "call": {
+        "tool": "draft_clarification",
+        "input": {
+          "subject": "RFQ 26-0812 — three questions before we quote",
+          "body": "Hello,\n\nThree points before we finalize the quote:\n\n1. The specification keeps a placeholder for the general tolerance. Which tolerance should govern?\n\n2. Neither the sheet nor the specification carries a drawing number. Could you confirm the number for our records?\n\n3. The email asks for Rev A, but the sheet has no revision letter. Which revision applies?\n\nRegards",
+          "covers": [
+            "general_tolerance",
+            "drawing_number",
+            "drawing_revision"
+          ]
+        }
       }
     },
     {
       "actor": "estimator",
-      "at": 13000,
+      "at": 28500,
+      "action": {
+        "type": "send",
+        "subject": "RFQ 26-0812 — three questions before we quote",
+        "body": "Hello,\n\nThree points before we finalize the quote:\n\n1. The specification keeps a placeholder for the general tolerance. Which tolerance should govern?\n\n2. Neither the sheet nor the specification carries a drawing number. Could you confirm the number for our records?\n\n3. The email asks for Rev A, but the sheet has no revision letter. Which revision applies?\n\nRegards, Estimating",
+        "covers": [
+          "general_tolerance",
+          "drawing_number",
+          "drawing_revision"
+        ]
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 30000,
       "action": {
         "type": "confirm"
       }
