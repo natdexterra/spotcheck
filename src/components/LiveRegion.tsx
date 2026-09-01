@@ -5,7 +5,9 @@ import type { LogEntry } from '../state/session';
 import type { FieldId } from '../state/types';
 
 const BATCH_DELAY = 3_000;
-const QUEUE_DELAY = 50;
+// How long one message stays in the region before the next one replaces it.
+// Fifty milliseconds was below the dwell every screen reader needs to speak it.
+const QUEUE_DELAY = 1_000;
 
 const inputOf = (entry: LogEntry): Record<string, unknown> => {
   if (entry.event.actor !== 'agent') return {};

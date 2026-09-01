@@ -21,7 +21,6 @@ const resolutionIcon = (field: Field): ComponentType => {
 export function Badge({ field, now }: BadgeProps) {
   const [currentTime, setCurrentTime] = useState(() => now ?? Date.now());
   const shortLabel = groupLabel(field.resolution?.kind ?? field.state);
-  const ariaLabel = field.locked ? `${shortLabel}, locked` : shortLabel;
   const ResolutionIcon = resolutionIcon(field);
 
   useEffect(() => {
@@ -30,19 +29,27 @@ export function Badge({ field, now }: BadgeProps) {
     return () => window.clearInterval(timer);
   }, [field.state, now]);
 
+  const humanWording = badgeText(field, now ?? currentTime);
+  const spoken = [
+    humanWording === shortLabel ? undefined : shortLabel,
+    field.locked ? 'locked' : undefined,
+  ].filter(Boolean).join(', ');
+
   return (
     <span
-      aria-label={ariaLabel}
       className={`field-row__badge field-row__badge--${field.state}`}
       data-field-badge={field.id}
       tabIndex={-1}
     >
+      {/* aria-label on a role-less span is dropped by ARIA 1.2 and by screen
+          readers, so what the wording leaves out is a text node instead. */}
+      {spoken ? <span className="field-row__badge-label visually-hidden">{spoken}</span> : null}
       {field.state === 'verified' ? (
         <ResolutionIcon />
       ) : (
         <span aria-hidden="true" className="field-row__badge-dot" />
       )}
-      <span>{badgeText(field, now ?? currentTime)}</span>
+      <span>{humanWording}</span>
     </span>
   );
 }

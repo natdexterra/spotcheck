@@ -8,6 +8,17 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 
+// Notes the app writes about the agent are app copy; only the agent's own note
+// text is reported speech and takes the "Agent:" prefix (DESIGN.md constraint 1).
+const APP_NOTES = [
+  'agent independently agrees',
+  'Recorded suggestion',
+  'Replaced pending suggestion',
+];
+const APP_NOTE_PREFIXES = ['Agent reported ', 'Auto-dismissed suggestion: ', 'Skipped fixture step:'];
+const agentAuthored = (note: string): boolean =>
+  !APP_NOTES.includes(note) && !APP_NOTE_PREFIXES.some(prefix => note.startsWith(prefix));
+
 const clockTime = (at: number) => {
   const date = new Date(at);
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
@@ -70,7 +81,9 @@ export const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] })
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
     <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
     {entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
-      <span className="change-log__agent-note" key={note}>Agent: {note}</span>
+      <span className="change-log__agent-note" key={note}>
+        {agentAuthored(note) ? `Agent: ${note}` : note}
+      </span>
     ))}
   </div>
 );

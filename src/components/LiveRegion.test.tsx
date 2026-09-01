@@ -48,9 +48,14 @@ describe('LiveRegion', () => {
     } }));
     expect(region).toHaveTextContent('quantity: conflict reported by the agent');
 
-    act(() => vi.advanceTimersByTime(100));
-    act(() => dispatchHuman({ type: 'pick', field_id: 'quantity', index: 1, at: 3 }));
+    // Each message holds the region long enough to be spoken before the next.
+    act(() => vi.advanceTimersByTime(999));
+    expect(region).toHaveTextContent('quantity: conflict reported by the agent');
     act(() => vi.advanceTimersByTime(1));
+    expect(region).toHaveTextContent('draft_clarification available, 7 tools');
+
+    act(() => vi.advanceTimersByTime(1_000));
+    act(() => dispatchHuman({ type: 'pick', field_id: 'quantity', index: 1, at: 3 }));
     expect(region).toHaveTextContent('quantity: picked');
   });
 
