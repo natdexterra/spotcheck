@@ -93,12 +93,19 @@ describe('ConfirmSummary', () => {
       expect(within(counts).getByText(text)).toBeInTheDocument();
     }
     expect(screen.getByText('agent independently agreed on 1 field')).toBeInTheDocument();
-    expect(screen.getByText(/material · agent “6061-T6 aluminum or equivalent” → yours “6061-T6, no substitution”/)).toBeInTheDocument();
-    expect(screen.getByText('quantity · picked 800 · losing candidate 750')).toBeInTheDocument();
-    expect(screen.getByText('general_tolerance · Covered by our shop standard')).toBeInTheDocument();
-    expect(screen.getByText('surface_finish · drawing_number · drawing_revision · delivery')).toBeInTheDocument();
-    expect(screen.getByText('material · delivery')).toBeInTheDocument();
-    expect(within(screen.getByRole('region', { name: 'Full change log' })).getAllByRole('listitem')).toHaveLength(3);
+    expect(screen.getByText(/Material · agent “6061-T6 aluminum or equivalent” → yours “6061-T6, no substitution”/)).toBeInTheDocument();
+    expect(screen.getByText('Quantity · picked 800 · losing candidate 750')).toBeInTheDocument();
+    expect(screen.getByText('General tolerance · Covered by our shop standard')).toBeInTheDocument();
+    expect(screen.getByText('Surface finish · Drawing number · Drawing revision · Delivery')).toBeInTheDocument();
+    expect(screen.getByText('Material · Delivery')).toBeInTheDocument();
+
+    // The full log is the drawer's line: a clock time and a sentence with the actor first.
+    const fullLog = screen.getByRole('region', { name: 'Full change log' });
+    expect(within(fullLog).getAllByRole('listitem')).toHaveLength(3);
+    expect(within(fullLog).getByText('Agent proposed Customer RFQ ref — RFQ-1')).toBeInTheDocument();
+    expect(within(fullLog).getByText('You marked General tolerance not required — Covered by our shop standard')).toBeInTheDocument();
+    expect(within(fullLog).queryByText(/You · confirm/)).not.toBeInTheDocument();
+    expect(within(fullLog).getAllByText(/^\d{2}:\d{2}$/).length).toBe(3);
   });
 
   test('supports full-log component integration and resets to a fresh review', async () => {
