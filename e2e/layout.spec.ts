@@ -220,3 +220,16 @@ test('control heights: the sample button stays compact when it is the primary (n
   await expect(sample).toHaveClass(/button--primary/);
   expect(Math.round((await sample.boundingBox())!.height)).toBe(30);
 });
+
+test('the md meta group keeps its size: blocker line, header reference, log sentence', async ({ page }) => {
+  await page.goto('/');
+  await page.evaluate(() => document.fonts.ready);
+  const md = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-md').trim());
+  for (const sel of ['.confirm-footer__status', '.header__package', '.status-strip__intro', '.field-list__header p']) {
+    const size = await page.locator(sel).first().evaluate((el, token) => {
+      const probe = document.createElement('span'); probe.style.fontSize = token; el.appendChild(probe);
+      const px = getComputedStyle(probe).fontSize; probe.remove(); return [getComputedStyle(el).fontSize, px];
+    }, md);
+    expect(size[0]).toBe(size[1]);
+  }
+});
