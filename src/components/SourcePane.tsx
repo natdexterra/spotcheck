@@ -11,11 +11,12 @@ import { useReview } from '../hooks/useReview';
 import { ArrowLeftIcon, CrossIcon } from '../icons';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
+import { ClarificationEditor } from './ClarificationEditor';
 import { DrawingSheet } from './DrawingSheet';
 import { EmailDoc } from './EmailDoc';
 import { SpecDoc } from './SpecDoc';
 
-type SourceTab = 'email' | 'spec' | 'drawing';
+type SourceTab = 'email' | 'spec' | 'drawing' | 'clarification';
 
 export interface SourceTarget {
   ref: string;
@@ -38,11 +39,12 @@ interface ReadingTarget {
   key: string;
 }
 
-const SOURCE_TABS: readonly SourceTab[] = ['email', 'spec', 'drawing'];
+const DOCUMENT_TABS: readonly SourceTab[] = ['email', 'spec', 'drawing'];
 const TAB_LABELS: Record<SourceTab, string> = {
   email: 'Email',
   spec: 'Spec',
   drawing: 'Drawing',
+  clarification: 'Clarification',
 };
 const DRAWING_FIELD_DEFAULTS: Partial<Record<string, FieldId>> = {
   'drawing:width': 'overall_dimensions',
@@ -53,7 +55,7 @@ const DRAWING_FIELD_DEFAULTS: Partial<Record<string, FieldId>> = {
 
 const tabFromRef = (sourceRef: string | undefined): SourceTab | undefined => {
   const prefix = sourceRef?.split(':', 1)[0];
-  return SOURCE_TABS.find(tab => tab === prefix);
+  return DOCUMENT_TABS.find(tab => tab === prefix);
 };
 
 const sourceRefsForField = (field: Field): string[] => [
@@ -86,13 +88,19 @@ export function SourcePane({
   returnFocusRef,
   target,
 }: SourcePaneProps) {
-  const { log, state } = useReview();
+  const { draft, gaps, log, session, state } = useReview();
+  const sent = session.sent;
+  const clarificationVisible = sent !== undefined || (draft !== undefined && gaps.length > 0);
   const reading = useMemo(() => lastReadingTarget(log), [log]);
-  const initialTab = tabFromRef(target?.ref) ?? reading?.docId ?? 'email';
+  const initialTab = tabFromRef(target?.ref) ?? (clarificationVisible ? 'clarification' : reading?.docId ?? 'email');
   const [activeTab, setActiveTab] = useState<SourceTab>(initialTab);
   const [highlightedRef, setHighlightedRef] = useState<string | undefined>(target?.ref);
   const [readingVisible, setReadingVisible] = useState(reading !== undefined);
   const tabsRef = useRef<Record<string, HTMLButtonElement | null>>({});
+  const previousDraftRef = useRef(draft);
+  const sourceTabs: readonly SourceTab[] = clarificationVisible
+    ? [...DOCUMENT_TABS, 'clarification']
+    : DOCUMENT_TABS;
   const sourceFieldMap = useMemo(() => {
     const map = new Map<string, FieldId>();
     for (const field of state.fields) {
@@ -102,9 +110,20 @@ export function SourcePane({
   }, [state.fields]);
 
   useEffect(() => {
+    if (draft && draft !== previousDraftRef.current && gaps.length > 0) {
+      setActiveTab('clarification');
+    }
+    previousDraftRef.current = draft;
+  }, [draft, gaps.length]);
+
+  useEffect(() => {
+    if (!clarificationVisible && activeTab === 'clarification') setActiveTab('email');
+  }, [activeTab, clarificationVisible]);
+
+  useEffect(() => {
     if (!reading) return;
     setReadingVisible(true);
-    if (!target) {
+    if (!target && !clarificationVisible) {
       setActiveTab(reading.docId);
       setHighlightedRef(`${reading.docId}:${reading.sectionId}`);
     }
@@ -113,7 +132,7 @@ export function SourcePane({
       setHighlightedRef(current => current === `${reading.docId}:${reading.sectionId}` ? undefined : current);
     }, 2_000);
     return () => window.clearTimeout(timeout);
-  }, [reading?.key, target?.ref]);
+  }, [clarificationVisible, reading?.key, target?.ref]);
 
   useEffect(() => {
     if (!target) return;
@@ -166,7 +185,9 @@ export function SourcePane({
     if (fieldId) onFocusField(fieldId);
   };
   const index = documentIndex().documents;
-  const activeTitle = index.find(document => document.id === activeTab)?.title ?? 'Source document';
+  const activeTitle = activeTab === 'clarification'
+    ? 'Clarification'
+    : index.find(document => document.id === activeTab)?.title ?? 'Source document';
   const readingSectionFor = (tab: SourceTab): string | undefined =>
     readingVisible && reading?.docId === tab ? reading.sectionId : undefined;
 
@@ -181,7 +202,7 @@ export function SourcePane({
         )}
       </header>
       <div aria-label="Source documents" className="source-pane__tabs" role="tablist">
-        {SOURCE_TABS.map(tab => (
+        {sourceTabs.map(tab => (
           <button
             aria-controls={`source-panel-${tab}`}
             aria-label={`${TAB_LABELS[tab]}${readingVisible && reading?.docId === tab ? ' reading' : ''}`}
@@ -201,6 +222,9 @@ export function SourcePane({
             {readingVisible && reading?.docId === tab && (
               <span className="source-pane__reading"> reading</span>
             )}
+            {tab === 'clarification' && draft && !sent && (
+              <span aria-hidden="true" className="source-pane__draft-dot" />
+            )}
           </button>
         ))}
       </div>
@@ -218,6 +242,22 @@ export function SourcePane({
           readingSectionId={readingSectionFor('email')}
         />
       </div>
+      {clarificationVisible && (
+        <div
+          aria-labelledby="source-tab-clarification"
+          className="source-pane__panel source-pane__panel--clarification"
+          hidden={activeTab !== 'clarification'}
+          id="source-panel-clarification"
+          role="tabpanel"
+        >
+          <ClarificationEditor
+            draft={draft}
+            gaps={gaps}
+            onFocusField={onFocusField}
+            sent={sent}
+          />
+        </div>
+      )}
       <div
         aria-labelledby="source-tab-spec"
         className="source-pane__panel"
