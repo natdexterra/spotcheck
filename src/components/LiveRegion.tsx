@@ -107,5 +107,5 @@ export const LiveRegion = () => {
     if (proposalTimer.current) clearTimeout(proposalTimer.current);
   }, []);
 
-  return <div aria-atomic="true" aria-live="polite" className="live-region">{announcement}</div>;
+  return <div aria-atomic="true" aria-live="polite" className="live-region visually-hidden">{announcement}</div>;
 };

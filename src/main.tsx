@@ -4,10 +4,10 @@ import './styles/components.css';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+// webmcp-tools registers on import; importing it for that effect is the whole point.
+import './webmcp-tools';
 import { startPersistence } from './replay/persistence';
-import { registerTools } from './webmcp-tools';
 
-registerTools();
 void startPersistence();
 
 const rootElement = document.getElementById('root');

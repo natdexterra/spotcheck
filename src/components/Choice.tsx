@@ -15,8 +15,8 @@ export interface ChoiceProps {
 /**
  * One drawing for every choice in the app (DESIGN.md § Choice controls): the
  * native input stays for semantics and keyboard, `appearance: none` hands the
- * box to the stylesheet, and the mark is drawn beside it — the accent dot for a
- * radio, the icon-set check for a checkbox. The whole row is the click target.
+ * box to the stylesheet, and the checked mark is drawn on it — the accent dot
+ * for a radio, the icon-set check for a checkbox. The row is the click target.
  */
 export function Choice({
   checked,
@@ -39,9 +39,9 @@ export function Choice({
         type={type}
         value={value}
       />
-      <span aria-hidden="true" className="choice__mark">
-        {type === 'checkbox' ? <CheckIcon /> : <span className="choice__dot" />}
-      </span>
+      {type === 'checkbox' ? (
+        <span aria-hidden="true" className="choice__mark"><CheckIcon /></span>
+      ) : null}
       {children === undefined ? null : (
         <span className="choice__label" id={labelId}>{children}</span>
       )}

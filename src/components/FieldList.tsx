@@ -104,7 +104,7 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
         const GroupIcon = GROUP_ICONS[group.state];
         return (
           <section className={`field-list__group field-list__group--${group.state}`} key={group.state}>
-            <h3 className="field-list__group-heading">
+            <h3 className={`field-list__group-heading field-list__group-heading--${group.state}`}>
               <GroupIcon />
               {groupHeading(group.state, group.fields.length)}
             </h3>

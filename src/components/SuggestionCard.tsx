@@ -48,7 +48,7 @@ export const SuggestionCard = ({ field, onSource }: SuggestionCardProps) => {
       </div>
       {suggestion.rationale && (
         <p className="suggestion-card__reason">
-          <span>Agent's reason: </span>
+          <span>Agent’s reason: </span>
           <q>{suggestion.rationale}</q>
         </p>
       )}

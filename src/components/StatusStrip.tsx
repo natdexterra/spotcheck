@@ -97,7 +97,10 @@ export function StatusStrip({
   return (
     <section className={`status-strip status-strip--${state}`} aria-label="Session status">
       <div className="status-strip__summary">
-        <span className="status-strip__dot" aria-hidden="true" />
+        <span
+          aria-hidden="true"
+          className={`status-strip__dot${live || confirmed ? ' status-strip__dot--settled' : ''}`}
+        />
         {state === 'no-api' && <span className="status-strip__text">{narrow ? NO_API_SHORT : NO_API_LONG}</span>}
         {state === 'waiting' && (
           <>
