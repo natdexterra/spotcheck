@@ -11,7 +11,7 @@ const NO_API_LONG = 'Live mode needs a WebMCP-capable desktop browser: the ChatG
 const NO_API_SHORT = 'Live mode needs a WebMCP-capable desktop browser.';
 // The page has to orient a first-time reader on its own: what the documents
 // are, what the task is. It shows only before the first tool call.
-const INTRO = 'This page holds one customer’s RFQ package: the email, the spec and the drawing sheet. Your agent fills the 11 quote-request fields through the page’s tools; you check each against its source and confirm.';
+const INTRO = 'This page holds a customer’s RFQ package: email, spec and drawing. Your agent fills the 11 quote-request fields through the page’s tools; you check each against its source and confirm.';
 
 const BASE_TOOLS = [
   ['list_rfq_documents', true],
@@ -112,7 +112,7 @@ export function StatusStrip({
             <>
               <strong>Waiting for your agent.</strong>
               <span>In the chat, ask:</span>
-              <code>{PROMPT}</code>
+              <span className="status-strip__prompt"><code>{PROMPT}</code></span>
               <Button variant="text" onClick={copyPrompt}>Copy</Button>
             </>
           )}
