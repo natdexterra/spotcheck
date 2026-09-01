@@ -44,11 +44,32 @@ test('sample replay exposes review decisions and reaches the confirmation summar
 
   await page.clock.runFor(3_700);
   await expect(page.getByRole('tab', { name: /Clarification/ })).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
+  // The whole draft is readable in place: the textarea grows, it never scrolls inside.
+  const draftBody = await page.getByRole('textbox', { name: 'Body' })
+    .evaluate(element => ({ scroll: element.scrollHeight, client: element.clientHeight }));
+  expect(draftBody.scroll).toBeLessThanOrEqual(draftBody.client + 1);
   await page.getByRole('button', { name: 'Send' }).click();
   await expect(page.getByText(/Sent · 3 fields asked/)).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
 
   await page.clock.runFor(3_500);
   await expect(page.getByRole('heading', { name: /Confirmed/ })).toBeVisible();
   await expect(page.getByText(/Reviewed in/)).toBeVisible();
+
+  // The summary lists are plain rows — no bullets, no ordinals — and the count
+  // chips are sans, because mono is reserved for values.
+  const summary = await page.evaluate(() => {
+    const lists = [...document.querySelectorAll('.confirm-summary ul, .confirm-summary ol')];
+    return {
+      lists: lists.length,
+      markers: [...new Set(lists.map(list => getComputedStyle(list).listStyleType))],
+      chip: getComputedStyle(document.querySelector('.confirm-summary__count')!).fontFamily,
+      sans: getComputedStyle(document.body).fontFamily,
+    };
+  });
+  expect(summary.lists).toBeGreaterThan(0);
+  expect(summary.markers).toEqual(['none']);
+  expect(summary.chip).toBe(summary.sans);
   expect(browserProblems).toEqual([]);
 });
