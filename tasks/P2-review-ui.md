@@ -100,7 +100,7 @@ Relative times update once a minute; tabular figures; mono.
 ### Inline editor
 
 - Opens from `Edit`, `Enter value`, `Enter another value`, `Add unit`, `e`, or `Enter` on a unit-less `overall_dimensions`. Opening does not lock; the **first keystroke dispatches `edit_start` exactly once** per editor session.
-- Value input prefilled with the current value (empty for `empty`); on `overall_dimensions` a unit input (`in` | `mm`) beside it; the app line "no unit given" when the unit is empty.
+- Value input prefilled with the current value (empty for `empty`); on `overall_dimensions` a two-option unit control beside it (`in` | `mm`, a radio group styled as a segmented control — never free text), none selected when the field has no unit; the app line "no unit given" while none is selected.
 - `Enter` or `Save` dispatches `edit` (or `enter` on an `empty` field) with value and unit — save is verify. `Esc` or `Cancel` dispatches nothing, closes, returns focus to the row's primary action.
 - Validation before dispatch: empty value → "Enter a value or cancel"; `quantity` non-integer → "Quantity is a whole number"; `overall_dimensions` without unit → "Choose in or mm". Error line in `--state-conflict` with an icon; input border in the same color; `aria-describedby` on the input.
 - While an editor is open, an incoming agent proposal on that field arrives as a suggestion card under the editor (the field is locked); the editor keeps its value and focus.
@@ -134,7 +134,7 @@ The draft is a document, so it lives on the fourth tab of the source pane, **Cla
 
 ### Change log drawer
 
-Collapsed: one line, the last entry ("estimator verified part_name · 0:12 ago") and a disclosure. Expanded: the full log, newest last, actor named on every entry, agent text in sans with the "Agent:" prefix, rejections with their code; a `skipped` replay entry renders as such. Narrow: a full-height sheet with `Close`.
+Collapsed: one line, the last entry with its clock time ("14:34 · You edited Quantity — agent 800 → yours 750") and a disclosure. Log entries carry clock times (mono, tabular); relative times ("0:42 ago") belong to badges only. Expanded: the full log, newest last, actor named on every entry, agent text in sans with the "Agent:" prefix, rejections with their code; a `skipped` replay entry renders as such. Narrow: a full-height sheet with `Close`.
 
 ### Keyboard (B9)
 
