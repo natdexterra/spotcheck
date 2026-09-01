@@ -41,7 +41,11 @@ export function FieldList({ onSource }: FieldListProps) {
   return (
     <section className="field-list" aria-labelledby="field-list-title">
       <header className="field-list__header">
-        <h2 id="field-list-title">{verifiedCount} of 11 verified</h2>
+        <div className="field-list__title-line">
+          <h2 id="field-list-title">Quote request</h2>
+          <h3 className="field-list__count numeric">{verifiedCount} of 11 verified</h3>
+        </div>
+        <p>Your agent reads the documents → fields fill with sources → you verify and confirm.</p>
       </header>
 
       {openGroups.map(group => {
