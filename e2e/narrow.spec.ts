@@ -36,3 +36,29 @@ for (const width of [1024, 1366]) {
     expect(fieldX).toBeCloseTo(margin, 0);
   });
 }
+
+test('390px shows the short no-api line, a full-width primary, and goes live on play', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.clock.install();
+  await page.goto('/');
+
+  const strip = page.locator('.status-strip');
+  const line = page.locator('.status-strip__text');
+  await expect(line).toHaveText('Live mode needs a WebMCP-capable desktop browser.');
+
+  // The dot sits inline before the sentence, never alone on a line of its own.
+  const dot = await page.locator('.status-strip__dot').boundingBox();
+  const text = await line.boundingBox();
+  expect(dot!.y + dot!.height / 2).toBeGreaterThanOrEqual(text!.y);
+  expect(dot!.y + dot!.height / 2).toBeLessThanOrEqual(text!.y + text!.height);
+
+  const play = page.getByRole('button', { name: 'Play sample session' });
+  const playBox = await play.boundingBox();
+  const stripBox = await strip.boundingBox();
+  expect(playBox!.width).toBeCloseTo(stripBox!.width - 56, 0);
+
+  await play.click();
+  await page.clock.runFor(1_500);
+  await expect(strip).toContainText('Live');
+  await expect(page.getByRole('button', { name: 'Play sample session' })).toHaveCount(0);
+});

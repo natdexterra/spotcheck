@@ -212,6 +212,13 @@
   flex-wrap: wrap;
 }
 
+/* The sentence shrinks so the state dot stays on its line instead of wrapping
+   onto one of its own. */
+.status-strip__text {
+  min-width: 0;
+  flex: 1 1 0;
+}
+
 .status-strip__summary strong {
   color: var(--ink);
   font-weight: 500;
@@ -276,6 +283,13 @@
   .status-strip .button--primary,
   .status-strip .button--secondary {
     width: 100%;
+  }
+
+  /* Live: the quiet line, then Show tools under it — one column. */
+  .status-strip--live .status-strip__summary .button {
+    flex-basis: 100%;
+    justify-content: flex-start;
+    padding-inline: 0;
   }
 }
 

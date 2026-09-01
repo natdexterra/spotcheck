@@ -41,6 +41,17 @@ describe('StatusStrip', () => {
     expect(screen.getByText('2 calls')).toBeInTheDocument();
   });
 
+  test('a replay without the API reads live from its first step, and the sample button leaves', () => {
+    const session: ReviewSession = { ...createInitialState(), log: [
+      { actor: 'agent', at: 1, event: { actor: 'agent', action: { type: 'propose', at: 1 } }, result: { ok: true } },
+    ] };
+    act(() => replaceState(session));
+    render(<StatusStrip apiAvailable={false} />);
+    expect(screen.getByText('Live')).toBeInTheDocument();
+    expect(screen.queryByText(/WebMCP-capable desktop browser/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Play sample session' })).not.toBeInTheDocument();
+  });
+
   test('selects confirmed after the review is confirmed', () => {
     act(() => replaceState({ ...createInitialState(), confirmed: true }));
     render(<StatusStrip apiAvailable />);

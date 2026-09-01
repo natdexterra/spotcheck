@@ -1,10 +1,13 @@
 import { useMemo, useState } from 'react';
+import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
 import type { AgentAction } from '../state/types';
 import { Button } from './Button';
 
 const PROMPT = 'Extract this RFQ into a quote request';
+const NO_API_LONG = 'Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app’s browser, or Chrome 149+ with the WebMCP flag.';
+const NO_API_SHORT = 'Live mode needs a WebMCP-capable desktop browser.';
 
 const BASE_TOOLS = [
   ['list_rfq_documents', true],
@@ -45,6 +48,7 @@ export function StatusStrip({
   onPlaySample,
 }: StatusStripProps) {
   const { confirmed, gaps, log } = useReview();
+  const narrow = useNarrowLayout();
   const [toolsOpen, setToolsOpen] = useState(false);
   const agentEntries = useMemo(() => log.filter(entry => entry.actor === 'agent'), [log]);
   const dynamicAvailable = gaps.length > 0 && !confirmed;
@@ -60,7 +64,9 @@ export function StatusStrip({
   }, [agentEntries, dynamicAvailable]);
   const lastAgent = agentEntries.at(-1);
   const live = agentEntries.length > 0;
-  const state = confirmed ? 'confirmed' : !apiAvailable ? 'no-api' : live ? 'live' : 'waiting';
+  // Precedence per the task's status-strip table: a replay started in a browser
+  // without the API is live from its first step, and the sample button leaves.
+  const state = confirmed ? 'confirmed' : live ? 'live' : apiAvailable ? 'waiting' : 'no-api';
 
   const copyPrompt = () => void navigator.clipboard?.writeText(PROMPT);
 
@@ -68,7 +74,7 @@ export function StatusStrip({
     <section className={`status-strip status-strip--${state}`} aria-label="Session status">
       <div className="status-strip__summary">
         <span className="status-strip__dot" aria-hidden="true" />
-        {state === 'no-api' && <span>Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app&apos;s browser, or Chrome 149+ with the WebMCP flag.</span>}
+        {state === 'no-api' && <span className="status-strip__text">{narrow ? NO_API_SHORT : NO_API_LONG}</span>}
         {state === 'waiting' && (
           <>
             <strong>Waiting for your agent.</strong>
