@@ -11,6 +11,19 @@ const current = (field: Field) => ({ state: field.state,
   ...(field.value !== null ? { value: field.value } : {}), ...(field.unit ? { unit: field.unit } : {}),
   ...(field.resolution ? { resolution: field.resolution.kind } : {}),
 });
+// Key-pick validated input into the declared shapes: extraneous members never reach state.
+const pickProposal = (input: Record<string, unknown>): Proposal => ({
+  value: input.value as string,
+  ...(typeof input.unit === 'string' ? { unit: input.unit } : {}),
+  source_refs: [...input.source_refs as string[]],
+  ...(typeof input.rationale === 'string' ? { rationale: input.rationale } : {}),
+});
+const pickCandidate = (candidate: Candidate): Candidate => ({
+  value: candidate.value,
+  ...(typeof candidate.unit === 'string' ? { unit: candidate.unit } : {}),
+  source_refs: [...candidate.source_refs],
+  ...(typeof candidate.note === 'string' ? { note: candidate.note } : {}),
+});
 const includesCandidate = (candidates: Candidate[], earlier: Proposal | Candidate) => candidates.some(candidate =>
   candidate.value === earlier.value && (candidate.unit ?? null) === (earlier.unit ?? null) &&
   earlier.source_refs.every(ref => candidate.source_refs.includes(ref)));
@@ -38,7 +51,7 @@ export function transitionAgent(state: AppState, action: AgentAction): AgentTran
     const suggestionRecorded = !error && action.type === 'propose' && !agrees;
     return {
       state: suggestionRecorded ? { ...state, fields: state.fields.map(f => f === field
-        ? { ...f, suggestion: structuredClone(input) as unknown as Proposal } : f) } : state,
+        ? { ...f, suggestion: pickProposal(input) } : f) } : state,
       result: reject('FIELD_LOCKED', 'The estimator keeps this decision; offer a sourced suggestion.', {
         current: current(field), suggestion_recorded: suggestionRecorded,
       }),
@@ -55,12 +68,12 @@ export function transitionAgent(state: AppState, action: AgentAction): AgentTran
   if (!field) return { state, result: reject('UNKNOWN_FIELD', 'Use one of the eleven field ids.') };
   let updated: Field = field;
   if (action.type === 'propose') {
-    const proposal = structuredClone(input) as unknown as Proposal;
+    const proposal = pickProposal(input);
     updated = { ...field, state: 'needs_review', value: proposal.value, proposal,
       ...(field.id === 'overall_dimensions' ? { unit: proposal.unit ?? null } : {}),
       ...(field.proposal ? { revised: { was: field.value, at: action.at ?? 0 } } : {}),
     };
-  } else if (action.type === 'report_conflict') updated = { ...field, state: 'conflict', candidates: structuredClone(input.candidates) as Candidate[] };
+  } else if (action.type === 'report_conflict') updated = { ...field, state: 'conflict', candidates: (input.candidates as Candidate[]).map(pickCandidate) };
   else if (action.type === 'report_missing') updated = { ...field, state: 'missing', searched: {
     searched: [...input.searched as string[]], ...(typeof input.note === 'string' ? { note: input.note } : {}),
   } };

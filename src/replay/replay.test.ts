@@ -136,3 +136,113 @@ test('B8 preserves default human timestamps and rejected null tool input', async
   await importSession(exportSession());
   expect(getState()).toEqual(before);
 });
+
+test('P1.1 replay: a partially viewer-covered send resolves the remaining fields and still confirms', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const fixture = JSON.parse(readFileSync('data/sample-session.stub.json', 'utf8'));
+  const sendIndex = fixture.steps.findIndex((step: { action?: { type?: string } }) => step.action?.type === 'send');
+  expect(sendIndex).toBeGreaterThan(0);
+  const replay = createReplay(fixture);
+  while (replay.position < sendIndex) await replay.next();
+  dispatchHuman({ type: 'dismiss', field_id: 'drawing_number', reason: 'Not required', at: 27500 });
+  while (await replay.next()) { /* run the send and the confirm */ }
+  const fields = getState().fields;
+  expect(fields.find(f => f.id === 'general_tolerance')?.resolution?.kind).toBe('asked_customer');
+  expect(fields.find(f => f.id === 'drawing_revision')?.resolution?.kind).toBe('asked_customer');
+  expect(fields.find(f => f.id === 'drawing_number')?.resolution?.kind).toBe('dismissed');
+  const notes = reviewSession(getState()).log.flatMap(entry => entry.notes ?? []);
+  expect(notes).toContain('Skipped fixture step: viewer handled drawing_number');
+  expect(reviewSession(getState()).sent?.covers).toEqual(['general_tolerance', 'drawing_revision']);
+  expect(getState().confirmed).toBe(true);
+  replay.dispose();
+});
+
+test('P1.1 replay: a viewer no-op on a fixture-locked field does not suppress later fixture steps', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+    { actor: 'estimator', at: 2, action: { type: 'verify', field_id: 'material' } },
+    { actor: 'estimator', at: 3, action: { type: 'reopen', field_id: 'material' } },
+  ] });
+  await replay.next();
+  await replay.next();
+  expect(getState().fields.find(f => f.id === 'material')?.state).toBe('verified');
+  // The viewer verifies an already-verified fixture-locked field: logged, but no state change.
+  dispatchHuman({ type: 'verify', field_id: 'material', at: 10 });
+  expect(getState().fields.find(f => f.id === 'material')?.resolution?.at).toBe(2);
+  await replay.next();
+  expect(getState().fields.find(f => f.id === 'material')?.state).toBe('needs_review');
+  replay.dispose();
+});
+
+test('P1.1 persistence: a replay suspends saves; the stored live session survives byte-identical', async () => {
+  const { startPersistence } = await import('./persistence');
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman } = await import('../state/store');
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const session = await startPersistence(storage);
+  dispatchHuman({ type: 'enter', field_id: 'material', value: 'viewer choice', at: 5 });
+  const saved = values.get('spotcheck.session.v1');
+  expect(saved).toBeTruthy();
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+  ] });
+  await replay.next();
+  replay.restart();
+  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  replay.dispose();
+  dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
+  expect(values.get('spotcheck.session.v1')).not.toBe(saved);
+  session.stop();
+});
+
+test('P1.1 replay: createReplay validates its fixture through parseFixture', async () => {
+  const { createReplay } = await import('./replay');
+  const bad = { recorded_at: 'test', steps: [{ actor: 'agent', at: 1, call: { tool: 'not_a_tool', input: {} } }] };
+  expect(() => createReplay(bad as never)).toThrow(/fixture step 0/i);
+  expect(() => createReplay({ steps: [] } as never)).toThrow();
+});
+
+test('P1.1 replay: a viewer lock-only write (edit_start, then cancel) does not mark the field viewer-handled', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+    { actor: 'estimator', at: 2, action: { type: 'verify', field_id: 'material' } },
+  ] });
+  await replay.next();
+  // The viewer opens the editor and types (lock), then cancels: the field is locked but untouched.
+  dispatchHuman({ type: 'edit_start', field_id: 'material', at: 10 });
+  const before = getState().fields.find(f => f.id === 'material');
+  expect(before?.locked).toBe(true);
+  expect(before?.state).toBe('needs_review');
+  await replay.next();
+  const after = getState().fields.find(f => f.id === 'material');
+  expect(after?.state).toBe('verified');
+  expect(after?.resolution?.at).toBe(2);
+  replay.dispose();
+});
+
+test('P1.1 replay: restart() after dispose() is a no-op and leaves the live session alone', async () => {
+  const { startPersistence } = await import('./persistence');
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const session = await startPersistence(storage);
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+  ] });
+  await replay.next();
+  replay.dispose();
+  dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
+  const saved = values.get('spotcheck.session.v1');
+  replay.restart();
+  expect(getState().fields.find(f => f.id === 'quantity')?.value).toBe('800');
+  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  session.stop();
+});
