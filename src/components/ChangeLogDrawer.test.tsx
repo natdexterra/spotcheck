@@ -59,7 +59,7 @@ describe('ChangeLogDrawer', () => {
           at: 1,
           event: { actor: 'agent', action: { type: 'propose', input: { field_id: 'quantity' } } },
           result: { ok: false, code: 'FIELD_LOCKED' },
-          notes: ['Recorded suggestion'],
+          notes: ['Recorded suggestion', 'The email allows an equivalent alloy.'],
         },
         {
           actor: 'estimator',
@@ -74,7 +74,9 @@ describe('ChangeLogDrawer', () => {
     await user.click(screen.getByRole('button', { name: 'Show change log' }));
 
     expect(screen.getByText(/FIELD_LOCKED/)).toBeInTheDocument();
-    expect(screen.getByText('Agent: Recorded suggestion')).toBeInTheDocument();
+    // App notes read plain; only the agent's own text is reported speech.
+    expect(screen.getByText('Recorded suggestion')).toBeInTheDocument();
+    expect(screen.getByText('Agent: The email allows an equivalent alloy.')).toBeInTheDocument();
     expect(screen.getByText('You skipped viewer handled quantity')).toBeInTheDocument();
   });
 

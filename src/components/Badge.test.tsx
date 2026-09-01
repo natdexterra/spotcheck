@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { cleanup, render, screen } from '@testing-library/react';
+import { cleanup, render } from '@testing-library/react';
 import { afterEach, describe, expect, test } from 'vitest';
 import type { Field, FieldState, ResolutionKind } from '../state/types';
 import { Badge } from './Badge';
@@ -24,8 +24,11 @@ describe('Badge', () => {
   ])('renders the %s agent state with human and short wording', (state, humanText, shortText) => {
     render(<Badge field={field({ state })} now={43_000} />);
 
-    expect(screen.getByText(humanText)).toBeInTheDocument();
-    expect(screen.getByLabelText(shortText)).toHaveClass(`field-row__badge--${state}`);
+    const badge = document.querySelector('.field-row__badge')!;
+    expect(badge).toHaveClass(`field-row__badge--${state}`);
+    expect(badge).toHaveTextContent(humanText);
+    expect(badge).toHaveTextContent(shortText);
+    expect(badge).not.toHaveAttribute('aria-label');
     expect(document.querySelector('.field-row__badge-dot')).toBeInTheDocument();
   });
 
@@ -50,14 +53,18 @@ describe('Badge', () => {
       />,
     );
 
-    expect(screen.getByText(humanText)).toBeInTheDocument();
-    const badge = screen.getByLabelText(`${shortText}, locked`);
+    const badge = document.querySelector('.field-row__badge')!;
+    expect(badge).toHaveTextContent(humanText);
+    expect(badge).toHaveTextContent(`${shortText}, locked`);
     expect(badge.querySelector('svg')).toBeInTheDocument();
     expect(badge.querySelector('.field-row__badge-dot')).not.toBeInTheDocument();
   });
 
   test('includes the lock text equivalent in the badge label', () => {
     render(<Badge field={field({ state: 'needs_review', locked: true })} />);
-    expect(screen.getByLabelText('Needs review, locked')).toBeInTheDocument();
+    const badge = document.querySelector('.field-row__badge')!;
+    expect(badge).toHaveTextContent('Needs review');
+    expect(badge.querySelector('.field-row__badge-label')).toHaveTextContent('locked');
+    expect(badge).not.toHaveAttribute('aria-label');
   });
 });

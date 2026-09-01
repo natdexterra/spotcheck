@@ -104,5 +104,8 @@ test('agent tools cannot create verified state and quiet mode omits the injected
     subject: 'verified', body: 'verified', covers: ['general_tolerance'],
   });
 
-  await expect(page.locator('[data-field-badge][aria-label^="Verified"]')).toHaveCount(0);
+  await expect(page.locator('[data-field-badge]')).toHaveCount(11);
+  await expect(page.locator('.field-row__badge--verified')).toHaveCount(0);
+  await expect(page.locator('[data-field-badge]')
+    .filter({ hasText: /Verified|Edited|Entered|Picked|Applied/ })).toHaveCount(0);
 });
