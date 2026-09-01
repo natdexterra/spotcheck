@@ -136,6 +136,7 @@ Rules the builder must not trade away:
   |---|---|
   | inside a control (dot↔word, icon↔label) | 4 |
   | button padding | 6×12 compact · 12×16 large |
+  | control heights (min-height tokens) | compact button 30 · input and segmented control 42 · large button, tab, narrow target 44 — text centered inside; the 30 and 42 are sanctioned micro-steps inside a control |
   | between inline siblings (chips, actions) and between blocks inside a row | 8 |
   | row padding | 12 block × 24 inline |
   | group heading | 16 above / 8 below |
@@ -154,6 +155,7 @@ Rules the builder must not trade away:
   - Anti-overlap is a rule, not a hope: each pane has an explicit min-width; values wrap and are never truncated; badges are `flex-shrink: 0`; action rows wrap. Grid: `minmax(480px, 640px) minmax(460px, 1fr)`.
 - **Scroll model.** Desktop: the page does not scroll. The workspace takes the viewport height left under the header and strip (`min-height: 0` on the grid row), and each pane scrolls on its own (`overflow-y: auto`, padding on the scrolling element so the scrollbar sits at the pane edge). The reviewer keeps their row in view while a provenance click scrolls the source pane; the field-pane footer sits at the pane's bottom edge as the last flex child — no `position: sticky`, nothing from the list ever renders under it. The log drawer is a fixed-height bar under the workspace; expanded, it scrolls inside itself. Narrow: the page scrolls as one column, the confirm footer is sticky at the viewport bottom, an open sheet locks body scroll.
 - The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
+- Labels never wrap: a button, tab, chip or badge is `white-space: nowrap`; when a bar runs out of room its items stack (the log bar on narrow: sentence above, the disclosure button below, left-aligned), they do not squeeze.
 - Hit targets: ≥ 24×24 CSS px everywhere (WCAG 2.5.8), ≥ 44px on the narrow layout. Dense text buttons reach it with padding (`min-height: 1.5rem` desktop, `2.75rem` narrow), not with larger type.
 
 ## State iconography
