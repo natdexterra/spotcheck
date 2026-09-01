@@ -8,6 +8,7 @@ import {
 import { documentIndex } from '../data/package';
 import { fieldLabel } from '../lib/format';
 import { useReview } from '../hooks/useReview';
+import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ArrowLeftIcon, CrossIcon } from '../icons';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -97,6 +98,7 @@ export function SourcePane({
   const [highlightedRef, setHighlightedRef] = useState<string | undefined>(target?.ref);
   const [readingVisible, setReadingVisible] = useState(reading !== undefined);
   const tabsRef = useRef<Record<string, HTMLButtonElement | null>>({});
+  const sheetRef = useRef<HTMLElement>(null);
   const previousDraftRef = useRef(draft);
   const sourceTabs: readonly SourceTab[] = clarificationVisible
     ? [...DOCUMENT_TABS, 'clarification']
@@ -157,25 +159,9 @@ export function SourcePane({
     tabsRef.current[activeTab]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }, [activeTab]);
 
-  useEffect(() => {
-    if (!narrow || !open) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [narrow, open]);
-
-  useEffect(() => {
-    if (!narrow || !open) return;
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== 'Escape') return;
-      onClose?.();
-      returnFocusRef?.current?.focus();
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [narrow, onClose, open, returnFocusRef]);
+  // Narrow: the pane is a modal sheet over the field list — focus moves in, Tab
+  // stays inside, body scroll is locked, Escape closes and returns focus.
+  useSheetDialog({ active: narrow && open, onClose, returnFocusRef, sheetRef });
 
   if (narrow && !open) return null;
 
@@ -301,7 +287,14 @@ export function SourcePane({
 
   if (narrow) {
     return (
-      <aside aria-label="Source document" aria-modal="true" className="source-pane source-pane--sheet" role="dialog">
+      <aside
+        aria-label={`${activeTitle}, source document`}
+        aria-modal="true"
+        className="source-pane source-pane--sheet"
+        ref={sheetRef}
+        role="dialog"
+        tabIndex={-1}
+      >
         {content}
       </aside>
     );
