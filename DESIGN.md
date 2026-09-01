@@ -75,6 +75,18 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 
 The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline. Inputs carry a visible label above them and no placeholder text; a hint is a separate muted line, never text inside the field. A choice control beside an input (the unit `in | mm` segments) matches the input's height exactly.
 
+### Choice controls
+
+Radios, checkboxes and the segmented unit control are the app's own drawing, not the browser's: the native `<input>` stays in the DOM for semantics and keyboard (`appearance: none`; no custom roles), and the visible control is drawn on it with tokens. One drawing, reused wherever a choice appears — the not-required picker, the Clarification covers, the unit `in | mm` control, the Ask customer on-state icon.
+
+| Control | Box | Checked | Label |
+|---|---|---|---|
+| Radio | 16×16 circle, 1px `--border-input`, `--bg-raised` fill | 1.5px `--accent` ring, 6px `--accent` dot centered | md, `--ink`, 8px from the box; the whole row is the click target |
+| Checkbox | 16×16, `--radius-1`, 1px `--border-input`, `--bg-raised` fill | `--ink` fill, no border, the 12px check from the icon set in `--bg-raised` | same |
+| Segmented (unit `in` \| `mm`) | radio group in one `--border-input` box, `--radius-2`; each segment the input's height, padding 0 16, `--hairline-strong` separator | `--bg-subtle` fill, `--ink` mono 500 (unchecked: `--bg-raised`, `--ink-secondary` mono) | none on the segments; the group carries the visible micro-label |
+
+Picker rows sit 4px apart on a 32px line (44px on narrow through padding, never larger boxes). Hover: border `--ink-secondary`. Focus: the global ring on the box. Disabled: `--ink-faint` border and label. A choice control never carries a state color — accent here means *chosen*, the same meaning it has on links and markers. The Ask customer toggle's leading icon is this checked checkbox at 16px.
+
 ### Contrast ledger (computed 2026-08-31, WCAG 2.x)
 
 Re-run whenever a color token changes; this table is the current state, not a permanent truth.
@@ -140,6 +152,7 @@ Rules the builder must not trade away:
   3. 1280 → down: the field pane gives way 640 → 480; pane gap 24 → 16.
   4. Below 1024px: one column; the source pane opens as a sheet over the list (shell rules in the spec). On one-column widths above ~600px the content column caps at 680px, centered.
   - Anti-overlap is a rule, not a hope: each pane has an explicit min-width; values wrap and are never truncated; badges are `flex-shrink: 0`; action rows wrap. Grid: `minmax(480px, 640px) minmax(460px, 1fr)`.
+- **Scroll model.** Desktop: the page does not scroll. The workspace takes the viewport height left under the header and strip (`min-height: 0` on the grid row), and each pane scrolls on its own (`overflow-y: auto`, padding on the scrolling element so the scrollbar sits at the pane edge). The reviewer keeps their row in view while a provenance click scrolls the source pane; the field-pane footer sits at the pane's bottom edge as the last flex child — no `position: sticky`, nothing from the list ever renders under it. The log drawer is a fixed-height bar under the workspace; expanded, it scrolls inside itself. Narrow: the page scrolls as one column, the confirm footer is sticky at the viewport bottom, an open sheet locks body scroll.
 - The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
 - Hit targets: ≥ 24×24 CSS px everywhere (WCAG 2.5.8), ≥ 44px on the narrow layout. Dense text buttons reach it with padding (`min-height: 1.5rem` desktop, `2.75rem` narrow), not with larger type.
 
