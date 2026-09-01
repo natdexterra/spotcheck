@@ -31,6 +31,17 @@ const seed = async (page: import('@playwright/test').Page) => {
   });
 };
 
+test('the header sets the package reference in the sans, not in the mono of values', async ({ page }) => {
+  await page.goto('/');
+  const families = await page.evaluate(() => ({
+    reference: getComputedStyle(document.querySelector('.header__package')!).fontFamily,
+    tagline: getComputedStyle(document.querySelector('.header__tagline')!).fontFamily,
+  }));
+
+  expect(families.reference).toBe(families.tagline);
+  expect(families.reference).not.toMatch(/mono/i);
+});
+
 test('the desktop page does not scroll and each pane scrolls on its own', async ({ page }) => {
   await installModelContext(page);
   await page.goto('/');
