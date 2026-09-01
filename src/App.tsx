@@ -9,22 +9,10 @@ import { LiveRegion } from './components/LiveRegion';
 import { SourcePane, type SourceTarget } from './components/SourcePane';
 import { StatusStrip } from './components/StatusStrip';
 import { useKeyboardMap } from './hooks/useKeyboardMap';
+import { useNarrowLayout } from './hooks/useNarrowLayout';
 import { useReview } from './hooks/useReview';
 import { createReplay } from './replay/replay';
 import type { FieldId } from './state/types';
-
-function useNarrowLayout() {
-  const query = '(width < 64rem)';
-  const [narrow, setNarrow] = useState(() => typeof matchMedia === 'function' && matchMedia(query).matches);
-  useEffect(() => {
-    if (typeof matchMedia !== 'function') return;
-    const media = matchMedia(query);
-    const update = () => setNarrow(media.matches);
-    media.addEventListener('change', update);
-    return () => media.removeEventListener('change', update);
-  }, []);
-  return narrow;
-}
 
 export function App() {
   const { confirmed, draft, gaps } = useReview();
@@ -59,7 +47,11 @@ export function App() {
     <div className="app-shell">
       <Header />
       <StatusStrip onPlaySample={playSample} />
-      {confirmed ? <ConfirmSummary /> : (
+      {confirmed ? (
+        <main className="summary-main">
+          <ConfirmSummary />
+        </main>
+      ) : (
         <main className="workspace">
           <section className="field-pane" aria-label="Quote request review">
             {narrow && draft && gaps.length > 0 ? (
