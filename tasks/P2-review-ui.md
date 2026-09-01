@@ -44,7 +44,7 @@ Create under `src/components/` (one component per file, `.tsx`; styles in `src/s
 | `ConfirmFooter.tsx`, `ConfirmSummary.tsx` | disabled button with the blocker line and jump links; the summary |
 | `ChangeLogDrawer.tsx` | collapsed with the last entry; expanded full log; the narrow full-height sheet; Export / Import controls are P3 |
 | `LiveRegion.tsx` | the one polite region with the batching rules |
-| `src/icons/*.tsx`, `src/icons/LICENSE` | MynaUI line icons copied in as inline SVG components (MIT text alongside) plus the custom composites from the `DESIGN.md` table |
+| `src/icons/*.tsx`, `src/icons/LICENSE` | MynaUI line icons copied in as inline SVG components (MIT text alongside), one glyph per entry in the `DESIGN.md` § State iconography table — no composites, no custom glyphs |
 | `src/App.tsx`, `src/main.tsx` (modify) | boot: `registerTools()` when `typeof document.modelContext?.registerTool === "function"`, `startPersistence()`, `?quiet=1` flag into context; layout shell |
 | `vite.config.ts` (modify) | `test.include` also `src/**/*.test.tsx`; component tests declare `// @vitest-environment jsdom` per file so reducer tests stay in node |
 | `e2e/review.spec.ts`, `e2e/tools.spec.ts`, `e2e/narrow.spec.ts`, `e2e/a11y.spec.ts` | see § Tests |
