@@ -15,7 +15,7 @@ The agent proposes; only a person verifies, edits, resolves and confirms. The UI
 ## Constraint 2 — documents are untrusted input
 
 - All document text, rationale and notes render through `textContent`. The stylesheet must not give `.untrusted` content any interpretation affordances: no prose styling that could make an injected instruction look like UI copy, no link auto-detection, no markdown.
-- Locked fields show a small lock glyph beside the badge; the lock never releases and the glyph never disappears.
+- Locked fields show a small lock glyph beside the field label; the lock never releases and the glyph never disappears.
 - Reads are visible: the source tab shows a "reading" marker and the section briefly highlights during a live `read_document` call, so the reviewer sees exactly what the agent received.
 
 ## Visual direction — cool engineering drafting
@@ -73,7 +73,7 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 | Inline link — provenance ref (`spec §1.1`) | `--accent-text`, dotted underline, offset 3px | `--accent-strong`, solid underline | — | — |
 | Inline link — jump link ("2 conflicts") | `--accent-text`, solid underline, offset 3px | `--accent-strong` | — | — |
 
-The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline.
+The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline.
 
 ### Contrast ledger (computed 2026-08-31, WCAG 2.x)
 
@@ -166,7 +166,7 @@ Every state and resolution renders icon + text label — color is never the only
 
 `dismissed` and `asked_customer` are the null-value resolutions: their icons must not read as a check.
 
-**Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …". The sentence is for the person reading the row; the short label is for everything that counts, lists or announces. Neither wording ever comes from the state name of a `verified` field.
+**Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Check it", or "Unit missing" when a unit-bearing field has no unit, or "Revised · check it" after the agent revised its own proposal · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …". The sentence is for the person reading the row; the short label is for everything that counts, lists or announces. Neither wording ever comes from the state name of a `verified` field.
 
 **Dot or icon.** In a field row the badge of an agent state (`empty`, `needs_review`, `conflict`, `missing`, and a reopened row) is an 8px dot in the state color plus the human wording; the badge of a `verified` row replaces the dot with the resolution icon from the table, because seven resolutions must be told apart and the null-value kinds must not read as a check. The agent-state icons from the table appear where the short label appears: group headings, the blocker line, the confirm summary. One icon set, two placements.
 
