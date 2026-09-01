@@ -1207,6 +1207,11 @@
   .choice {
     min-height: calc(var(--space-8) + var(--space-3));
   }
+
+  .drawing-overlay {
+    min-width: calc(var(--space-8) + var(--space-3));
+    min-height: calc(var(--space-8) + var(--space-3));
+  }
 }
 
 .field-list {

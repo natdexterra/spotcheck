@@ -144,3 +144,42 @@ test('the editor opened from a conflict row returns focus to Enter another value
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
 });
+
+test('the source tablist has a roving tabindex and arrow-key navigation', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+
+  const tabs = page.getByRole('tab');
+  await expect(tabs).toHaveCount(3);
+  expect(await tabs.evaluateAll(list => list.map(tab => tab.getAttribute('tabindex'))))
+    .toEqual(['0', '-1', '-1']);
+
+  await page.getByRole('tab', { name: 'Email' }).focus();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Spec' })).toBeFocused();
+  await expect(page.getByRole('tab', { name: 'Spec' })).toHaveAttribute('aria-selected', 'true');
+
+  await page.keyboard.press('End');
+  await expect(page.getByRole('tab', { name: 'Drawing' })).toBeFocused();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.getByRole('tab', { name: 'Email' })).toBeFocused();
+  await page.keyboard.press('Home');
+  await expect(page.getByRole('tab', { name: 'Email' })).toBeFocused();
+
+  // A12: overlay boxes name their region in words, not by id.
+  await page.getByRole('tab', { name: 'Drawing' }).click();
+  await expect(page.getByRole('button', { name: 'Width, 20.000' })).toBeVisible();
+
+  // A13: the Ask customer toggle switches to ink at weight 500 when pressed.
+  await executeTool(page, 'propose_field', {
+    field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'], rationale: 'Named in the callout.',
+  });
+  const toggle = page.locator('[data-field-id="material"]').getByRole('button', { name: 'Ask customer' });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+  await page.mouse.move(0, 0);
+  await expect.poll(() => toggle.evaluate(element => {
+    const style = getComputedStyle(element);
+    return `${style.color} ${style.fontWeight}`;
+  })).toBe('rgb(14, 17, 22) 500');
+});

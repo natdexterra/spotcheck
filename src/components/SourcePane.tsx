@@ -190,6 +190,17 @@ export function SourcePane({
   const readingSectionFor = (tab: SourceTab): string | undefined =>
     readingVisible && reading?.docId === tab ? reading.sectionId : undefined;
 
+  const moveTab = (from: SourceTab, key: string) => {
+    const index = sourceTabs.indexOf(from);
+    const last = sourceTabs.length - 1;
+    const next = key === 'ArrowRight' ? sourceTabs[index === last ? 0 : index + 1]
+      : key === 'ArrowLeft' ? sourceTabs[index === 0 ? last : index - 1]
+        : key === 'Home' ? sourceTabs[0]
+          : key === 'End' ? sourceTabs[last]
+            : undefined;
+    return next;
+  };
+
   const content = (
     <>
       <header className="source-pane__header">
@@ -212,8 +223,16 @@ export function SourcePane({
             id={`source-tab-${tab}`}
             key={tab}
             onClick={() => setActiveTab(tab)}
+            onKeyDown={event => {
+              const next = moveTab(tab, event.key);
+              if (!next) return;
+              event.preventDefault();
+              setActiveTab(next);
+              tabsRef.current[next]?.focus();
+            }}
             ref={element => { tabsRef.current[tab] = element; }}
             role="tab"
+            tabIndex={activeTab === tab ? 0 : -1}
             type="button"
           >
             {TAB_LABELS[tab]}

@@ -1,4 +1,4 @@
-import { relativeTime, sourceHref, sourceLabel } from '../lib/format';
+import { fieldLabel, relativeTime, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, ResolutionKind } from '../state/types';
 import { Button } from './Button';
@@ -34,7 +34,7 @@ export const SuggestionCard = ({ field, onSource }: SuggestionCardProps) => {
   };
 
   return (
-    <aside aria-label={`Agent suggestion for ${field.id}`} className="suggestion-card">
+    <aside aria-label={`Agent suggestion for ${fieldLabel(field.id)}`} className="suggestion-card">
       <p className="suggestion-card__value">
         {suggestion.value}
         {suggestion.unit ? ` ${suggestion.unit}` : ''}
