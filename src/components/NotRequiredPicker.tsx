@@ -1,7 +1,8 @@
-import { useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
+import { useId, useState, type FormEvent, type KeyboardEvent, type RefObject } from 'react';
 import { dispatchHuman } from '../state/store';
 import type { Field } from '../state/types';
 import { Button } from './Button';
+import { Choice } from './Choice';
 
 export interface NotRequiredPickerProps {
   field: Field;
@@ -15,14 +16,23 @@ const PRESET_REASONS = [
   'Will confirm at PO',
 ] as const;
 
+const OTHER = 'Other reason';
+
 export const NotRequiredPicker = ({ field, onClose, returnFocusRef }: NotRequiredPickerProps) => {
   const [preset, setPreset] = useState('');
   const [other, setOther] = useState('');
-  const reason = other.trim() || preset;
+  const [otherChosen, setOtherChosen] = useState(false);
+  const otherLabelId = useId();
+  const reason = otherChosen ? other.trim() : preset;
 
   const closeAndReturnFocus = () => {
     onClose();
     returnFocusRef?.current?.focus();
+  };
+
+  const chooseOther = () => {
+    setOtherChosen(true);
+    setPreset('');
   };
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
@@ -41,39 +51,49 @@ export const NotRequiredPicker = ({ field, onClose, returnFocusRef }: NotRequire
   return (
     <form className="not-required-picker" onKeyDown={handleKeyDown} onSubmit={submit}>
       <fieldset className="not-required-picker__choices">
-        <legend>Reason</legend>
+        <legend className="not-required-picker__legend">Why is this not required?</legend>
         {PRESET_REASONS.map(option => (
-          <label className="not-required-picker__choice" key={option}>
-            <input
-              checked={preset === option}
-              name={`${field.id}-not-required-reason`}
-              onChange={() => {
-                setPreset(option);
-                setOther('');
-              }}
-              type="radio"
-              value={option}
-            />
-            <span>{option}</span>
-          </label>
+          <Choice
+            checked={!otherChosen && preset === option}
+            key={option}
+            name={`${field.id}-not-required-reason`}
+            onChange={() => { setPreset(option); setOtherChosen(false); }}
+            type="radio"
+            value={option}
+          >
+            {option}
+          </Choice>
         ))}
+
+        <div className="not-required-picker__other">
+          <Choice
+            checked={otherChosen}
+            labelId={otherLabelId}
+            name={`${field.id}-not-required-reason`}
+            onChange={chooseOther}
+            type="radio"
+            value={OTHER}
+          >
+            {OTHER}
+          </Choice>
+          <input
+            aria-labelledby={otherLabelId}
+            className="not-required-picker__other-input"
+            name="other-reason"
+            onChange={event => {
+              setOther(event.target.value);
+              // Typing is choosing: the row selects itself.
+              chooseOther();
+            }}
+            value={other}
+          />
+        </div>
       </fieldset>
 
-      <label className="not-required-picker__other">
-        <span>Other reason</span>
-        <input
-          name="other-reason"
-          onChange={event => {
-            setOther(event.target.value);
-            if (event.target.value) setPreset('');
-          }}
-          value={other}
-        />
-      </label>
-
       <div className="not-required-picker__actions">
-        <Button disabled={!reason} type="submit" variant="primary">Mark not required</Button>
+        <Button disabled={!reason} size="compact" type="submit" variant="primary">Mark not required</Button>
         <Button onClick={closeAndReturnFocus} variant="text">Cancel</Button>
+        <span className="not-required-picker__hint">The reason travels into the confirm summary.</span>
       </div>
     </form>
   );

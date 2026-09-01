@@ -840,17 +840,10 @@
 
 .clarification__covers {
   display: grid;
-  gap: var(--space-2);
+  gap: var(--space-1);
   margin: 0;
   padding: 0;
   border: 0;
-}
-
-.clarification__cover {
-  min-height: var(--space-6);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .clarification__actions {
@@ -907,9 +900,7 @@
 }
 
 .inline-editor__field,
-.inline-editor__units,
-.not-required-picker__choices,
-.not-required-picker__other {
+.inline-editor__units {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
@@ -923,8 +914,7 @@
 }
 
 .inline-editor__label,
-.not-required-picker legend,
-.not-required-picker__other > span {
+.not-required-picker__legend {
   color: var(--ink-secondary);
   font-size: var(--text-md);
   line-height: var(--leading-md);
@@ -932,9 +922,7 @@
 }
 
 .inline-editor__input,
-.not-required-picker__other input,
-.clarification-editor input,
-.clarification-editor textarea {
+.not-required-picker__other-input {
   width: 100%;
   min-height: calc(var(--space-8) + var(--space-3));
   padding: var(--space-3);
@@ -953,34 +941,121 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* Segmented control (DESIGN.md § Choice controls): one box around the group,
+   hairline separators inside, each segment the height of the input beside it. */
 .inline-editor__segments {
   display: flex;
+  overflow: hidden;
+  border: var(--rule-width) solid var(--border-input);
+  border-radius: var(--radius-2);
 }
 
 .inline-editor__segment {
-  min-width: calc(var(--space-8) + var(--space-8));
   min-height: calc(var(--space-8) + var(--space-3));
   display: grid;
   place-items: center;
+  padding-inline: var(--space-4);
+  color: var(--ink-secondary);
+  background-color: var(--bg-raised);
+  cursor: pointer;
+}
+
+.inline-editor__segment + .inline-editor__segment {
+  border-inline-start: var(--rule-width) solid var(--hairline-strong);
+}
+
+.inline-editor__segment:has(input:checked) {
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+  font-weight: 500;
+}
+
+/* Radios, checkboxes: the app's own drawing on the native input. */
+.choice {
+  position: relative;
+  min-height: var(--space-8);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+}
+
+.choice__input {
+  width: var(--space-4);
+  height: var(--space-4);
+  flex: none;
+  margin: 0;
+  appearance: none;
   background-color: var(--bg-raised);
   border: var(--rule-width) solid var(--border-input);
   cursor: pointer;
 }
 
-.inline-editor__segment + .inline-editor__segment {
-  border-inline-start: 0;
+.choice--radio .choice__input {
+  border-radius: 50%;
 }
 
-.inline-editor__segment input {
-  position: absolute;
-  inline-size: var(--rule-width);
-  block-size: var(--rule-width);
-  clip-path: inset(50%);
+.choice--checkbox .choice__input {
+  border-radius: var(--radius-1);
 }
 
-.inline-editor__segment:has(input:checked) {
-  color: var(--bg-raised);
+.choice__input:hover:not(:disabled) {
+  border-color: var(--ink-secondary);
+}
+
+.choice--radio .choice__input:checked {
+  border-width: var(--choice-ring);
+  border-color: var(--accent);
+}
+
+.choice--checkbox .choice__input:checked {
   background-color: var(--ink);
+  border-color: var(--ink);
+}
+
+.choice__mark {
+  position: absolute;
+  inset-block-start: 50%;
+  inset-inline-start: 0;
+  width: var(--space-4);
+  height: var(--space-4);
+  display: grid;
+  place-items: center;
+  transform: translateY(-50%);
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.choice__input:checked ~ .choice__mark {
+  visibility: visible;
+}
+
+.choice__dot {
+  width: var(--choice-dot);
+  height: var(--choice-dot);
+  border-radius: 50%;
+  background-color: var(--accent);
+}
+
+.choice--checkbox .choice__mark .icon {
+  width: var(--space-3);
+  height: var(--space-3);
+  color: var(--bg-raised);
+}
+
+.choice__label {
+  color: var(--ink);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+}
+
+.choice__input:disabled {
+  border-color: var(--ink-faint);
+  cursor: default;
+}
+
+.choice__input:disabled ~ .choice__label {
+  color: var(--ink-faint);
 }
 
 .inline-editor__hint,
@@ -1016,16 +1091,36 @@
   margin-block-start: var(--space-2);
 }
 
-.not-required-picker__choices,
-.not-required-picker__other {
-  margin-block-end: var(--space-3);
+/* Reason picker (export 12): preset rows 4px apart, then Other reason as a
+   fourth radio with its input inline beside it. */
+.not-required-picker__choices {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  border: 0;
 }
 
-.not-required-picker__choice {
-  min-height: var(--space-6);
+.not-required-picker__legend {
+  margin-block-end: var(--space-2);
+}
+
+.not-required-picker__other {
   display: flex;
   align-items: center;
   gap: var(--space-2);
+}
+
+.not-required-picker__other-input {
+  min-width: 0;
+  flex: 1;
+}
+
+.not-required-picker__hint {
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
 }
 
 .conflict-panel__candidates {
@@ -1092,6 +1187,11 @@
 
   .inline-editor__segment {
     flex: 1;
+  }
+
+  /* Choice rows reach the narrow target through padding, not bigger boxes. */
+  .choice {
+    min-height: calc(var(--space-8) + var(--space-3));
   }
 }
 
