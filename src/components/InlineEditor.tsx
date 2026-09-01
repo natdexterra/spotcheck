@@ -49,7 +49,9 @@ export const InlineEditor = ({ field, onClose, returnFocusRef }: InlineEditorPro
     }
 
     dispatchHuman({
-      type: field.state === 'empty' ? 'enter' : 'edit',
+      // A field with no value is being entered, whether the agent never
+      // extracted it (empty) or searched and found nothing (missing).
+      type: field.value == null ? 'enter' : 'edit',
       field_id: field.id,
       value,
       at: Date.now(),
