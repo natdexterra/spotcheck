@@ -131,7 +131,7 @@ export function StatusStrip({
           )}
         </div>
         {preLive && (
-          <Button variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
+          <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
         )}
         {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
       </div>

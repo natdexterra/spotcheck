@@ -211,3 +211,10 @@ test('control heights: the sample button is compact, Confirm is large', async ({
   const confirm = page.getByRole('button', { name: 'Confirm quote request' });
   expect(Math.round((await confirm.boundingBox())!.height)).toBe(44);
 });
+
+test('control heights: the sample button stays compact when it is the primary (no-api)', async ({ page }) => {
+  await page.goto('/');
+  const sample = page.getByRole('button', { name: 'Play sample session' });
+  await expect(sample).toHaveClass(/button--primary/);
+  expect(Math.round((await sample.boundingBox())!.height)).toBe(30);
+});
