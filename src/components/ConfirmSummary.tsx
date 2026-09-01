@@ -1,0 +1,163 @@
+import type { ReactNode } from 'react';
+import { useReview } from '../hooks/useReview';
+import { duration, groupLabel } from '../lib/format';
+import { createInitialState } from '../state/session';
+import type { LogEntry } from '../state/session';
+import { replaceState } from '../state/store';
+import type { Field, FieldId, ResolutionKind } from '../state/types';
+import { Button } from './Button';
+
+export interface ConfirmSummaryProps {
+  logContent?: ReactNode;
+}
+
+const RESOLUTIONS: readonly ResolutionKind[] = [
+  'verified',
+  'edited',
+  'entered',
+  'picked',
+  'dismissed',
+  'applied',
+  'asked_customer',
+];
+
+const displayValue = (value: string | null, unit?: string | null): string =>
+  `${value ?? '—'}${unit ? ` ${unit}` : ''}`;
+
+const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined => {
+  const entry = [...log].reverse().find(item =>
+    item.event.actor === 'human' &&
+    item.event.action.type === 'dismiss' &&
+    item.event.action.field_id === fieldId,
+  );
+  if (!entry || entry.event.actor !== 'human' || entry.event.action.type !== 'dismiss') return undefined;
+  return entry.event.action.reason;
+};
+
+const fieldList = (fields: Field[]): string => fields.map(field => field.id).join(' · ');
+
+const logLabel = (entry: LogEntry): string => {
+  const actor = entry.actor === 'estimator' ? 'You' : 'Agent';
+  return `${actor} · ${entry.event.action.type}${entry.notes?.length ? ` · ${entry.notes.join(' · ')}` : ''}`;
+};
+
+export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
+  const { confirmed, log, state, timer } = useReview();
+  if (!confirmed) return null;
+
+  const fieldsByResolution = (kind: ResolutionKind) =>
+    state.fields.filter(field => field.resolution?.kind === kind);
+  const openQuestions = fieldsByResolution('asked_customer');
+  const edits = fieldsByResolution('edited');
+  const picks = fieldsByResolution('picked');
+  const dismissals = fieldsByResolution('dismissed');
+  const independentlyAgreed = log.reduce(
+    (count, entry) => count + (entry.notes?.filter(note => note === 'agent independently agrees').length ?? 0),
+    0,
+  );
+  const autoDismissed = log.flatMap(entry => entry.notes ?? [])
+    .filter(note => note.startsWith('Auto-dismissed suggestion: '))
+    .map(note => note.slice('Auto-dismissed suggestion: '.length));
+
+  return (
+    <section className="confirm-summary" aria-labelledby="confirm-summary-title">
+      <header className="confirm-summary__header">
+        <h1 id="confirm-summary-title">
+          {openQuestions.length > 0
+            ? `Confirmed with ${openQuestions.length} open ${openQuestions.length === 1 ? 'question' : 'questions'}`
+            : 'Confirmed'}
+        </h1>
+        {timer !== null ? (
+          <p className="confirm-summary__timer">
+            Reviewed in {duration(timer)} — from the agent's first write to confirm
+          </p>
+        ) : null}
+      </header>
+
+      <div className="confirm-summary__counts" aria-label="Resolution counts">
+        {RESOLUTIONS.map(kind => {
+          const count = fieldsByResolution(kind).length;
+          return count > 0 ? <span className="confirm-summary__count" key={kind}>{count} {groupLabel(kind).toLowerCase()}</span> : null;
+        })}
+      </div>
+
+      {independentlyAgreed > 0 ? (
+        <p className="confirm-summary__agreement">
+          agent independently agreed on {independentlyAgreed} {independentlyAgreed === 1 ? 'field' : 'fields'}
+        </p>
+      ) : null}
+
+      <div className="confirm-summary__details">
+        {edits.length > 0 ? (
+          <section className="confirm-summary__section" aria-labelledby="confirm-edits-title">
+            <h2 id="confirm-edits-title">Edits</h2>
+            <ul>
+              {edits.map(field => (
+                <li key={field.id}>
+                  {field.id} · agent “{displayValue(field.proposal?.value ?? null, field.proposal?.unit)}” → yours “{displayValue(field.value, field.unit)}”
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {picks.length > 0 ? (
+          <section className="confirm-summary__section" aria-labelledby="confirm-picks-title">
+            <h2 id="confirm-picks-title">Picks</h2>
+            <ul>
+              {picks.map(field => {
+                const losing = field.candidates?.filter(candidate =>
+                  candidate.value !== field.value || candidate.unit !== field.unit,
+                ) ?? [];
+                return (
+                  <li key={field.id}>
+                    {field.id} · picked {displayValue(field.value, field.unit)}
+                    {losing.length > 0 ? ` · losing ${losing.length === 1 ? 'candidate' : 'candidates'} ${losing.map(candidate => displayValue(candidate.value, candidate.unit)).join(', ')}` : null}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        ) : null}
+
+        {dismissals.length > 0 ? (
+          <section className="confirm-summary__section" aria-labelledby="confirm-dismissals-title">
+            <h2 id="confirm-dismissals-title">Not required</h2>
+            <ul>
+              {dismissals.map(field => (
+                <li key={field.id}>{field.id} · {dismissReason(log, field.id) ?? 'No reason recorded'}</li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {openQuestions.length > 0 ? (
+          <section className="confirm-summary__section" aria-labelledby="confirm-pending-title">
+            <h2 id="confirm-pending-title">Pending customer answer</h2>
+            <p>{fieldList(openQuestions)}</p>
+          </section>
+        ) : null}
+
+        {autoDismissed.length > 0 ? (
+          <section className="confirm-summary__section" aria-labelledby="confirm-suggestions-title">
+            <h2 id="confirm-suggestions-title">Suggestions auto-dismissed at confirm</h2>
+            <p>{autoDismissed.join(' · ')}</p>
+          </section>
+        ) : null}
+      </div>
+
+      <section className="confirm-summary__log" aria-labelledby="confirm-log-title">
+        <h2 id="confirm-log-title">Full change log</h2>
+        {logContent ?? (
+          <ol>
+            {log.map((entry, index) => <li key={`${entry.at}-${index}`}>{logLabel(entry)}</li>)}
+          </ol>
+        )}
+      </section>
+
+      <div className="confirm-summary__actions">
+        <Button variant="text" onClick={() => replaceState(createInitialState())}>Start over</Button>
+      </div>
+    </section>
+  );
+}
