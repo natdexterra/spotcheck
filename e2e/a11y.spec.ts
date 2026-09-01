@@ -55,6 +55,20 @@ test('reduced motion, announcements, keyboard map, and same-origin boundary hold
 
   const animation = await page.locator('[data-field-id="material"]').evaluate(element => getComputedStyle(element).animationName);
   expect(animation).toBe('none');
+
+  // The provenance flash becomes a static outline, never a fading tint.
+  await page.locator('[data-field-id="material"]').getByRole('link', { name: 'spec §3.1' }).click();
+  const flash = await page.locator('[id="spec:s3.1"]').evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      background: style.backgroundColor,
+      outline: `${style.outlineStyle} ${style.outlineWidth} ${style.outlineColor}`,
+      transition: style.transitionDuration,
+    };
+  });
+  expect(flash.background).toBe('rgb(255, 255, 255)');
+  expect(flash.outline).toBe('solid 2px rgb(31, 111, 235)');
+  expect(flash.transition).toBe('0s');
   expect(foreignRequests).toEqual([]);
 });
 
