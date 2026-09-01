@@ -85,6 +85,15 @@
 
   /* Layout */
   --page-margin: max(28px, calc((100% - 1760px) / 2));
+  --rule-width: 1px;
+  --marker-width: 3px;
+  --row-padding-inline: 21px;
+  --pane-field-min: 30rem;
+  --pane-field-max: 40rem;
+  --pane-source-min: 28.75rem;
+  --layout-break: 64rem;
+  --narrow-content-max: 42.5rem;
+  --document-gutter: 3rem;
 
   /* Corners */
   --radius-1: 2px;
