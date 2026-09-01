@@ -9,6 +9,23 @@ import { DrawingSheet } from './DrawingSheet';
 import { EmailDoc } from './EmailDoc';
 import { SourcePane } from './SourcePane';
 
+const readingSession = (): ReviewSession => ({
+  ...createInitialState(),
+  log: [{
+    actor: 'agent',
+    at: 10,
+    event: {
+      actor: 'agent',
+      action: {
+        type: 'read',
+        operation: 'section',
+        input: { doc_id: 'spec', section_id: 's3' },
+        at: 10,
+      },
+    },
+  }],
+});
+
 afterEach(() => {
   cleanup();
   act(() => replaceState(createInitialState()));
@@ -74,24 +91,7 @@ describe('source documents', () => {
   });
 
   test('shows the reading marker and highlights the section from the latest read log', () => {
-    const initial = createInitialState();
-    const session: ReviewSession = {
-      ...initial,
-      log: [{
-        actor: 'agent',
-        at: 10,
-        event: {
-          actor: 'agent',
-          action: {
-            type: 'read',
-            operation: 'section',
-            input: { doc_id: 'spec', section_id: 's3' },
-            at: 10,
-          },
-        },
-      }],
-    };
-    act(() => replaceState(session));
+    act(() => replaceState(readingSession()));
     render(<SourcePane onFocusField={vi.fn()} />);
 
     // The label stays "Spec"; the reading marker is a separate dot with its own name.
@@ -100,6 +100,31 @@ describe('source documents', () => {
     expect(within(tab).getByRole('img', { name: 'reading' })).toBeInTheDocument();
     expect(tab).toHaveTextContent('Spec');
     expect(document.getElementById('spec:s3')).toHaveAttribute('data-reading', 'true');
+  });
+
+  test('clears the reading marker after two seconds and never relights it for a read that is over', () => {
+    vi.useFakeTimers();
+    const session = readingSession();
+    act(() => replaceState(session));
+    render(<SourcePane onFocusField={vi.fn()} />);
+    expect(screen.getByRole('img', { name: 'reading' })).toBeInTheDocument();
+
+    act(() => { vi.advanceTimersByTime(2_000); });
+    expect(screen.queryByRole('img', { name: 'reading' })).toBeNull();
+    expect(document.getElementById('spec:s3')).not.toHaveAttribute('data-reading', 'true');
+
+    // A later unrelated update — the clarification tab arriving — must not
+    // relight a marker for a read the agent finished long ago.
+    act(() => replaceState({
+      ...session,
+      fields: session.fields.map(field => field.id === 'general_tolerance'
+        ? { ...field, state: 'missing' as const, searched: { searched: ['drawing'] } }
+        : field),
+      draft: { subject: 'Open questions', body: 'Please confirm.', covers: ['general_tolerance'] },
+    }));
+
+    expect(screen.getByRole('tab', { name: 'Clarification' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.queryByRole('img', { name: 'reading' })).toBeNull();
   });
 
   test('quiet mode omits the injected email note', () => {

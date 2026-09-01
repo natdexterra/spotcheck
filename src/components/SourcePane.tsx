@@ -100,6 +100,8 @@ export function SourcePane({
   const tabsRef = useRef<Record<string, HTMLButtonElement | null>>({});
   const sheetRef = useRef<HTMLElement>(null);
   const previousDraftRef = useRef(draft);
+  const readingContextRef = useRef({ hasTarget: false, onClarification: false });
+  readingContextRef.current = { hasTarget: target !== undefined, onClarification: clarificationVisible };
   const sourceTabs: readonly SourceTab[] = clarificationVisible
     ? [...DOCUMENT_TABS, 'clarification']
     : DOCUMENT_TABS;
@@ -130,10 +132,19 @@ export function SourcePane({
     if (!clarificationVisible && activeTab === 'clarification') setActiveTab('email');
   }, [activeTab, clarificationVisible]);
 
+  // The marker belongs to one read entry: it lights when that entry arrives and
+  // clears 2 s later, whatever the reviewer is looking at. Keying the effect on
+  // anything else — a provenance target, the clarification tab appearing — would
+  // cancel the timeout and relight a read the agent finished long ago, so the
+  // rest is read from a ref that render keeps current.
   useEffect(() => {
-    if (!reading) return;
+    if (!reading) {
+      setReadingVisible(false);
+      return;
+    }
     setReadingVisible(true);
-    if (!target && !clarificationVisible) {
+    const { hasTarget, onClarification } = readingContextRef.current;
+    if (!hasTarget && !onClarification) {
       setActiveTab(reading.docId);
       setHighlightedRef(`${reading.docId}:${reading.sectionId}`);
     }
@@ -142,7 +153,7 @@ export function SourcePane({
       setHighlightedRef(current => current === `${reading.docId}:${reading.sectionId}` ? undefined : current);
     }, 2_000);
     return () => window.clearTimeout(timeout);
-  }, [clarificationVisible, reading?.key, target?.ref]);
+  }, [reading?.key]);
 
   useEffect(() => {
     if (!target) return;
