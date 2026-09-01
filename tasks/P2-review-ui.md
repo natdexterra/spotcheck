@@ -57,6 +57,7 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 
 - Header, strip, workspace and log drawer take inline padding from `--page-margin`; content inside a pane sits on the gutter lane. Every left edge lands on one of the two lanes.
 - Desktop ≥ 1024px: `grid-template-columns: minmax(480px, 640px) minmax(460px, 1fr)`, gap `--space-6`; below 1024px one column, content capped at 680px above ~600px. No horizontal page scroll at 320px.
+- Scroll model per `DESIGN.md` § Layout ladder: desktop — the page does not scroll, each pane scrolls on its own inside the viewport, the confirm footer is the field pane's last child (not sticky); narrow — one scrolling column, sticky footer, sheets lock body scroll.
 - First load (screen 1): field-pane header "0 of 11 verified", eleven rows "— · Not extracted", one line "Your agent reads the documents → fields fill with sources → you verify and confirm", Email tab open, Confirm disabled with "11 to check", drawer "No activity yet".
 
 ### Status strip
@@ -67,6 +68,10 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 | `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono with a `Copy` text button | `Play sample session` (secondary) |
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
+
+- Precedence: `confirmed` → `live` → `no-api` / `waiting`. A replay started in a browser without the API is `live` from its first step; the sample button leaves with the pre-live state. Strip state is derived, never stored.
+- Narrow (< 1024px): the `no-api` text is the short form "Live mode needs a WebMCP-capable desktop browser." with the dot inline before it (never on its own line) and a full-width primary button; `waiting` keeps the prompt line and a full-width secondary button; `live` is the quiet line + `Show tools` in one column.
+- First load in `no-api` at any width shows the eleven empty rows under the strip (screen 01 with the strip from 09). Exports 04/05 draw the pre-play strip over mid-play rows — two moments in one frame; the rule wins.
 
 Roster (disclosure open): one row per registered tool in registration order — name in mono, read/write marker mirroring `readOnlyHint`, call count; a tool whose last call was rejected shows the code. The last-called row is highlighted for 2 s. When `draft_clarification` registers its row enters highlighted and the count reads "6 → 7 tools" for 2 s; when it unregisters the row leaves. No countdown, no auto-start.
 
