@@ -39,8 +39,8 @@ Create under `src/components/` (one component per file, `.tsx`; styles in `src/s
 | `InlineEditor.tsx` | value input, unit input on `overall_dimensions`, validation line, `Save` / `Cancel`; `edit_start` on the first keystroke |
 | `NotRequiredPicker.tsx` | three presets + free text; `Mark not required` / `Cancel` |
 | `Button.tsx`, `ProvenanceLink.tsx`, `JumpLink.tsx` | the classes from the `DESIGN.md` interaction-states table; nothing else may style a button or link |
-| `SourcePane.tsx`, `EmailDoc.tsx`, `SpecDoc.tsx`, `DrawingSheet.tsx`, `OverlayBox.tsx` | tabs, regions rendered via text nodes only, reading marker, provenance flash, region click → field focus; the WebP sheet with normalized overlay boxes; the narrow sheet mode |
-| `ClarificationEditor.tsx` | subject, body, covers checkboxes limited to current gaps, `Send`, `Discard` |
+| `SourcePane.tsx`, `EmailDoc.tsx`, `SpecDoc.tsx`, `DrawingSheet.tsx`, `OverlayBox.tsx` | tabs (including the Clarification tab while a draft exists), regions rendered via text nodes only, reading marker, provenance flash, region click → field focus; the WebP sheet with normalized overlay boxes; the narrow sheet mode |
+| `ClarificationEditor.tsx` | the Clarification tab of the source pane: subject, body, covers checkboxes limited to current gaps, `Send`; read-only after send |
 | `ConfirmFooter.tsx`, `ConfirmSummary.tsx` | disabled button with the blocker line and jump links; the summary |
 | `ChangeLogDrawer.tsx` | collapsed with the last entry; expanded full log; the narrow full-height sheet; Export / Import controls are P3 |
 | `LiveRegion.tsx` | the one polite region with the batching rules |
@@ -68,7 +68,7 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · last: propose_field material" + `Show tools` disclosure | — |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
 
-Roster (disclosure open): one row per registered tool in registration order — name in mono, read/write marker mirroring `readOnlyHint`, call count; a tool whose last call was rejected shows the code. The last-called row is highlighted for 2 s. When `draft_clarification` registers its row enters highlighted and the count reads "6 → 7 tools" for 2 s; when it unregisters the row leaves. While a draft exists and the editor is closed, the summary line carries a `Open draft` text button. No countdown, no auto-start.
+Roster (disclosure open): one row per registered tool in registration order — name in mono, read/write marker mirroring `readOnlyHint`, call count; a tool whose last call was rejected shows the code. The last-called row is highlighted for 2 s. When `draft_clarification` registers its row enters highlighted and the count reads "6 → 7 tools" for 2 s; when it unregisters the row leaves. No countdown, no auto-start.
 
 ### Field pane
 
@@ -115,16 +115,16 @@ Rendered when `field.suggestion` exists. Agent value and unit, its source links 
 
 ### Source pane
 
-- Tabs Email · Specification · Drawing (48px document lane shared by tabs and text). Email and spec render regions as blocks with their ids in mono; **every document string, rationale and note is inserted as a text node** — no `dangerouslySetInnerHTML`, no markdown, no link detection.
+- Tabs Email · Specification · Drawing · Clarification (the fourth tab exists only while the session has a draft; a dot marker on it while the draft is unsent). The 48px document lane is shared by tabs and text. Email and spec render regions as blocks with their ids in mono; **every document string, rationale and note is inserted as a text node** — no `dangerouslySetInnerHTML`, no markdown, no link detection.
 - Provenance link (`spec §1.1`, `email ¶2`, `drawing width`) → switches tab, scrolls the region into view, flashes it (`--highlight` in over `--dur-1`, held 2 s, out over 400 ms; static `--highlight-edge` outline under reduced motion). Clicking a highlighted region or overlay box focuses that field's row (reverse direction).
 - Reading marker: after each `read` log entry the read tab shows a "reading" marker and the section flashes, for 2 s; reads are not announced.
 - Drawing tab: `data/drawing-sheet1.webp` at its intrinsic aspect ratio; overlay boxes from `package.json` `box: [x, y, w, h]` as fractions of the image, positioned with percentages so they follow any width; dashed `--highlight-edge` at rest, filled `--highlight` when active; `drawing:title_area` is the clickable blank corner with the caption "a revision letter would live here; there is none"; `drawing:detail` has no boxes. Caption line "Sheet 1 of 4 · regions are clickable".
 - `?quiet=1`: the `email:note` region is not rendered.
-- Narrow (< 1024px): the pane is a sheet over the list opened by a provenance link, with a header (document title + tabs), a `Close` control ≥ 44px, and a footer link "Back to {field}"; `Esc` and `Close` return focus to the link that opened it. Body scroll is locked while the sheet is open.
+- Narrow (< 1024px): the pane is a sheet over the list opened by a provenance link, with a header (document title + tabs), a `Close` control ≥ 44px, and a footer link "Back to {field}"; `Esc` and `Close` return focus to the link that opened it. Body scroll is locked while the sheet is open. While a draft exists, a one-line entry at the head of the field list — "Clarification draft · 3 fields · Open" (text button, narrow only) — opens the sheet on the Clarification tab.
 
 ### Clarification editor
 
-Opens when the session has a `draft` (the agent called `draft_clarification`) — a panel over the source pane on desktop, a sheet on narrow. Subject and body inputs prefilled from the draft (agent text is data: prefill, never interpret); covers as checkboxes pre-checked from the draft and limited to current gaps; `Send` (primary) dispatches `send` with the edited subject, body and checked covers; `Discard` closes the panel without dispatch (the draft stays in state; `Open draft` in the strip reopens it). After `Send` the panel closes and focus goes to the first covered field's badge.
+The draft is a document, so it lives on the fourth tab of the source pane, **Clarification**: the tab appears when the session gets a `draft` (the agent called `draft_clarification`), activates automatically when the draft arrives, and is announced ("Clarification draft ready for 3 fields"). Provenance links switch tabs as usual; the draft keeps its edits across tab switches (keep the editor mounted and `hidden`, or hold the edited text in UI state — never in the reducer). Content: subject and body inputs prefilled from the draft (agent text is data: prefill, never interpret); covers as checkboxes pre-checked from the draft and limited to current gaps; `Send` (primary, the only action) dispatches `send` with the edited subject, body and checked covers. There is no Discard: leaving the tab is enough, and the draft stays reachable. After `Send` the tab shows the sent email read-only with the line "Sent · 3 fields asked", and focus moves to the first covered field's badge. If the gap set empties without a send, the tab hides; a later draft brings it back.
 
 ### Confirm
 
@@ -138,22 +138,22 @@ Collapsed: one line, the last entry ("estimator verified part_name · 0:12 ago")
 
 ### Keyboard (B9)
 
-`j` / `k` move focus between flagged rows (conflict, missing, needs_review, empty, in risk order); `Enter` on a focused row triggers its primary action; `e` opens the editor; `n` opens the not-required picker where allowed; `Esc` closes the editor, picker, sheet or panel. The map is inert while focus is inside an input, textarea or button. Every binding has a visible focused state and a pointer equivalent.
+`j` / `k` move focus between flagged rows (conflict, missing, needs_review, empty, in risk order); `Enter` on a focused row triggers its primary action; `e` opens the editor; `n` opens the not-required picker where allowed; `Esc` closes the editor, picker or sheet. The map is inert while focus is inside an input, textarea or button. Every binding has a visible focused state and a pointer equivalent.
 
 ### Announcements (B11)
 
-One polite live region. One by one: agent flags ("quantity: conflict reported by the agent", "general tolerance: reported missing"), every human action ("material: verified"), tool registration changes ("draft_clarification available, 7 tools"), rejections that produce a card. Plain proposals are batched: "3 fields proposed", flushed every 3 s. Reads are not announced.
+One polite live region. One by one: agent flags ("quantity: conflict reported by the agent", "general tolerance: reported missing"), every human action ("material: verified"), tool registration changes ("draft_clarification available, 7 tools"), the draft's arrival, rejections that produce a card. Plain proposals are batched: "3 fields proposed", flushed every 3 s. Reads are not announced.
 
 ## Order of work (test first where testable; one commit per green step, subjects `P2 <area>: …`)
 
 1. Test infrastructure: `jsdom` + Testing Library, `vite.config.ts` include pattern, a trivial component test → commit. `tokens.css` re-transcription with the extended spot test; `contrast.test.ts` against the ledger pairs → commit.
 2. `format.ts` (relative time, duration, labels, badge text) with tests → commit.
 3. `Button`, `ProvenanceLink`, `JumpLink`, icons with license; a test that every icon component renders an `<svg>` with `aria-hidden` → commit.
-4. `Header`, `StatusStrip`: tests for state selection (API missing / present-no-call / live / confirmed), roster counts and rejection code, `Open draft` presence → commit.
+4. `Header`, `StatusStrip`: tests for state selection (API missing / present-no-call / live / confirmed), roster counts and rejection code → commit.
 5. `Badge`, `FieldRow`, `FieldList`: one test per state and per resolution kind (icon + text present, lock glyph when locked, "was: X", agent note, actions per state); risk order and collapsed verified → commit.
 6. `InlineEditor`, `NotRequiredPicker`, `ConflictPanel`, `SuggestionCard` wired to `dispatchHuman` through a spy: `edit_start` once on first keystroke; Enter saves with unit; Esc dispatches nothing and returns focus; each validation message; picker reason; pick index; apply/dismiss focus target → commit.
 7. `SourcePane` and documents: T4 test (a region containing `<img onerror>` renders as literal text, no `img` in the DOM); provenance link → tab + highlighted region; region click → row focused; reading marker after a `read` entry; `?quiet=1` hides `email:note` → commit. `DrawingSheet`: boxes at percentage positions from `package.json`; box click focuses the field → commit.
-8. `ClarificationEditor`: covers limited to gaps, `send` payload, Discard without dispatch → commit.
+8. `ClarificationEditor`: the tab appears and activates on `draft`; covers limited to gaps; edits survive a tab switch; `send` payload; read-only after send; tab hidden when gaps empty → commit.
 9. `ConfirmFooter`, `ConfirmSummary`: blocker text and links; enabled ⇔ `canConfirm`; summary counts and lists from a fixture-driven state; timer from log timestamps → commit.
 10. `ChangeLogDrawer`, `LiveRegion` (batching test with fake timers), `useKeyboardMap` → commit.
 11. Boot wiring in `main.tsx` / `App.tsx`; `Play sample session` → replay; reduced-motion CSS; narrow sheet mode → commit.
@@ -165,7 +165,7 @@ Unit (vitest, jsdom per file): listed per step above. Every component test asser
 
 Playwright (`pnpm e2e`, against the production build):
 
-- `review.spec.ts` — replay path: click `Play sample session`, wait for `confirmed`; along the way assert S2 (a proposed field shows provenance; clicking it highlights the region; verify collapses it), S3 (conflict panel with both candidates; pick), S4 (`Add unit` → editor → `in` → verified), S5 (missing row with searched docs and note), S6 (suggestion card on a locked field; apply), S7/B6 (strip count 6 → 7 → 6), S8 (editor opens; send; covered fields read "Asked customer"), S10 (summary counts equal the log; timer present); console has no errors or warnings.
+- `review.spec.ts` — replay path: click `Play sample session`, wait for `confirmed`; along the way assert S2 (a proposed field shows provenance; clicking it highlights the region; verify collapses it), S3 (conflict panel with both candidates; pick), S4 (`Add unit` → editor → `in` → verified), S5 (missing row with searched docs and note), S6 (suggestion card on a locked field; apply), S7/B6 (strip count 6 → 7 → 6), S8 (the Clarification tab activates; send; the tab shows the sent email; covered fields read "Asked customer"), S10 (summary counts equal the log; timer present); console has no errors or warnings.
 - `tools.spec.ts` — stub `document.modelContext` with `page.addInitScript` (a `registerTool` that stores each tool by name on `window.__tools`), then drive `propose_field`, `report_conflict`, `report_missing`, `draft_clarification` through `execute` and assert the UI: strip flips `waiting` → `live`; rows arrive in risk order; a locked field returns `FIELD_LOCKED` and renders a card; no registered tool's `execute` with inputs containing "verified" leaves any field `verified` (T1 Playwright half).
 - `narrow.spec.ts` — 390 and 820: one column, sample button is the primary, provenance link opens the sheet, `Close` returns focus, every target ≥ 44px, no horizontal scroll; 1024 and 1366: two panes, both lanes hold (every left edge equals `--page-margin` or `--page-margin` + 24).
 - `a11y.spec.ts` — `prefers-reduced-motion: reduce` emulated: no running animations, static outline on provenance; the live region receives the batched "N fields proposed" and the one-by-one flags; keyboard run: `j` / `k` / `Enter` / `e` / `Esc` with focus visible at each step; zero requests to any origin other than the page's own (T2).
