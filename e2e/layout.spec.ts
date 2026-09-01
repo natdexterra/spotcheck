@@ -35,11 +35,78 @@ test('the header sets the package reference in the sans, not in the mono of valu
   await page.goto('/');
   const families = await page.evaluate(() => ({
     reference: getComputedStyle(document.querySelector('.header__package')!).fontFamily,
-    tagline: getComputedStyle(document.querySelector('.header__tagline')!).fontFamily,
+    product: getComputedStyle(document.querySelector('.header__product')!).fontFamily,
+    tagline: document.querySelector('.header__tagline'),
   }));
 
-  expect(families.reference).toBe(families.tagline);
+  expect(families.reference).toBe(families.product);
   expect(families.reference).not.toMatch(/mono/i);
+  // The orienting sentence lives in the strip; the header is two labels.
+  expect(families.tagline).toBeNull();
+});
+
+// The strip geometry: the orienting line, then the status line, and nothing
+// else. Measured against its parts so a third line cannot slip in unnoticed.
+const stripParts = (page: import('@playwright/test').Page) => page.evaluate(() => {
+  const strip = document.querySelector('.status-strip')!;
+  const intro = document.querySelector('.status-strip__intro')!;
+  const line = document.querySelector('.status-strip__line')!;
+  const style = getComputedStyle(strip);
+  const introStyle = getComputedStyle(intro);
+  const range = document.createRange();
+  range.selectNodeContents(intro);
+  return {
+    strip: strip.getBoundingClientRect().height,
+    intro: intro.getBoundingClientRect().height,
+    line: line.getBoundingClientRect().height,
+    introLines: range.getClientRects().length,
+    leading: Number.parseFloat(introStyle.lineHeight),
+    padding: Number.parseFloat(style.paddingTop) + Number.parseFloat(style.paddingBottom),
+    gap: Number.parseFloat(style.rowGap),
+    rule: Number.parseFloat(style.borderBottomWidth),
+  };
+});
+
+for (const width of [1920, 1366]) {
+  test(`${width}px opens on the orienting line above the status line`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await page.goto('/');
+    await expect(page.locator('.status-strip__intro')).toContainText('one customer’s RFQ package');
+
+    const parts = await stripParts(page);
+    expect(parts.intro).toBe(parts.introLines * parts.leading);
+    expect(parts.strip).toBe(parts.padding + parts.intro + parts.gap + parts.line + parts.rule);
+    // 1920 holds the sentence on one line; 1366 has room for two lines only.
+    expect(parts.introLines).toBe(width >= 1456 ? 1 : 2);
+
+    // The dot marks the status line, never the orienting one.
+    expect(await page.locator('.status-strip__line .status-strip__dot').count()).toBe(1);
+    expect(await page.locator('.status-strip__intro .status-strip__dot').count()).toBe(0);
+  });
+}
+
+test('390px keeps the orienting line and puts the button full width under the text', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await page.goto('/');
+
+  const intro = (await page.locator('.status-strip__intro').boundingBox())!;
+  const summary = (await page.locator('.status-strip__summary').boundingBox())!;
+  const play = (await page.getByRole('button', { name: 'Play sample session' }).boundingBox())!;
+  const strip = (await page.locator('.status-strip').boundingBox())!;
+
+  expect(summary.y).toBeGreaterThanOrEqual(intro.y + intro.height);
+  expect(play.y).toBeGreaterThanOrEqual(summary.y + summary.height);
+  expect(play.width).toBeCloseTo(strip.width - 56, 0);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+});
+
+test('the orienting line leaves with the first tool call', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await expect(page.locator('.status-strip__intro')).toBeVisible();
+  await seed(page);
+  await expect(page.locator('.status-strip')).toContainText('Live');
+  await expect(page.locator('.status-strip__intro')).toHaveCount(0);
 });
 
 test('the desktop page does not scroll and each pane scrolls on its own', async ({ page }) => {

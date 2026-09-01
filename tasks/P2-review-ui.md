@@ -29,7 +29,7 @@ Create under `src/components/` (one component per file, `.tsx`; styles in `src/s
 | `src/lib/contrast.ts` + test | WCAG contrast of two hex colors; the test re-runs the `DESIGN.md` ledger pairs against `tokens.css` |
 | `src/hooks/useReview.ts` | `useSyncExternalStore(subscribe, getState)` + memoised selectors (risk order, groups, gaps, blockers, draft, timer) |
 | `src/hooks/useKeyboardMap.ts` | `j` / `k` / `Enter` / `e` / `n` / `Esc` per § Keyboard; inert while an input has focus |
-| `Header.tsx` | product name, tagline, package title from `data/package.json` |
+| `Header.tsx` | product name and package title from `data/package.json` |
 | `StatusStrip.tsx` | states `no-api` / `waiting` / `live` / `confirmed`; quiet summary line; `Show tools` disclosure with the roster; copyable prompt; `Play sample session` button (wired to `createReplay().play()`; controls are P3) |
 | `FieldList.tsx` | risk sort, group headings with counts, collapsed verified group, the empty-state header line |
 | `FieldRow.tsx` | marker bar, label, value + unit, badge (icon + text), lock glyph, provenance links, agent note / rationale, `was: X`, actions per state, suggestion-card slot |
@@ -69,6 +69,7 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
 
+- Before the first tool call (`no-api` and `waiting` only) the strip is two lines. The first orients a reader arriving cold — "This page holds one customer's RFQ package: the email, the spec and the drawing sheet. Your agent fills the 11 quote-request fields through the page's tools; you check each against its source and confirm." — in `--ink`, no dot, `--space-2` above the status line, which keeps the dot. `live` and `confirmed` are one line and never carry it.
 - Precedence: `confirmed` → `live` → `no-api` / `waiting`. A replay started in a browser without the API is `live` from its first step; the sample button leaves with the pre-live state. Strip state is derived, never stored.
 - Narrow (< 1024px): the `no-api` text is the short form "Live mode needs a WebMCP-capable desktop browser." with the dot inline before it (never on its own line) and a full-width primary button; `waiting` keeps the prompt line and a full-width secondary button; `live` is the quiet line + `Show tools` in one column.
 - First load in `no-api` at any width shows the eleven empty rows under the strip (screen 01 with the strip from 09). Exports 04/05 draw the pre-play strip over mid-play rows — two moments in one frame; the rule wins.

@@ -191,7 +191,6 @@
 }
 
 /* One md line in the secondary ink: every meta, note and action row. */
-.header__tagline,
 .header__package,
 .status-strip,
 .field-list__header p,
@@ -233,7 +232,7 @@
 }
 
 .header__identity,
-.status-strip,
+.status-strip__line,
 .status-strip__summary,
 .status-strip__roster li,
 .change-log__collapsed,
@@ -257,6 +256,25 @@
 .status-strip {
   min-height: var(--control-large);
   position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--space-2);
+}
+
+/* Before the first tool call the strip says what the page is; the two lines
+   then need the row padding the one-line states get from their min-height. */
+.status-strip--no-api,
+.status-strip--waiting {
+  padding-block: var(--space-3);
+}
+
+.status-strip__intro {
+  margin: 0;
+  color: var(--ink);
+}
+
+.status-strip__line {
   justify-content: space-between;
   gap: var(--space-4);
 }
@@ -1205,12 +1223,11 @@
     gap: var(--space-1);
   }
 
-  .header__tagline {
-    display: none;
-  }
-
   .status-strip {
     padding-block: var(--space-3);
+  }
+
+  .status-strip__line {
     align-items: stretch;
     flex-direction: column;
   }
