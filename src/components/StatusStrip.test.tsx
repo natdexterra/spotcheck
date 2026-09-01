@@ -11,7 +11,33 @@ afterEach(() => {
   act(() => replaceState(createInitialState()));
 });
 
+const INTRO = /This page holds one customer’s RFQ package/;
+
 describe('StatusStrip', () => {
+  test('orients the reader on the first line before the first tool call', () => {
+    const { container, rerender } = render(<StatusStrip apiAvailable={false} />);
+    expect(screen.getByText(INTRO)).toBeInTheDocument();
+    rerender(<StatusStrip apiAvailable />);
+    expect(screen.getByText(INTRO)).toBeInTheDocument();
+
+    // The state dot belongs to the status line, never to the orienting one.
+    expect(container.querySelector('.status-strip__intro .status-strip__dot')).toBeNull();
+    expect(container.querySelector('.status-strip__line .status-strip__dot')).not.toBeNull();
+  });
+
+  test('drops the orienting line once the session is under way', () => {
+    const session: ReviewSession = { ...createInitialState(), log: [
+      { actor: 'agent', at: 1, event: { actor: 'agent', action: { type: 'propose', at: 1 } }, result: { ok: true } },
+    ] };
+    act(() => replaceState(session));
+    const { rerender } = render(<StatusStrip apiAvailable />);
+    expect(screen.queryByText(INTRO)).not.toBeInTheDocument();
+
+    act(() => replaceState({ ...session, confirmed: true }));
+    rerender(<StatusStrip apiAvailable />);
+    expect(screen.queryByText(INTRO)).not.toBeInTheDocument();
+  });
+
   test('selects no-api and offers the primary sample action', () => {
     const onPlay = vi.fn();
     render(<StatusStrip apiAvailable={false} onPlaySample={onPlay} />);

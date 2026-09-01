@@ -9,6 +9,9 @@ const PROMPT = 'Extract this RFQ into a quote request';
 const MARKER_MS = 2_000;
 const NO_API_LONG = 'Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app’s browser, or Chrome 149+ with the WebMCP flag.';
 const NO_API_SHORT = 'Live mode needs a WebMCP-capable desktop browser.';
+// The page has to orient a first-time reader on its own: what the documents
+// are, what the task is. It shows only before the first tool call.
+const INTRO = 'This page holds one customer’s RFQ package: the email, the spec and the drawing sheet. Your agent fills the 11 quote-request fields through the page’s tools; you check each against its source and confirm.';
 
 const BASE_TOOLS = [
   ['list_rfq_documents', true],
@@ -93,41 +96,45 @@ export function StatusStrip({
   const state = confirmed ? 'confirmed' : live ? 'live' : apiAvailable ? 'waiting' : 'no-api';
 
   const copyPrompt = () => void navigator.clipboard?.writeText(PROMPT);
+  const preLive = state === 'no-api' || state === 'waiting';
 
   return (
     <section className={`status-strip status-strip--${state}`} aria-label="Session status">
-      <div className="status-strip__summary">
-        <span
-          aria-hidden="true"
-          className={`status-strip__dot${live || confirmed ? ' status-strip__dot--settled' : ''}`}
-        />
-        {state === 'no-api' && <span className="status-strip__text">{narrow ? NO_API_SHORT : NO_API_LONG}</span>}
-        {state === 'waiting' && (
-          <>
-            <strong>Waiting for your agent.</strong>
-            <span>In the chat, ask:</span>
-            <code>{PROMPT}</code>
-            <Button variant="text" onClick={copyPrompt}>Copy</Button>
-          </>
+      {preLive && <p className="status-strip__intro">{INTRO}</p>}
+      <div className="status-strip__line">
+        <div className="status-strip__summary">
+          <span
+            aria-hidden="true"
+            className={`status-strip__dot${live || confirmed ? ' status-strip__dot--settled' : ''}`}
+          />
+          {state === 'no-api' && <span className="status-strip__text">{narrow ? NO_API_SHORT : NO_API_LONG}</span>}
+          {state === 'waiting' && (
+            <>
+              <strong>Waiting for your agent.</strong>
+              <span>In the chat, ask:</span>
+              <code>{PROMPT}</code>
+              <Button variant="text" onClick={copyPrompt}>Copy</Button>
+            </>
+          )}
+          {state === 'live' && (
+            <>
+              <strong>Live</strong>
+              <span className="numeric">{sizeChange ?? `${rosterSize} tools`} · {agentEntries.length} calls</span>
+              <span>{lastActivity(lastAgent?.event.action as AgentAction | undefined)} · just now</span>
+              <Button variant="text" aria-expanded={toolsOpen} onClick={() => setToolsOpen(open => !open)}>
+                Show tools <ChevronDownIcon />
+              </Button>
+            </>
+          )}
+          {state === 'confirmed' && (
+            <><strong>Confirmed</strong><span>Fields are read-only · the agent can still answer questions from the review state</span></>
+          )}
+        </div>
+        {preLive && (
+          <Button variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
         )}
-        {state === 'live' && (
-          <>
-            <strong>Live</strong>
-            <span className="numeric">{sizeChange ?? `${rosterSize} tools`} · {agentEntries.length} calls</span>
-            <span>{lastActivity(lastAgent?.event.action as AgentAction | undefined)} · just now</span>
-            <Button variant="text" aria-expanded={toolsOpen} onClick={() => setToolsOpen(open => !open)}>
-              Show tools <ChevronDownIcon />
-            </Button>
-          </>
-        )}
-        {state === 'confirmed' && (
-          <><strong>Confirmed</strong><span>Fields are read-only · the agent can still answer questions from the review state</span></>
-        )}
+        {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
       </div>
-      {(state === 'no-api' || state === 'waiting') && (
-        <Button variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
-      )}
-      {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
       {toolsOpen && state === 'live' && (
         <ul className="status-strip__roster">
           {tools.map(tool => (
