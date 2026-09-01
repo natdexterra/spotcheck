@@ -116,3 +116,31 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
   });
   expect(ring).toEqual({ color: ACCENT, style: 'solid', width: '2px' });
 });
+
+test('the editor opened from a conflict row returns focus to Enter another value', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await executeTool(page, 'report_conflict', {
+    field_id: 'quantity',
+    candidates: [
+      { value: '800', source_refs: ['spec:s1.1'] },
+      { value: '750', source_refs: ['email:p2'] },
+    ],
+    note: 'The sources disagree.',
+  });
+
+  const row = page.locator('[data-field-id="quantity"]');
+  const trigger = row.getByRole('button', { name: 'Enter another value' });
+
+  await trigger.click();
+  await expect(row.getByRole('textbox', { name: 'Quantity' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+
+  // The `e` binding on the row reaches the same editor and the same return.
+  await row.focus();
+  await page.keyboard.press('e');
+  await expect(row.getByRole('textbox', { name: 'Quantity' })).toBeFocused();
+  await page.keyboard.press('Escape');
+  await expect(trigger).toBeFocused();
+});
