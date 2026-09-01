@@ -79,7 +79,7 @@ Roster (disclosure open): one row per registered tool in registration order — 
 | State | Actions |
 |---|---|
 | `needs_review` | `Verify` (secondary; reads `Add unit` and opens the editor when `overall_dimensions` has no unit) · `Edit` · `Ask customer` (toggle; on state = checked-box icon + ink label, `aria-pressed`, no pill) |
-| `conflict` | the conflict panel: candidates with value, source links, note, `Pick` (secondary); `Enter another value` opens the editor |
+| `conflict` | the conflict panel, always open on every conflict row (never a compact one-liner): candidates with value, source links, note, `Pick` (secondary); `Enter another value` opens the editor |
 | `missing` | searched-document chips · the note · `Enter value` (secondary) · `Mark not required` |
 | `empty` | `Enter value` (secondary) · `Mark not required` |
 | `verified` | badge with resolution and time · `Reopen`; for `edited` / `picked` / `applied` the original agent value with its source ("agent 800 · spec §2.1") |
