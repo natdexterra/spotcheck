@@ -1,0 +1,114 @@
+import { useRef, useState } from 'react';
+import { useReview } from '../hooks/useReview';
+import { ChevronDownIcon, CrossIcon } from '../icons';
+import { fieldLabel } from '../lib/format';
+import type { LogEntry } from '../state/session';
+import type { Field, FieldId } from '../state/types';
+import { Button } from './Button';
+
+const clockTime = (at: number) => {
+  const date = new Date(at);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+
+const actionInput = (entry: LogEntry): Record<string, unknown> => {
+  if (entry.event.actor !== 'agent') return {};
+  const input = entry.event.action.input;
+  return typeof input === 'object' && input !== null && !Array.isArray(input) ? input as Record<string, unknown> : {};
+};
+
+const entryFieldId = (entry: LogEntry): FieldId | undefined => {
+  const action = entry.event.action;
+  const candidate = 'field_id' in action ? action.field_id : actionInput(entry).field_id;
+  return typeof candidate === 'string' ? candidate as FieldId : undefined;
+};
+
+const fieldName = (entry: LogEntry) => {
+  const id = entryFieldId(entry);
+  return id ? fieldLabel(id) : 'field';
+};
+
+const agentSentence = (entry: LogEntry) => {
+  const action = entry.event.action;
+  if (action.type === 'read') return 'Agent read the RFQ package';
+  if (entry.result?.ok === false) {
+    return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected — ${String(entry.result.code ?? 'ERROR')}`;
+  }
+  if (action.type === 'propose') return `Agent proposed ${fieldName(entry)} — ${String(actionInput(entry).value ?? '')}`;
+  if (action.type === 'report_conflict') return `Agent reported a conflict on ${fieldName(entry)}`;
+  if (action.type === 'report_missing') return `Agent reported ${fieldName(entry)} missing`;
+  return 'Agent opened the clarification draft';
+};
+
+const humanSentence = (entry: LogEntry, fields: Field[]) => {
+  const action = entry.event.action;
+  const skipped = entry.notes?.find(note => note.startsWith('Skipped fixture step:'));
+  if (skipped) return `You skipped ${skipped.slice('Skipped fixture step:'.length).trim()}`;
+  const name = fieldName(entry);
+  const field = fields.find(item => item.id === entryFieldId(entry));
+  if (action.type === 'verify') return `You verified ${name}`;
+  if (action.type === 'edit') return `You edited ${name} — agent ${field?.proposal?.value ?? '—'} → yours ${action.value ?? '—'}`;
+  if (action.type === 'edit_start') return `You started editing ${name}`;
+  if (action.type === 'enter') return `You entered ${name} — ${action.value ?? '—'}`;
+  if (action.type === 'pick') return `You picked ${name} — ${field?.value ?? '—'}`;
+  if (action.type === 'dismiss') return `You marked ${name} not required — ${action.reason ?? ''}`;
+  if (action.type === 'apply') return `You applied the agent suggestion to ${name}`;
+  if (action.type === 'dismiss_suggestion') return `You dismissed the agent suggestion for ${name}`;
+  if (action.type === 'ask_customer') return `You asked the customer about ${name}`;
+  if (action.type === 'send') return `You sent a clarification for ${action.covers?.length ?? 0} fields`;
+  if (action.type === 'reopen') return `You reopened ${name}`;
+  return 'You confirmed the quote request';
+};
+
+export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
+  entry.actor === 'agent' ? agentSentence(entry) : humanSentence(entry, fields);
+
+const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] }) => (
+  <div className="change-log__entry">
+    <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
+    <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
+    {entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
+      <span className="change-log__agent-note" key={note}>Agent: {note}</span>
+    ))}
+  </div>
+);
+
+export const ChangeLogDrawer = () => {
+  const { log, state } = useReview();
+  const [expanded, setExpanded] = useState(false);
+  const disclosureRef = useRef<HTMLButtonElement>(null);
+  const latest = log.at(-1);
+
+  const close = () => {
+    setExpanded(false);
+    requestAnimationFrame(() => disclosureRef.current?.focus());
+  };
+
+  return (
+    <aside aria-label="Change log" className={`change-log${expanded ? ' change-log--expanded' : ''}`}>
+      {!expanded ? (
+        <div className="change-log__collapsed">
+          {latest ? <LogLine entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
+          <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
+            Show change log
+            <ChevronDownIcon />
+          </Button>
+        </div>
+      ) : (
+        <div className="change-log__sheet">
+          <header className="change-log__header">
+            <h2>Change log</h2>
+            <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
+          </header>
+          {log.length ? (
+            <ol className="change-log__entries">
+              {log.map((entry, index) => (
+                <li key={`${entry.at}-${index}`}><LogLine entry={entry} fields={state.fields} /></li>
+              ))}
+            </ol>
+          ) : <p className="change-log__empty">No activity yet</p>}
+        </div>
+      )}
+    </aside>
+  );
+};
