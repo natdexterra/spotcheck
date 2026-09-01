@@ -206,3 +206,43 @@ test('P1.1 replay: createReplay validates its fixture through parseFixture', asy
   expect(() => createReplay(bad as never)).toThrow(/fixture step 0/i);
   expect(() => createReplay({ steps: [] } as never)).toThrow();
 });
+
+test('P1.1 replay: a viewer lock-only write (edit_start, then cancel) does not mark the field viewer-handled', async () => {
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+    { actor: 'estimator', at: 2, action: { type: 'verify', field_id: 'material' } },
+  ] });
+  await replay.next();
+  // The viewer opens the editor and types (lock), then cancels: the field is locked but untouched.
+  dispatchHuman({ type: 'edit_start', field_id: 'material', at: 10 });
+  const before = getState().fields.find(f => f.id === 'material');
+  expect(before?.locked).toBe(true);
+  expect(before?.state).toBe('needs_review');
+  await replay.next();
+  const after = getState().fields.find(f => f.id === 'material');
+  expect(after?.state).toBe('verified');
+  expect(after?.resolution?.at).toBe(2);
+  replay.dispose();
+});
+
+test('P1.1 replay: restart() after dispose() is a no-op and leaves the live session alone', async () => {
+  const { startPersistence } = await import('./persistence');
+  const { createReplay } = await import('./replay');
+  const { dispatchHuman, getState } = await import('../state/store');
+  const values = new Map<string, string>();
+  const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
+  const session = await startPersistence(storage);
+  const replay = createReplay({ recorded_at: 'test', steps: [
+    { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+  ] });
+  await replay.next();
+  replay.dispose();
+  dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
+  const saved = values.get('spotcheck.session.v1');
+  replay.restart();
+  expect(getState().fields.find(f => f.id === 'quantity')?.value).toBe('800');
+  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  session.stop();
+});
