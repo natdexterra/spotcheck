@@ -33,6 +33,7 @@
   border: 0;
   border-radius: var(--radius-2);
   font-family: var(--font-sans);
+  white-space: nowrap;
   cursor: pointer;
   transition:
     color var(--dur-1) var(--ease-1),
@@ -69,7 +70,9 @@
   background-color: var(--ink-faint);
 }
 
-.button--secondary {
+.button--secondary,
+.button--text[aria-pressed="true"]:hover:not(:disabled),
+.source-pane__tab:hover {
   color: var(--ink);
   background-color: var(--bg-subtle);
 }
@@ -105,11 +108,6 @@
 .button--text[aria-pressed="true"] {
   color: var(--ink);
   font-weight: 500;
-}
-
-.button--text[aria-pressed="true"]:hover:not(:disabled) {
-  color: var(--ink);
-  background-color: var(--bg-subtle);
 }
 
 .button--text:disabled {
@@ -225,7 +223,9 @@
   min-height: calc(var(--space-8) + var(--space-8));
 }
 
-.header {
+.header,
+.field-list__title-line,
+.field-pane__draft-entry {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -353,11 +353,6 @@
   color: var(--ink-muted);
 }
 
-.change-log__agent-note,
-.change-log__empty {
-  color: var(--ink-secondary);
-}
-
 .change-log__sheet {
   max-height: 40vh;
   overflow-y: auto;
@@ -382,14 +377,6 @@
 
 .change-log__entries li {
   padding-block: var(--space-3);
-}
-
-.field-list__title-line,
-.field-pane__draft-entry {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
 }
 
 .field-list__header p {
@@ -503,6 +490,7 @@
   background-color: var(--bg-subtle);
   font-size: var(--text-md);
   line-height: var(--leading-md);
+  white-space: nowrap;
 }
 
 .confirm-summary__details,
@@ -586,12 +574,8 @@
   border-bottom: var(--radius-1) solid transparent;
   font-size: var(--text-md);
   line-height: var(--leading-md);
+  white-space: nowrap;
   cursor: pointer;
-}
-
-.source-pane__tab:hover {
-  color: var(--ink);
-  background-color: var(--bg-subtle);
 }
 
 .source-pane__tab--active {
@@ -746,10 +730,6 @@
   gap: var(--space-2);
 }
 
-.clarification__label {
-  color: var(--ink-secondary);
-}
-
 .clarification__input,
 .clarification__textarea {
   font-size: var(--text-lg);
@@ -785,10 +765,6 @@
 
 .clarification__hint {
   color: var(--ink-muted);
-}
-
-.clarification__sent-line {
-  color: var(--ink-secondary);
 }
 
 .clarification__sent-body {
@@ -834,6 +810,10 @@
   border: 0;
 }
 
+.change-log__agent-note,
+.change-log__empty,
+.clarification__label,
+.clarification__sent-line,
 .inline-editor__label,
 .not-required-picker__legend {
   color: var(--ink-secondary);
@@ -1093,18 +1073,6 @@
   color: var(--ink-secondary);
 }
 
-.field-list__group-heading--conflict {
-  color: var(--state-conflict);
-}
-
-.field-list__group-heading--missing {
-  color: var(--state-missing);
-}
-
-.field-list__verified-summary {
-  color: var(--state-verified);
-}
-
 .field-row {
   position: relative;
   display: grid;
@@ -1160,16 +1128,20 @@
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
   font-weight: 500;
+  white-space: nowrap;
 }
 
+.field-list__group-heading--conflict,
 .field-row__badge--conflict {
   color: var(--state-conflict);
 }
 
+.field-list__group-heading--missing,
 .field-row__badge--missing {
   color: var(--state-missing);
 }
 
+.field-list__verified-summary,
 .field-row__badge--verified {
   color: var(--state-verified);
 }
@@ -1271,7 +1243,21 @@
     max-width: var(--narrow-content-max);
     display: block;
     margin-inline: auto;
+  }
+
+  /* change-log keeps its own padding-inline: var(--page-margin) rules (base
+     .change-log, .change-log__header, .change-log__entries) so the bar and the
+     expanded sheet stay on the gutter lane; only these two zero it out. */
+  .confirm-footer,
+  .workspace {
     padding: 0;
+  }
+
+  /* Collapsed bar: sentence above, the disclosure button on its own line below,
+     left-aligned on the gutter lane. */
+  .change-log__collapsed {
+    align-items: flex-start;
+    flex-direction: column;
   }
 
   .confirm-footer {
@@ -1326,10 +1312,6 @@
 
   .field-row {
     padding-inline-end: var(--space-4);
-  }
-
-  .field-row__badge {
-    white-space: nowrap;
   }
 
   .inline-link {

@@ -113,3 +113,30 @@ test('390px shows the short no-api line, a full-width primary, and goes live on 
   await expect(strip).toContainText('Live');
   await expect(page.getByRole('button', { name: 'Play sample session' })).toHaveCount(0);
 });
+
+for (const width of [390, 320]) {
+  test(`${width}px stacks the change log bar on the gutter lane`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await installModelContext(page);
+    await page.goto('/');
+    await executeTool(page, 'propose_field', {
+      field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'], rationale: 'The specification names the alloy.',
+    });
+
+    const sentence = page.locator('.change-log__entry').first();
+    const button = page.getByRole('button', { name: /Show change log/ });
+    // The header's content sits on the same gutter lane the bar must match.
+    const laneX = (await page.locator('.header__identity').boundingBox())!.x;
+
+    const sentenceBox = (await sentence.boundingBox())!;
+    const buttonBox = (await button.boundingBox())!;
+
+    // Sentence above, the disclosure button on its own line below it, one
+    // line tall (no wrapped label), left-aligned on the gutter lane.
+    expect(buttonBox.height).toBeLessThanOrEqual(44);
+    expect(buttonBox.y).toBeGreaterThanOrEqual(sentenceBox.y + sentenceBox.height);
+    expect(Math.abs(sentenceBox.x - laneX)).toBeLessThanOrEqual(1);
+    expect(Math.abs(buttonBox.x - laneX)).toBeLessThanOrEqual(1);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  });
+}
