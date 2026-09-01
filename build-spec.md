@@ -146,7 +146,7 @@ interface Field {
 1. **First load**: 11 empty rows ("— · Not extracted"), "0 of 11 verified", one-line how-it-works, Email tab open, strip as the single CTA (`waiting` with copyable prompt / `no-api` with primary sample button), empty log.
 2. **Extraction**: reads mark the active tab and flash the section; fields animate in; strip flips to `live`.
 3. **Triage** (main): risk order conflicts → missing → to review → verified collapsed; conflict panel with candidates; suggestion card on locked fields; provenance links open the source both ways — including the **Drawing tab**: WebP sheet + normalized overlay boxes; a box click focuses its field; `drawing:title_area` is the clickable blank corner.
-4. **Clarification editor**: over the source pane; subject, agent's body, covers checkboxes limited to current gaps, mock Send, Discard.
+4. **Clarification**: a fourth tab of the source pane while a draft exists (auto-activated when the draft arrives); subject, agent's body, covers checkboxes limited to current gaps, mock Send; no Discard — the draft stays on its tab, read-only after send.
 5. **Confirm summary**: title with open-question count, review time, counts per resolution, edits/picks/dismissals/pending lists, full log, Export, Start over.
 6. **After**: read-only fields, strip "Confirmed", write tools answer `SESSION_CONFIRMED`.
 
