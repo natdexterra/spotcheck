@@ -80,19 +80,19 @@ Roster (disclosure open): one row per registered tool in registration order — 
 |---|---|
 | `needs_review` | `Verify` (secondary; reads `Add unit` and opens the editor when `overall_dimensions` has no unit) · `Edit` · `Ask customer` (toggle; on state = checked-box icon + ink label, `aria-pressed`, no pill) |
 | `conflict` | the conflict panel: candidates with value, source links, note, `Pick` (secondary); `Enter another value` opens the editor |
-| `missing` | searched-document chips · the note · `Enter value` (secondary) · `Not required` |
-| `empty` | `Enter value` (secondary) · `Not required` |
+| `missing` | searched-document chips · the note · `Enter value` (secondary) · `Mark not required` |
+| `empty` | `Enter value` (secondary) · `Mark not required` |
 | `verified` | badge with resolution and time · `Reopen`; for `edited` / `picked` / `applied` the original agent value with its source ("agent 800 · spec §2.1") |
 | any, suggestion pending | the card |
 
-- A `verified` field with `value: null` reads "Not required" or "Asked customer", never "Verified". A locked field where the agent later called a report tool shows the note "Agent: reported a conflict on this field after you set it · see log" linking to the log entry.
+- A `verified` field with `value: null` reads "Not required" or "Awaiting customer", never "Verified". A locked field where the agent later called a report tool shows the note "Agent: reported a conflict on this field after you set it · see log" linking to the log entry.
 - Reopened row: `needs_review` (or the derived agent state) plus lock; value line reads "your entry: 750"; the agent value and source stay visible.
 
 ### Badges
 
 Two wordings, one icon set (`DESIGN.md` § State iconography):
 
-- **Row badge** — human wording: `empty` "Not extracted" · `needs_review` "Check it" / "Unit missing" / "Revised · check it" · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind: "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …".
+- **Row badge** — human wording: `empty` "Not extracted" · `needs_review` "Needs review" / "Unit missing" / "Revised by agent" · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind: "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Applied by you · …", "Not required · …", "Awaiting customer · …". Copy grammar per `DESIGN.md`: badges are statuses, buttons are verbs.
 - **Short label** — group headings, counts, blocker line, summary, announcements, the badge's `aria-label`: Not extracted · Needs review · Conflict · Missing · Verified · Edited · Entered · Picked · Not required · Applied · Asked customer.
 
 Relative times update once a minute; tabular figures; mono.
@@ -107,7 +107,7 @@ Relative times update once a minute; tabular figures; mono.
 
 ### Not required
 
-Inline picker under the row (gray fill, no border): three presets as a radio group — "Not required for this quote", "Covered by our shop standard", "Will confirm at PO" — plus "Other reason" free text. `Mark not required` dispatches `dismiss` with the reason; disabled until a preset or non-empty text is chosen. `Cancel` closes; focus returns to `Not required`.
+Inline picker under the row (gray fill, no border): three presets as a radio group — "Not required for this quote", "Covered by our shop standard", "Will confirm at PO" — plus "Other reason" free text. `Mark not required` dispatches `dismiss` with the reason; disabled until a preset or non-empty text is chosen. `Cancel` closes; focus returns to `Mark not required`.
 
 ### Suggestion card
 
@@ -134,7 +134,7 @@ The draft is a document, so it lives on the fourth tab of the source pane, **Cla
 
 ### Change log drawer
 
-Collapsed: one line, the last entry with its clock time ("14:34 · You edited Quantity — agent 800 → yours 750") and a disclosure. Log entries carry clock times (mono, tabular); relative times ("0:42 ago") belong to badges only. Expanded: the full log, newest last, actor named on every entry, agent text in sans with the "Agent:" prefix, rejections with their code; a `skipped` replay entry renders as such. Narrow: a full-height sheet with `Close`.
+Collapsed: one line, the last entry with its clock time ("14:34 · You edited Quantity — agent 800 → yours 750") and a disclosure. Log entries carry clock times (mono, tabular); relative times ("0:42 ago") belong to badges only. Expanded: the full log, newest last, every entry a sentence with the actor first in sentence case ("You …", "Agent …"), agent text in sans with the "Agent:" prefix, rejections with their code; a `skipped` replay entry renders as such. Narrow: a full-height sheet with `Close`.
 
 ### Keyboard (B9)
 
