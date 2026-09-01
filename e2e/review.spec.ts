@@ -19,6 +19,10 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await expect(page.locator('.document-region--highlighted')).toBeVisible();
   await first.getByRole('button', { name: 'Verify' }).click();
   await expect(page.getByText(/1 more verified · Customer RFQ ref/)).toBeVisible();
+  // B3: log stamps are wall-clock, so the badge reads a real elapsed time.
+  await page.locator('.field-list__verified-summary').getByRole('button', { name: 'Show' }).click();
+  await expect(first).toContainText(/Verified by you · 0:\d\d ago/);
+  await page.locator('.field-list__verified-summary').getByRole('button', { name: 'Hide' }).click();
 
   await page.clock.runFor(14_500);
   const material = page.locator('[data-field-id="material"]');
