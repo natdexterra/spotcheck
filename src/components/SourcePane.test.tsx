@@ -112,7 +112,7 @@ describe('source documents', () => {
     const onActivateRegion = vi.fn();
     render(<DrawingSheet onActivateRegion={onActivateRegion} highlightedRef="drawing:width" />);
 
-    const widthBox = screen.getByRole('button', { name: 'drawing:width 20.000' });
+    const widthBox = screen.getByRole('button', { name: 'Width, 20.000' });
     expect(widthBox).toHaveStyle({
       left: '38%',
       top: '11.8%',

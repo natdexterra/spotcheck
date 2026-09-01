@@ -58,11 +58,11 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
   return (
     <section className="confirm-summary" aria-labelledby="confirm-summary-title">
       <header className="confirm-summary__header">
-        <h1 id="confirm-summary-title">
+        <h2 id="confirm-summary-title">
           {openQuestions.length > 0
             ? `Confirmed with ${openQuestions.length} open ${openQuestions.length === 1 ? 'question' : 'questions'}`
             : 'Confirmed'}
-        </h1>
+        </h2>
         {timer !== null ? (
           <p className="confirm-summary__timer">
             Reviewed in {duration(timer)} — from the agent's first write to confirm
@@ -70,7 +70,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
         ) : null}
       </header>
 
-      <div className="confirm-summary__counts" aria-label="Resolution counts">
+      <div aria-label="Resolution counts" className="confirm-summary__counts" role="group">
         {RESOLUTIONS.map(kind => {
           const count = fieldsByResolution(kind).length;
           return count > 0 ? <span className="confirm-summary__count" key={kind}>{count} {groupLabel(kind).toLowerCase()}</span> : null;

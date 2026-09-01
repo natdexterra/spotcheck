@@ -1,4 +1,5 @@
 import type { Ref } from 'react';
+import { fieldLabel } from '../lib/format';
 import type { Field } from '../state/types';
 import { Button } from './Button';
 import { CandidateOption, type SourceHandler } from './CandidateOption';
@@ -11,7 +12,7 @@ export interface ConflictPanelProps {
 }
 
 export const ConflictPanel = ({ editorButtonRef, field, onOpenEditor, onSource }: ConflictPanelProps) => (
-  <section aria-label={`Conflicting values for ${field.id}`} className="conflict-panel">
+  <section aria-label={`Conflicting values for ${fieldLabel(field.id)}`} className="conflict-panel">
     <ul className="conflict-panel__candidates">
       {field.candidates?.map((candidate, index) => (
         <CandidateOption

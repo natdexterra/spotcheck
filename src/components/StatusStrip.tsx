@@ -124,7 +124,7 @@ export function StatusStrip({
       {(state === 'no-api' || state === 'waiting') && (
         <Button variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
       )}
-      {state === 'live' && <span className="status-strip__export-slot" aria-label="Export session slot" />}
+      {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
       {toolsOpen && state === 'live' && (
         <ul className="status-strip__roster">
           {tools.map(tool => (
