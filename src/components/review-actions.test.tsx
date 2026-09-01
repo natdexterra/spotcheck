@@ -143,6 +143,40 @@ describe('ConflictPanel and SuggestionCard', () => {
     expect(onOpenEditor).toHaveBeenCalledOnce();
   });
 
+  test('candidate and suggestion source links call the provenance handler instead of a dead fragment', async () => {
+    const user = userEvent.setup();
+    const onSource = vi.fn();
+    const handler = (ref: string) => (event: { preventDefault: () => void }) => {
+      event.preventDefault();
+      onSource(ref);
+    };
+    render(
+      <>
+        <ConflictPanel
+          field={baseField({ state: 'conflict', candidates: [
+            { value: '800', source_refs: ['spec:s1.1'] },
+            { value: '750', source_refs: ['email:p2'] },
+          ] })}
+          onOpenEditor={vi.fn()}
+          onSource={handler}
+        />
+        <SuggestionCard
+          field={baseField({
+            locked: true,
+            resolution: { kind: 'edited', at: Date.now() },
+            suggestion: { value: '7075', source_refs: ['drawing:width'] },
+          })}
+          onSource={handler}
+        />
+      </>,
+    );
+
+    expect(screen.getByRole('link', { name: 'spec §1.1' })).toHaveAttribute('href', '#spec:s1.1');
+    await user.click(screen.getByRole('link', { name: 'spec §1.1' }));
+    await user.click(screen.getByRole('link', { name: 'drawing width' }));
+    expect(onSource.mock.calls.flat()).toEqual(['spec:s1.1', 'drawing:width']);
+  });
+
   test.each([
     ['Apply', 'apply'],
     ['Dismiss', 'dismiss_suggestion'],

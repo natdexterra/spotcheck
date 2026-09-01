@@ -1,11 +1,13 @@
-import { relativeTime } from '../lib/format';
+import { relativeTime, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, ResolutionKind } from '../state/types';
 import { Button } from './Button';
+import type { SourceHandler } from './CandidateOption';
 import { ProvenanceLink } from './ProvenanceLink';
 
 export interface SuggestionCardProps {
   field: Field;
+  onSource?: SourceHandler;
 }
 
 const resolutionWord: Record<ResolutionKind, string> = {
@@ -18,19 +20,11 @@ const resolutionWord: Record<ResolutionKind, string> = {
   asked_customer: 'asked customer',
 };
 
-const sourceHref = (sourceRef: string) => `#source-${encodeURIComponent(sourceRef)}`;
-const sourceLabel = (sourceRef: string) => {
-  const [document, region] = sourceRef.split(':', 2);
-  if (!region) return sourceRef;
-  if (document === 'spec') return `spec §${region.replace(/^s/, '')}`;
-  if (document === 'email') return `email ¶${region.replace(/^p/, '')}`;
-  return `${document} ${region.replaceAll('_', ' ')}`;
-};
 const focusBadge = (fieldId: Field['id']) => {
   document.querySelector<HTMLElement>(`[data-field-badge="${fieldId}"]`)?.focus();
 };
 
-export const SuggestionCard = ({ field }: SuggestionCardProps) => {
+export const SuggestionCard = ({ field, onSource }: SuggestionCardProps) => {
   const suggestion = field.suggestion;
   if (!suggestion) return null;
 
@@ -47,7 +41,9 @@ export const SuggestionCard = ({ field }: SuggestionCardProps) => {
       </p>
       <div className="suggestion-card__sources">
         {suggestion.source_refs.map(sourceRef => (
-          <ProvenanceLink href={sourceHref(sourceRef)} key={sourceRef}>{sourceLabel(sourceRef)}</ProvenanceLink>
+          <ProvenanceLink href={sourceHref(sourceRef)} key={sourceRef} onClick={onSource?.(sourceRef)}>
+            {sourceLabel(sourceRef)}
+          </ProvenanceLink>
         ))}
       </div>
       {suggestion.rationale && (

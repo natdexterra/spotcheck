@@ -49,6 +49,20 @@ export function relativeTime(at: number, now: number): string {
   return `${duration(now - at)} ago`;
 }
 
+/** `spec:s1.1` reads as `spec §1.1`, `email:p2` as `email ¶2`, `drawing:width` as `drawing width`. */
+export function sourceLabel(ref: string): string {
+  const [documentId, region] = ref.split(':', 2);
+  if (!region) return ref;
+  if (documentId === 'spec') return `spec §${region.replace(/^s/, '')}`;
+  if (documentId === 'email') return `email ¶${region.replace(/^p/, '')}`;
+  return `${documentId} ${region.replaceAll('_', ' ')}`;
+}
+
+/** The bare fragment: with no handler the link still lands on the region. */
+export function sourceHref(ref: string): string {
+  return `#${ref}`;
+}
+
 export function fieldLabel(id: FieldId): string {
   return FIELD_LABELS[id];
 }
