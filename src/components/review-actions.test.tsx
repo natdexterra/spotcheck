@@ -49,6 +49,23 @@ describe('InlineEditor', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  test.each([
+    ['empty' as const],
+    ['missing' as const],
+  ])('a %s field with no value saves as entered, not edited', async state => {
+    const user = userEvent.setup();
+    render(<InlineEditor field={baseField({ state, value: null })} onClose={vi.fn()} />);
+
+    await user.type(screen.getByRole('textbox', { name: 'Material' }), '6061-T6');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(dispatch).toHaveBeenLastCalledWith(expect.objectContaining({
+      type: 'enter',
+      field_id: 'material',
+      value: '6061-T6',
+    }));
+  });
+
   test('Escape closes without saving and returns focus', async () => {
     const user = userEvent.setup();
     const onClose = vi.fn();

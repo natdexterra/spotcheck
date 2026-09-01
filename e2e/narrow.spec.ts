@@ -54,6 +54,19 @@ for (const width of [1024, 1366]) {
     const margin = Number.parseFloat(await page.locator('.workspace').evaluate(element => getComputedStyle(element).paddingLeft));
     const fieldX = (await page.locator('.field-pane').boundingBox())?.x;
     expect(fieldX).toBeCloseTo(margin, 0);
+
+    // S13: the document lane steps 48 to 32 below 1280.
+    const gutter = await page.locator('.document-text').first()
+      .evaluate(element => getComputedStyle(element).paddingLeft);
+    expect(gutter).toBe(width < 1280 ? '32px' : '48px');
+    expect(await page.locator('.source-pane__tabs')
+      .evaluate(element => getComputedStyle(element).paddingLeft)).toBe(gutter);
+
+    // Two lanes only: row content sits on the pane gutter, page margin + 24.
+    const labelX = (await page.locator('.field-row__label').first().boundingBox())!.x;
+    expect(Math.abs(labelX - (margin + 24))).toBeLessThanOrEqual(2);
+    const titleX = (await page.getByRole('heading', { name: 'Quote request' }).boundingBox())!.x;
+    expect(Math.abs(titleX - (margin + 24))).toBeLessThanOrEqual(2);
   });
 }
 
