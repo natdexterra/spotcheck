@@ -1,0 +1,161 @@
+/* Shared controls own every button and inline-link state in the interface. */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--space-6);
+  margin: 0;
+  border: 0;
+  border-radius: var(--radius-2);
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  font-weight: 500;
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color var(--dur-1) var(--ease-1),
+    background-color var(--dur-1) var(--ease-1);
+}
+
+.button--compact {
+  padding-block: calc(var(--space-1) + var(--radius-1));
+  padding-inline: var(--space-3);
+}
+
+.button--large {
+  padding-block: var(--space-3);
+  padding-inline: var(--space-4);
+}
+
+.button--primary {
+  color: var(--bg-raised);
+  background-color: var(--ink);
+  font-weight: 600;
+}
+
+.button--primary:hover:not(:disabled) {
+  background-color: var(--ink-hover);
+}
+
+.button--primary:active:not(:disabled) {
+  background-color: var(--ink-active);
+}
+
+.button--primary:disabled {
+  background-color: var(--ink-faint);
+}
+
+.button--secondary {
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+}
+
+.button--secondary:hover:not(:disabled) {
+  background-color: var(--hairline);
+}
+
+.button--secondary:active:not(:disabled) {
+  background-color: var(--hairline-strong);
+}
+
+.button--secondary:disabled {
+  color: var(--ink-faint);
+  background-color: var(--bg-subtle);
+}
+
+.button--text {
+  color: var(--accent-text);
+  background-color: transparent;
+  font-weight: 400;
+  text-decoration: none;
+}
+
+.button--text:hover:not(:disabled) {
+  color: var(--accent-strong);
+  background-color: var(--bg-subtle);
+}
+
+.button--text:active:not(:disabled) {
+  background-color: var(--hairline);
+}
+
+.button--text[aria-pressed="true"] {
+  color: var(--ink);
+  background-color: transparent;
+  font-weight: 500;
+}
+
+.button--text[aria-pressed="true"]:hover:not(:disabled) {
+  color: var(--ink);
+  background-color: var(--bg-subtle);
+}
+
+.button--text[aria-pressed="true"]:active:not(:disabled) {
+  background-color: var(--hairline);
+}
+
+.button--text:disabled {
+  color: var(--ink-faint);
+  background-color: transparent;
+}
+
+.button:disabled {
+  cursor: default;
+}
+
+.inline-link {
+  color: var(--accent-text);
+  text-underline-offset: calc((var(--space-1) + var(--radius-1)) / 2);
+  text-decoration-thickness: var(--radius-1);
+  transition: color var(--dur-1) var(--ease-1);
+}
+
+.inline-link:hover {
+  color: var(--accent-strong);
+}
+
+.inline-link--provenance {
+  font-family: var(--font-mono);
+  font-feature-settings: "zero" 1;
+  text-decoration-line: underline;
+  text-decoration-style: dotted;
+  text-decoration-thickness: auto;
+}
+
+.inline-link--provenance:hover {
+  text-decoration-style: solid;
+}
+
+.inline-link--jump {
+  text-decoration-line: underline;
+  text-decoration-style: solid;
+  text-decoration-thickness: auto;
+}
+
+.icon {
+  display: inline-block;
+  flex: none;
+  width: var(--space-4);
+  height: var(--space-4);
+  vertical-align: middle;
+}
+
+.icon--lock {
+  width: var(--space-3);
+  height: var(--space-3);
+}
+
+@media (width < 64rem) {
+  .button,
+  .inline-link {
+    min-height: calc(var(--space-8) + var(--space-3));
+  }
+
+  .inline-link {
+    display: inline-flex;
+    align-items: center;
+  }
+}
