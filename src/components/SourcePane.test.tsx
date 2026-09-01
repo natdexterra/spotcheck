@@ -49,6 +49,30 @@ describe('source documents', () => {
     expect(onFocusField).toHaveBeenCalledWith('material');
   });
 
+  test('a region that sources a field stays operable once the highlight has cleared', () => {
+    const onFocusField = vi.fn();
+    const initial = createInitialState();
+    act(() => replaceState({
+      ...initial,
+      fields: initial.fields.map(field => field.id === 'material'
+        ? {
+          ...field,
+          state: 'needs_review' as const,
+          value: '6061-T6',
+          proposal: { value: '6061-T6', source_refs: ['spec:s3.1'] },
+        }
+        : field),
+    }));
+    render(<SourcePane onFocusField={onFocusField} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Spec' }));
+
+    const region = screen.getByRole('button', { name: 'Focus field sourced from spec:s3.1' });
+    expect(region).not.toHaveClass('document-region--highlighted');
+    expect(region).toHaveAttribute('tabindex', '0');
+    fireEvent.click(region);
+    expect(onFocusField).toHaveBeenCalledWith('material');
+  });
+
   test('shows the reading marker and highlights the section from the latest read log', () => {
     const initial = createInitialState();
     const session: ReviewSession = {

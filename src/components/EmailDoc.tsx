@@ -1,3 +1,4 @@
+import type { KeyboardEvent } from 'react';
 import { findDocument, sectionRegions, type DocumentData, type Section } from '../data/package';
 
 // "s3" reads as "3 · TECHNICAL SPECIFICATIONS"; the uppercase is the stylesheet's.
@@ -10,6 +11,8 @@ const sectionCaption = (section: Section): string | undefined => {
 export interface DocumentTextProps {
   document: DocumentData;
   highlightedRef?: string;
+  /** Refs a field cites: those regions stay clickable, highlighted or not. */
+  linkedRefs?: ReadonlySet<string>;
   readingSectionId?: string;
   onActivateRegion: (sourceRef: string) => void;
   quiet?: boolean;
@@ -18,10 +21,28 @@ export interface DocumentTextProps {
 export function DocumentText({
   document,
   highlightedRef,
+  linkedRefs,
   onActivateRegion,
   quiet = false,
   readingSectionId,
 }: DocumentTextProps) {
+  // The reverse direction is a property of the region, not of the flash: a region
+  // that sources a field stays operable after the two seconds are up, so focus is
+  // never dropped when the highlight clears.
+  const activation = (sourceRef: string) => linkedRefs?.has(sourceRef) === true
+    ? {
+      'aria-label': `Focus field sourced from ${sourceRef}`,
+      onClick: () => onActivateRegion(sourceRef),
+      onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
+        if (event.key !== 'Enter' && event.key !== ' ') return;
+        event.preventDefault();
+        onActivateRegion(sourceRef);
+      },
+      role: 'button',
+      tabIndex: 0,
+    }
+    : {};
+
   return (
     <div className="document-text">
       {document.sections.map(section => {
@@ -31,7 +52,7 @@ export function DocumentText({
 
         return (
           <section
-            aria-label={sectionHighlighted ? `Focus field sourced from ${sectionRef}` : undefined}
+            {...activation(sectionRef)}
             className={[
               'document-section',
               sectionHighlighted && 'document-section--highlighted',
@@ -40,14 +61,6 @@ export function DocumentText({
             data-reading={sectionReading || undefined}
             id={sectionRef}
             key={section.id}
-            onClick={sectionHighlighted ? () => onActivateRegion(sectionRef) : undefined}
-            onKeyDown={sectionHighlighted ? event => {
-              if (event.key !== 'Enter' && event.key !== ' ') return;
-              event.preventDefault();
-              onActivateRegion(sectionRef);
-            } : undefined}
-            role={sectionHighlighted ? 'button' : undefined}
-            tabIndex={sectionHighlighted ? 0 : undefined}
           >
             {section.id === 'title' || !sectionCaption(section)
               ? null
@@ -58,7 +71,7 @@ export function DocumentText({
                 const highlighted = highlightedRef === region.id;
                 return (
                   <div
-                    aria-label={highlighted ? `Focus field sourced from ${region.id}` : undefined}
+                    {...activation(region.id)}
                     className={[
                       'document-region',
                       'untrusted',
@@ -66,14 +79,6 @@ export function DocumentText({
                     ].filter(Boolean).join(' ')}
                     id={region.id}
                     key={region.id}
-                    onClick={highlighted ? () => onActivateRegion(region.id) : undefined}
-                    onKeyDown={highlighted ? event => {
-                      if (event.key !== 'Enter' && event.key !== ' ') return;
-                      event.preventDefault();
-                      onActivateRegion(region.id);
-                    } : undefined}
-                    role={highlighted ? 'button' : undefined}
-                    tabIndex={highlighted ? 0 : undefined}
                   >
                     {section.id === 'title'
                       ? <h3 className="document-text__title">{region.text}</h3>

@@ -110,6 +110,14 @@ export function SourcePane({
     }
     return map;
   }, [state.fields]);
+  const linkedRefs = useMemo(
+    () => new Set([
+      ...sourceFieldMap.keys(),
+      ...Object.keys(DRAWING_FIELD_DEFAULTS),
+      ...(target ? [target.ref] : []),
+    ]),
+    [sourceFieldMap, target?.ref],
+  );
 
   useEffect(() => {
     if (draft && draft !== previousDraftRef.current && gaps.length > 0) {
@@ -227,6 +235,7 @@ export function SourcePane({
       >
         <EmailDoc
           highlightedRef={highlightedRef}
+          linkedRefs={linkedRefs}
           onActivateRegion={focusFieldForSource}
           quiet={quiet}
           readingSectionId={readingSectionFor('email')}
@@ -257,6 +266,7 @@ export function SourcePane({
       >
         <SpecDoc
           highlightedRef={highlightedRef}
+          linkedRefs={linkedRefs}
           onActivateRegion={focusFieldForSource}
           readingSectionId={readingSectionFor('spec')}
         />
