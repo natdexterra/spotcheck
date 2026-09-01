@@ -71,13 +71,13 @@ for (const width of [1920, 1366]) {
   test(`${width}px opens on the orienting line above the status line`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await page.goto('/');
-    await expect(page.locator('.status-strip__intro')).toContainText('one customer’s RFQ package');
+    await expect(page.locator('.status-strip__intro')).toContainText('a customer’s RFQ package');
 
     const parts = await stripParts(page);
-    expect(parts.intro).toBe(parts.introLines * parts.leading);
+    // Two lines, never three: one leading for the sentence, one status line.
+    expect(parts.introLines).toBe(1);
+    expect(parts.intro).toBe(parts.leading);
     expect(parts.strip).toBe(parts.padding + parts.intro + parts.gap + parts.line + parts.rule);
-    // 1920 holds the sentence on one line; 1366 has room for two lines only.
-    expect(parts.introLines).toBe(width >= 1456 ? 1 : 2);
 
     // The dot marks the status line, never the orienting one.
     expect(await page.locator('.status-strip__line .status-strip__dot').count()).toBe(1);
@@ -99,6 +99,30 @@ test('390px keeps the orienting line and puts the button full width under the te
   expect(play.width).toBeCloseTo(strip.width - 56, 0);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
+
+for (const width of [390, 320]) {
+  test(`${width}px keeps the prompt chip on one line`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await installModelContext(page);
+    await page.goto('/');
+
+    const chip = page.locator('.status-strip__prompt code');
+    const shape = await chip.evaluate(element => {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      return {
+        lines: range.getClientRects().length,
+        height: element.getBoundingClientRect().height,
+        leading: Number.parseFloat(getComputedStyle(element).lineHeight),
+      };
+    });
+    expect(shape.lines).toBe(1);
+    expect(shape.height).toBeLessThan(2 * shape.leading);
+
+    // Too wide for the lane, the chip scrolls in its wrapper; the page never does.
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+  });
+}
 
 test('the orienting line leaves with the first tool call', async ({ page }) => {
   await installModelContext(page);

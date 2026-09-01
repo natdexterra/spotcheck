@@ -299,6 +299,15 @@
   padding: var(--space-1) var(--space-2);
   color: var(--ink);
   background-color: var(--bg-subtle);
+  white-space: nowrap;
+}
+
+/* Below the width that holds the prompt, the chip scrolls in its own wrapper
+   instead of breaking across two lines (DESIGN.md § Spacing, layout). */
+.status-strip__prompt {
+  min-width: 0;
+  max-width: 100%;
+  overflow-x: auto;
 }
 
 .status-strip__dot,

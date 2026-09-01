@@ -11,7 +11,7 @@ afterEach(() => {
   act(() => replaceState(createInitialState()));
 });
 
-const INTRO = /This page holds one customer’s RFQ package/;
+const INTRO = /This page holds a customer’s RFQ package/;
 
 describe('StatusStrip', () => {
   test('orients the reader on the first line before the first tool call', () => {
