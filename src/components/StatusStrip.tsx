@@ -112,7 +112,7 @@ export function StatusStrip({
             <>
               <strong>Waiting for your agent.</strong>
               <span>In the chat, ask:</span>
-              <span className="status-strip__prompt"><code>{PROMPT}</code></span>
+              <code>{PROMPT}</code>
               <Button variant="text" onClick={copyPrompt}>Copy</Button>
             </>
           )}
