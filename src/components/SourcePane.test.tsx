@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import type { DocumentData } from '../data/package';
 import { createInitialState, type ReviewSession } from '../state/session';
@@ -70,7 +70,11 @@ describe('source documents', () => {
     act(() => replaceState(session));
     render(<SourcePane onFocusField={vi.fn()} />);
 
-    expect(screen.getByRole('tab', { name: /Spec reading/ })).toHaveAttribute('aria-selected', 'true');
+    // The label stays "Spec"; the reading marker is a separate dot with its own name.
+    const tab = screen.getByRole('tab', { name: /^Spec/ });
+    expect(tab).toHaveAttribute('aria-selected', 'true');
+    expect(within(tab).getByRole('img', { name: 'reading' })).toBeInTheDocument();
+    expect(tab).toHaveTextContent('Spec');
     expect(document.getElementById('spec:s3')).toHaveAttribute('data-reading', 'true');
   });
 
