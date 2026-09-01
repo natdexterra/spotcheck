@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createInitialState, reviewSession, type ReviewSession } from '../state/session';
@@ -99,6 +99,20 @@ describe('clarification lifecycle', () => {
     expect(screen.getByRole('tab', { name: 'Email' })).toHaveAttribute('aria-selected', 'true');
   });
 
+  test('names the draft, says where it came from, captions the covers and warns that the send is a mock', () => {
+    act(() => replaceState(draftSession()));
+    render(<SourcePane onFocusField={vi.fn()} />);
+
+    expect(screen.getByRole('heading', { name: 'Clarification email' })).toBeInTheDocument();
+    expect(screen.getByText('Agent drafted it from the open gaps — edit anything before sending')).toBeInTheDocument();
+    expect(screen.getByText('mock send — your edits vs the agent’s draft go to the change log')).toBeInTheDocument();
+
+    // The covers keep their group name; the caption replaces the form label.
+    const covers = screen.getByRole('group', { name: 'Covers — resolved as “Asked customer” on send' });
+    expect(within(covers).getAllByRole('checkbox')).toHaveLength(2);
+    expect(screen.queryByText('Fields covered')).not.toBeInTheDocument();
+  });
+
   test('renders a sent clarification read-only without a remaining draft', () => {
     render(
       <ClarificationEditor
@@ -107,6 +121,7 @@ describe('clarification lifecycle', () => {
       />,
     );
 
+    expect(screen.getByRole('heading', { name: 'Clarification email' })).toBeInTheDocument();
     expect(screen.getByText('Sent · 1 field asked')).toBeInTheDocument();
     expect(screen.getByText('<b>literal body</b>')).toBeInTheDocument();
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
