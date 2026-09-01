@@ -83,6 +83,9 @@
   --space-6: 1.5rem;
   --space-8: 2rem;
 
+  /* Layout */
+  --page-margin: max(28px, calc((100% - 1760px) / 2));
+
   /* Corners */
   --radius-1: 2px;
   --radius-2: 4px;

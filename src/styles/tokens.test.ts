@@ -18,6 +18,15 @@ describe('tokens.css', () => {
     ['--radius-2', '4px'],
     ['--space-3', '0.75rem'],
     ['--border-input', '#808A99'],
+    ['--page-margin', 'max(28px, calc((100% - 1760px) / 2))'],
+    ['--accent-strong', '#14418F'],
+    ['--bg-subtle', '#ECEFF3'],
+    ['--ink-hover', '#2A313A'],
+    ['--ink-active', '#1A1F26'],
+    ['--highlight', '#E7F0FE'],
+    ['--highlight-edge', '#1F6FEB'],
+    ['--dur-1', '120ms'],
+    ['--dur-2', '200ms'],
   ])('%s is %s', (name, value) => {
     expect(tokenValue(name)).toBe(value);
   });
