@@ -65,7 +65,7 @@ const humanSentence = (entry: LogEntry, fields: Field[]) => {
 export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
   entry.actor === 'agent' ? agentSentence(entry) : humanSentence(entry, fields);
 
-const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] }) => (
+export const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] }) => (
   <div className="change-log__entry">
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
     <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>

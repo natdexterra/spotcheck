@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { useReview } from '../hooks/useReview';
-import { duration, groupLabel } from '../lib/format';
+import { duration, fieldLabel, groupLabel } from '../lib/format';
 import { createInitialState } from '../state/session';
 import type { LogEntry } from '../state/session';
 import { replaceState } from '../state/store';
 import type { Field, FieldId, ResolutionKind } from '../state/types';
 import { Button } from './Button';
+import { LogLine } from './ChangeLogDrawer';
 
 export interface ConfirmSummaryProps {
   logContent?: ReactNode;
@@ -34,12 +35,7 @@ const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined =>
   return entry.event.action.reason;
 };
 
-const fieldList = (fields: Field[]): string => fields.map(field => field.id).join(' · ');
-
-const logLabel = (entry: LogEntry): string => {
-  const actor = entry.actor === 'estimator' ? 'You' : 'Agent';
-  return `${actor} · ${entry.event.action.type}${entry.notes?.length ? ` · ${entry.notes.join(' · ')}` : ''}`;
-};
+const fieldList = (fields: Field[]): string => fields.map(field => fieldLabel(field.id)).join(' · ');
 
 export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
   const { confirmed, log, state, timer } = useReview();
@@ -57,7 +53,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
   );
   const autoDismissed = log.flatMap(entry => entry.notes ?? [])
     .filter(note => note.startsWith('Auto-dismissed suggestion: '))
-    .map(note => note.slice('Auto-dismissed suggestion: '.length));
+    .map(note => fieldLabel(note.slice('Auto-dismissed suggestion: '.length) as FieldId));
 
   return (
     <section className="confirm-summary" aria-labelledby="confirm-summary-title">
@@ -90,11 +86,11 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
       <div className="confirm-summary__details">
         {edits.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-edits-title">
-            <h2 id="confirm-edits-title">Edits</h2>
+            <h3 className="confirm-summary__caption" id="confirm-edits-title">Edits</h3>
             <ul>
               {edits.map(field => (
                 <li key={field.id}>
-                  {field.id} · agent “{displayValue(field.proposal?.value ?? null, field.proposal?.unit)}” → yours “{displayValue(field.value, field.unit)}”
+                  {fieldLabel(field.id)} · agent “{displayValue(field.proposal?.value ?? null, field.proposal?.unit)}” → yours “{displayValue(field.value, field.unit)}”
                 </li>
               ))}
             </ul>
@@ -103,7 +99,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
 
         {picks.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-picks-title">
-            <h2 id="confirm-picks-title">Picks</h2>
+            <h3 className="confirm-summary__caption" id="confirm-picks-title">Picks</h3>
             <ul>
               {picks.map(field => {
                 const losing = field.candidates?.filter(candidate =>
@@ -111,7 +107,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
                 ) ?? [];
                 return (
                   <li key={field.id}>
-                    {field.id} · picked {displayValue(field.value, field.unit)}
+                    {fieldLabel(field.id)} · picked {displayValue(field.value, field.unit)}
                     {losing.length > 0 ? ` · losing ${losing.length === 1 ? 'candidate' : 'candidates'} ${losing.map(candidate => displayValue(candidate.value, candidate.unit)).join(', ')}` : null}
                   </li>
                 );
@@ -122,10 +118,10 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
 
         {dismissals.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-dismissals-title">
-            <h2 id="confirm-dismissals-title">Not required</h2>
+            <h3 className="confirm-summary__caption" id="confirm-dismissals-title">Not required</h3>
             <ul>
               {dismissals.map(field => (
-                <li key={field.id}>{field.id} · {dismissReason(log, field.id) ?? 'No reason recorded'}</li>
+                <li key={field.id}>{fieldLabel(field.id)} · {dismissReason(log, field.id) ?? 'No reason recorded'}</li>
               ))}
             </ul>
           </section>
@@ -133,24 +129,26 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
 
         {openQuestions.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-pending-title">
-            <h2 id="confirm-pending-title">Pending customer answer</h2>
+            <h3 className="confirm-summary__caption" id="confirm-pending-title">Pending customer answer</h3>
             <p>{fieldList(openQuestions)}</p>
           </section>
         ) : null}
 
         {autoDismissed.length > 0 ? (
           <section className="confirm-summary__section" aria-labelledby="confirm-suggestions-title">
-            <h2 id="confirm-suggestions-title">Suggestions auto-dismissed at confirm</h2>
+            <h3 className="confirm-summary__caption" id="confirm-suggestions-title">Suggestions auto-dismissed at confirm</h3>
             <p>{autoDismissed.join(' · ')}</p>
           </section>
         ) : null}
       </div>
 
       <section className="confirm-summary__log" aria-labelledby="confirm-log-title">
-        <h2 id="confirm-log-title">Full change log</h2>
+        <h3 className="confirm-summary__caption" id="confirm-log-title">Full change log</h3>
         {logContent ?? (
-          <ol>
-            {log.map((entry, index) => <li key={`${entry.at}-${index}`}>{logLabel(entry)}</li>)}
+          <ol className="confirm-summary__log-entries">
+            {log.map((entry, index) => (
+              <li key={`${entry.at}-${index}`}><LogLine entry={entry} fields={state.fields} /></li>
+            ))}
           </ol>
         )}
       </section>
