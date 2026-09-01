@@ -65,20 +65,20 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 |---|---|---|---|
 | `no-api` | `typeof document.modelContext?.registerTool !== "function"` | "Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app's browser, or Chrome 149+ with the WebMCP flag." | `Play sample session` (primary) |
 | `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono with a `Copy` text button | `Play sample session` (secondary) |
-| `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · last: propose_field material" + `Show tools` disclosure | — |
+| `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
 
 Roster (disclosure open): one row per registered tool in registration order — name in mono, read/write marker mirroring `readOnlyHint`, call count; a tool whose last call was rejected shows the code. The last-called row is highlighted for 2 s. When `draft_clarification` registers its row enters highlighted and the count reads "6 → 7 tools" for 2 s; when it unregisters the row leaves. No countdown, no auto-start.
 
 ### Field pane
 
-- Risk order: `conflict` → `missing` → `needs_review` → `empty` → `verified`. Group headings with counts ("2 conflicts", "1 missing", "3 to review", "2 not extracted"); verified collapse under "5 verified ▸" (disclosure text button; expanded rows stay in resolution order, newest first).
-- Row anatomy, top to bottom: label (md, `--ink-secondary`) · value + unit (lg, mono, 500; "—" when null) · badge (icon + text) with the lock glyph when `locked` · provenance links, one per `source_ref` · one line of agent rationale or note, sans, prefixed "Agent:" · "was: X" when `revised` is set · actions · suggestion-card slot.
+- Risk order: `conflict` → `missing` → `needs_review` → `empty` → `verified`. Group headings with counts ("2 conflicts", "1 missing", "3 to review", "2 not extracted"); verified collapse into one line "● 4 more verified · RFQ ref · Part · Stock thickness · Delivery · Show" (`Show` is a disclosure text button; expanded rows stay in resolution order, newest first).
+- Row anatomy, top to bottom: label (md, `--ink-secondary`) with the lock glyph beside it when `locked` · value + unit (lg, mono, 500; "—" when null) · badge (dot or resolution icon + text) · provenance links, one per `source_ref` · one line of agent rationale or note, sans, prefixed "Agent:" · "was: X" when `revised` is set · actions · suggestion-card slot.
 - Actions per state (text buttons unless noted):
 
 | State | Actions |
 |---|---|
-| `needs_review` | `Verify` (secondary; reads `Add unit` and opens the editor when `overall_dimensions` has no unit) · `Edit` · `Ask customer` (toggle; pressed state visible without color) |
+| `needs_review` | `Verify` (secondary; reads `Add unit` and opens the editor when `overall_dimensions` has no unit) · `Edit` · `Ask customer` (toggle; on state = checked-box icon + ink label, `aria-pressed`, no pill) |
 | `conflict` | the conflict panel: candidates with value, source links, note, `Pick` (secondary); `Enter another value` opens the editor |
 | `missing` | searched-document chips · the note · `Enter value` (secondary) · `Not required` |
 | `empty` | `Enter value` (secondary) · `Not required` |
@@ -92,7 +92,7 @@ Roster (disclosure open): one row per registered tool in registration order — 
 
 Two wordings, one icon set (`DESIGN.md` § State iconography):
 
-- **Row badge** — human wording: `empty` "Not extracted" · `needs_review` "Needs review" / "Unit missing" · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind: "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …".
+- **Row badge** — human wording: `empty` "Not extracted" · `needs_review` "Check it" / "Unit missing" / "Revised · check it" · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind: "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Not required · …", "Applied from agent · …", "Asked customer · …".
 - **Short label** — group headings, counts, blocker line, summary, announcements, the badge's `aria-label`: Not extracted · Needs review · Conflict · Missing · Verified · Edited · Entered · Picked · Not required · Applied · Asked customer.
 
 Relative times update once a minute; tabular figures; mono.
@@ -128,7 +128,7 @@ The draft is a document, so it lives on the fourth tab of the source pane, **Cla
 
 ### Confirm
 
-- Footer of the field pane, sticky. Button disabled until `canConfirm`; blocker line with jump links: "3 to check · 1 conflict · 1 missing · 2 not extracted"; pending suggestions listed beside it ("2 suggestions pending"), not blocking.
+- Footer of the field pane, sticky. Button disabled until `canConfirm`; blocker line with jump links: "Blocked by 2 conflicts · 2 missing · 2 to check · 1 not extracted" (zero counts omitted); pending suggestions listed beside it ("2 suggestions pending"), not blocking.
 - Confirm replaces the field pane with the summary: title "Confirmed" or "Confirmed with N open questions" (`asked_customer` count); "Reviewed in 1:48" — from the first `propose` / `report_*` log entry to the `confirm` entry, using log timestamps; counts per resolution kind; "agent independently agreed on N fields"; lists: edits "agent X → yours Y", picks with the losing candidate, dismissals with reasons, fields pending customer answer, suggestions auto-dismissed at confirm; the full change log; `Start over` (resets to the initial state via `replaceState(createInitialState())`; tools stay registered). `Export session` is P3.
 - After confirm the strip reads "Confirmed"; the source pane still works.
 
