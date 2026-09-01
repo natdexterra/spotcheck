@@ -17,6 +17,21 @@ for (const width of [390, 820]) {
     const close = page.getByRole('button', { name: /Close/ });
     await expect(close).toBeVisible();
     expect((await close.boundingBox())?.height).toBeGreaterThanOrEqual(44);
+
+    // A1/S9: focus moves into the sheet and Tab cycles inside it.
+    const inside = () => page.evaluate(() => {
+      const sheet = document.querySelector('.source-pane--sheet');
+      return sheet !== null && sheet.contains(document.activeElement);
+    });
+    expect(await inside()).toBe(true);
+    for (let step = 0; step < 16; step += 1) {
+      await page.keyboard.press('Tab');
+      expect(await inside()).toBe(true);
+    }
+    for (let step = 0; step < 4; step += 1) {
+      await page.keyboard.press('Shift+Tab');
+      expect(await inside()).toBe(true);
+    }
     await close.click();
     await expect(sourceLink).toBeFocused();
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
