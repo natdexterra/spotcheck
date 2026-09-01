@@ -302,14 +302,6 @@
   white-space: nowrap;
 }
 
-/* Below the width that holds the prompt, the chip scrolls in its own wrapper
-   instead of breaking across two lines (DESIGN.md § Spacing, layout). */
-.status-strip__prompt {
-  min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-}
-
 .status-strip__dot,
 .field-row__badge-dot,
 .source-pane__reading,
@@ -431,12 +423,6 @@
   min-width: 0;
   min-height: 0;
   padding: var(--space-6) var(--page-margin);
-}
-
-.summary-main {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
 }
 
 /* Scroll model (DESIGN.md § Layout ladder): on the desktop layout the page
@@ -576,6 +562,8 @@
   border-radius: var(--radius-2);
 }
 
+/* The two regions that scroll inside the shell. */
+.summary-main,
 .source-pane__panel {
   flex: 1;
   min-height: 0;
@@ -611,7 +599,8 @@
   font-weight: 500;
 }
 
-.document-text {
+.document-text,
+.source-pane__panel--clarification {
   padding: var(--space-8) var(--document-gutter);
 }
 
@@ -740,10 +729,6 @@
 
 .source-pane__draft-dot {
   background-color: var(--accent);
-}
-
-.source-pane__panel--clarification {
-  padding: var(--space-8) var(--document-gutter);
 }
 
 .clarification {
@@ -1239,6 +1224,10 @@
   .status-strip__line {
     align-items: stretch;
     flex-direction: column;
+  }
+
+  .status-strip__summary code {
+    white-space: normal;
   }
 
   .status-strip .button--primary,

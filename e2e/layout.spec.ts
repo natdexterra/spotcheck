@@ -101,25 +101,20 @@ test('390px keeps the orienting line and puts the button full width under the te
 });
 
 for (const width of [390, 320]) {
-  test(`${width}px keeps the prompt chip on one line`, async ({ page }) => {
+  test(`${width}px keeps the prompt chip whole inside the lane`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await installModelContext(page);
     await page.goto('/');
 
-    const chip = page.locator('.status-strip__prompt code');
-    const shape = await chip.evaluate(element => {
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      return {
-        lines: range.getClientRects().length,
-        height: element.getBoundingClientRect().height,
-        leading: Number.parseFloat(getComputedStyle(element).lineHeight),
-      };
-    });
-    expect(shape.lines).toBe(1);
-    expect(shape.height).toBeLessThan(2 * shape.leading);
+    const chip = page.locator('.status-strip__summary code');
+    const box = (await chip.boundingBox())!;
+    const lane = (await page.locator('.status-strip__summary').boundingBox())!;
 
-    // Too wide for the lane, the chip scrolls in its wrapper; the page never does.
+    // The prompt is quoted content, not a label: it breaks across lines rather
+    // than run past the lane, and nothing is clipped or scrolled away.
+    expect(box.x).toBeGreaterThanOrEqual(lane.x - 1);
+    expect(box.x + box.width).toBeLessThanOrEqual(lane.x + lane.width + 1);
+    expect(await chip.evaluate(element => element.scrollWidth - element.clientWidth)).toBeLessThanOrEqual(1);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 }
