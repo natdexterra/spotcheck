@@ -266,3 +266,23 @@ test('a provenance link is sm mono in every context it appears in', async ({ pag
     expect(style.family).toMatch(/mono/i);
   }
 });
+
+test('the document column stops at its measure and the tabs stand on its edge', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const pane = (await page.locator('.source-pane').boundingBox())!;
+  const open = '.source-pane__panel:not([hidden]) ';
+  const column = (await page.locator(`${open}.document-text`).boundingBox())!;
+  const tabs = (await page.locator('.source-pane__tabs').boundingBox())!;
+  const region = (await page.locator(`${open}.document-region`).first().boundingBox())!;
+
+  // The pane is far wider than the measure; the text does not follow it out.
+  expect(pane.width).toBeGreaterThan(900);
+  expect(column.width).toBeLessThanOrEqual(776);
+  expect(region.width).toBeLessThanOrEqual(680);
+  // Tabs and text share one left edge and one right edge (exports 02, 07).
+  expect(tabs.x).toBeCloseTo(column.x, 0);
+  expect(tabs.width).toBeCloseTo(column.width, 0);
+});
