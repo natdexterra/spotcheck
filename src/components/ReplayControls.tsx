@@ -1,9 +1,9 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReplay } from '../hooks/useReplay';
 import { OpposingArrowsIcon } from '../icons';
 import { plural } from '../lib/format';
-import { next, pause, play, restart } from '../replay/controller';
+import { leave, next, pause, play } from '../replay/controller';
 import { describeStep } from '../replay/describe';
 import { Button } from './Button';
 import { announce } from './LiveRegion';
@@ -11,31 +11,51 @@ import { announce } from './LiveRegion';
 /**
  * The replay serves one purpose: a person without an agent watches the recorded
  * session at a human pace, stops to look, tries an action and starts again. The
- * row says where the recording is and offers only the controls that state has.
+ * row says where the recording is and offers only the controls that state has,
+ * and the way out stands in every one of them.
  */
 export function ReplayControls() {
   const replay = useReplay();
   const narrow = useNarrowLayout();
   const toggle = useRef<HTMLButtonElement>(null);
-  const restartButton = useRef<HTMLButtonElement>(null);
+  const leaveButton = useRef<HTMLButtonElement>(null);
   const focused = useRef(replay.focusRequest);
-  const [restartFocus, setRestartFocus] = useState(0);
+  const leaving = useRef(false);
   useEffect(() => { if (replay.error) announce(`Replay stopped at step ${replay.position + 1}: ${replay.error}`); }, [replay.error, replay.position]);
-  useLayoutEffect(() => { if (restartFocus) toggle.current?.focus(); }, [restartFocus]);
   // A focus request from outside the row lands after this render committed, so
-  // the buttons it asks for exist. Ended and errored rows have Restart only.
+  // the buttons it asks for exist. Ended and errored rows have no Pause.
   useLayoutEffect(() => {
     if (focused.current === replay.focusRequest) return;
     focused.current = replay.focusRequest;
-    (toggle.current ?? restartButton.current)?.focus();
+    (toggle.current ?? leaveButton.current)?.focus();
   }, [replay.focusRequest]);
+  /* Leaving gives the page back what it held before the replay: the package the
+     person had open and the work that was on it. Focus then goes to what they
+     can use next, which the page itself says: the sample button on a page that
+     came back empty, and the first open row's own action on one that did not.
+     The move waits for the commit that removes this row, so the control it
+     lands on is already there. */
+  useLayoutEffect(() => {
+    if (!leaving.current || replay.active) return;
+    leaving.current = false;
+    const target = document.querySelector<HTMLElement>('.status-strip__actions button')
+      ?? document.querySelector<HTMLElement>('.field-list__group:not(.field-list__group--verified) .field-row__actions button');
+    target?.focus();
+  }, [replay.active]);
   if (!replay.active) return null;
 
   const running = !replay.ended && !replay.error;
   // "Sample session" narrows to "Sample": the lane below 1024 has no room for
   // the recording date either, so the short line keeps the step count instead.
   const short = replay.label.split(' ')[0];
+  const sample = short === 'Sample';
   const counter = <span className="numeric">{replay.position} of {replay.total}</span>;
+
+  const leaveSession = () => {
+    const { label } = replay;
+    leaving.current = true;
+    void leave().then(() => announce(`${label} closed`));
+  };
 
   return (
     <div className="replay-controls" role="group" aria-label="Replay controls">
@@ -64,11 +84,9 @@ export function ReplayControls() {
         {running && !replay.playing && (
           <Button variant="text" disabled={replay.busy} onClick={() => void next()}>Next step</Button>
         )}
-        {!replay.playing && (
-          <Button ref={restartButton} variant="text" disabled={replay.busy} onClick={() => { restart(); setRestartFocus(value => value + 1); }}>
-            Restart
-          </Button>
-        )}
+        <Button ref={leaveButton} variant="text" disabled={replay.busy} onClick={leaveSession}>
+          {sample ? 'Leave sample' : 'Leave session'}
+        </Button>
       </div>
     </div>
   );

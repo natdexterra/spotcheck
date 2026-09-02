@@ -48,6 +48,7 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--bg-subtle` | `#ECEFF3` | secondary button fill, text-button hover pill, quiet chips |
 | `--ink-hover` | `#2A313A` | primary button hover fill |
 | `--ink-active` | `#1A1F26` | primary button active fill |
+| `--scrim` | `--ink` at 32% (`color-mix`) | the modal dialog's `::backdrop` |
 | `--highlight` | `#E7F0FE` | provenance flash background (both panes) |
 | `--highlight-edge` | `#1F6FEB` | active region outline, reading marker |
 | `--state-conflict` | `#C2293A` | conflict icon + label text |
@@ -59,11 +60,13 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--state-neutral` | value of `--ink-secondary` | needs_review icon + label |
 | `--state-empty` | value of `--ink-muted` | empty icon + label |
 
+`--scrim` is the one sanctioned alpha: it lies over the page, not over a surface, so the rule against translucent lines and fills does not reach it. It carries no blur, per **No shadows, no blur**.
+
 Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Field state renders as a 3px left marker bar plus a dot-and-word badge in human wording ("Two sources disagree", "Not found", "Unit missing", "Edited by you · 0:42 ago") — never a bordered badge, never a full-row tint.
 
 ## Interaction states
 
-Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen.
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen. A modal dialog counts as a screen of its own: its single primary is the large primary, one per dialog; the compact local-primary rule stays a rule for rows and open editors.
 
 | Class | Default | Hover | Active | Disabled |
 |---|---|---|---|---|
@@ -73,11 +76,31 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 | Inline link — provenance ref (`spec §1.1`) | `--accent-text`, dotted underline, offset 3px | `--accent-strong`, solid underline | — | — |
 | Inline link — jump link ("2 conflicts") | `--accent-text`, solid underline, offset 3px | `--accent-strong` | — | — |
 
-The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline. Inputs carry a visible label above them and no placeholder text; a hint is a separate muted line, never text inside the field. A choice control beside an input (the unit `in | mm` segments) matches the input's height exactly.
+The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline. Inputs carry a visible label above them and no placeholder as a hint or a prefilled value; a hint is a separate muted line, never text inside the field. The one exception is a dialog input, which may carry an example in the `e.g. …` form, in the placeholder attribute and the placeholder token (§ Color tokens), never as a value. A choice control beside an input (the unit `in | mm` segments) matches the input's height exactly.
+
+**Absent states.** A component that can be hidden, or that hides part of itself, does it in one of three ways, and the state sheet has to say which: the `hidden` attribute under the global guard in `AGENTS.md` (`[hidden] { display: none !important }`), conditional rendering, or a modifier class. What disappears where:
+
+| Component | Mechanism | Absent where |
+|---|---|---|
+| Source-pane panels | `hidden` attribute, under the guard | every panel but the active tab's; the whole pane after confirm |
+| Spec and Drawing tabs and their panels | conditional rendering | a package that holds no specification, or no drawing; no drawing sheet renders behind the Email or Spec tab |
+| Clarification tab | conditional rendering | while no draft exists and none was sent |
+| Open inline editor | conditional rendering inside the row | the row's value line, provenance links, rationale, "was:" line, agent-original line and action row are gone while it is open |
+| Status strip export slot | removed in P3.1 | every state; `Export session` lives in the expanded log and in the confirm summary |
+| Status strip own-package button | conditional rendering | in `live` and `confirmed`, and on one column in `no-api`, where no way into a package of your own is offered at all |
+| Change-log header actions | conditional rendering | per **Change-log header by state**: the import once a review exists, the export while the log is empty, both of those and `Start over` while a replay is attached, and `Start over` once the review is confirmed |
+| Group heading | conditional rendering | while one group is open |
+| Replay row | conditional rendering | while no replay is attached |
+| Sheets (source, change log) | conditional rendering | closed |
+| Dialog | the element's own state | closed, where the element renders nothing |
+
+After any change to a panel, sheet, drawer or dialog, the evidence covers the states where it must be absent, not only the states where it shows.
 
 ### Choice controls
 
 Radios, checkboxes and the segmented unit control are the app's own drawing, not the browser's: the native `<input>` stays in the DOM for semantics and keyboard (`appearance: none`; no custom roles), and the visible control is drawn on it with tokens. One drawing, reused wherever a choice appears — the not-required picker, the Clarification covers, the unit `in | mm` control, the Ask customer on-state icon.
+
+`<dialog>` and `<textarea>` are the opposite case and stay native: they are styled through tokens only (font, color, border, radius, focus ring) and never redrawn, because the modality, the top layer, the backdrop, `Esc`, the focus trap and the return of focus are the element's own behaviour and the resize handle is the browser's. `<input type="file">` keeps the native input for its semantics, its keyboard and its ring, with the app's compact secondary button and the chosen file's name as its visible face (`.session-import`, `.dialog__file`): the ring paints on the wrapper, and the button is `aria-hidden` and out of the tab order, so the control is named once.
 
 | Control | Box | Checked | Label |
 |---|---|---|---|
@@ -103,6 +126,36 @@ Hard rules that follow:
 - Readable text uses `--ink`, `--ink-secondary` or `--ink-muted`; state label text uses its state color; nothing else carries prose.
 - `--accent` (`#1F6FEB`) is graphical: focus rings, markers, icon strokes. Text-sized accent content (links, chips) uses `--accent-text`.
 - Hairlines never carry meaning; the input border is the only boundary that must clear the 3:1 graphical floor, and it has its own token.
+
+## Components
+
+The shared primitives, one row each. A task adds a modifier to a row that is here before it adds a block, and a primitive that is new to the app enters this table in the pull request that introduces it (`AGENTS.md`, Stack). Heights are the control-height tokens of **Spacing, layout, hit targets**, cited rather than retyped; a row that names two components is a class convention rather than a component of its own, and those are the components that render it.
+
+| Primitive | Component | CSS block | States | Heights |
+|---|---|---|---|---|
+| Button | `Button` | `.button` with `--primary` / `--secondary` / `--text` and `--compact` / `--large` | default, hover, active, disabled, focus ring; `aria-pressed` on the toggle text button | `--control-compact` and `--control-large`; every button reaches `--control-large` below 1024px |
+| Choice, radio and checkbox | `Choice`, rendered by `NotRequiredPicker` and `ClarificationEditor` | `.choice`, `.choice--radio`, `.choice--checkbox`, `.choice__input`, `.choice__mark`, `.choice__label` | unchecked, checked, hover, focus ring, disabled | 16px box on a 32px row; the row reaches `--control-large` below 1024px through padding, never a larger box |
+| Choice, segmented | rendered by `InlineEditor` (the unit control) and `DrawingSheet` (zoom) | `.segmented`, `.segmented__option` | unchecked, checked, hover, focus ring inset in the group's box | each segment `--control-input`, matching the input beside it; `--control-large` below 1024px |
+| Badge | `Badge` | `.field-row__badge`, `.field-row__badge-dot`, `.field-row__badge-label` | one per field state and per resolution kind (State iconography) | text height; no box |
+| Provenance link and jump link | `ProvenanceLink`, `JumpLink` | `.inline-link`, `.inline-link--provenance`, `.inline-link--jump` | default, hover | `--text-sm` in the run it sits in |
+| Card | rendered by `CandidateOption` and `SuggestionCard` | `.candidate-option`, `.suggestion-card` | resting; a suggestion card only while one is pending | content height; padding 12×16, 8 between cards |
+| Disclosure | rendered by `FieldList` (the verified group) and `ChangeLogDrawer` (the collapsed bar and the sheet) | a text button carrying the chevron icon, with `aria-expanded` and `aria-controls` | collapsed, expanded | the text button's heights |
+| Inline editor | `InlineEditor` | `.inline-editor` with `__context`, `__label`, `__controls`, `__field`, `__input`, `__units`, `__error`, `__hint`, `__keys` | open on a proposal, on an empty field, on a unit-bearing field with no unit, and in validation | the input and the unit control both `--control-input`; below 1024px `--control-large` plus the group's two hairlines |
+| Sheet | rendered by `SourcePane` (the narrow source) and `ChangeLogDrawer` (the narrow log) | `.source-pane--sheet`, `.change-log__sheet` | closed, open (modal, body scroll locked, focus returned on close) | full height below 1024px; the log sheet 40vh above it |
+| Dialog | `OpenPackageDialog` and `ConfirmDialog` | `.dialog`, `.dialog--confirm`, with `__form`, `__header`, `__title`, `__close`, `__body`, `__footer`, `__field`, `__label`, `__hint`, `__input`, `__textarea`, `__file`, `__file-name`, `__privacy`, `__message`, `__error`, `__actions` | closed, open, per-field validation (the message is text in `--state-conflict`, no icon) | `min(720px, 100% - 2 * --page-margin)` wide and at most 85vh, `--confirm` `min(480px, …)`; a full-height sheet below 1024px; its one primary `--control-large` |
+
+**Dialog anatomy.** Every dialog is three parts, and both of the components above build them: a **header** carrying the title and a close icon button at the right end (the cross glyph, accessible name "Close", doing what `Cancel` does; compact height at the two-column widths and `--control-large` below the breakpoint); a **body** holding the content, which is the only part that scrolls (`overflow-y: auto` on the body — never on the dialog, the form or the page); and a **footer** carrying the actions, with the privacy line above them in the package dialog — plain `--ink-secondary` text, no icon, on the actions' lane — in view at every scroll position. A hairline separates each end from the body. On the full-height sheet below 1024px the three parts are the same and the footer sits at the bottom of the viewport, its block-end padding clearing the device's safe area. Padding: the body takes the pane-gutter step on every side, the header and the footer the paragraph step in block and the pane-gutter step inline; below the breakpoint all three take the paragraph step. Field spacing is the dialog-field role in § Spacing, layout, hit targets.
+
+**Change-log header by state.** The expanded log carries the actions of the state it is in and no others. `Play sample session` and the way into a package of your own are the status strip's before a session starts, and the confirm summary's after one is over; the log offers neither at any width.
+
+| State | Actions, in order |
+|---|---|
+| Log empty | `Import session` · Close |
+| Live review: entries, not confirmed | `Export session` · `Start over` · Close |
+| Replay attached, sample or imported | Close — the replay row owns `Leave sample` / `Leave session` |
+| Confirmed | `Export session` · Close — `Start over` stays on the confirm summary |
+
+`Start over` discards a person's own work, so it stands at least `--space-4` clear of the button before it and asks through the confirm dialog before it acts.
 
 ## Typography — cap-height model, Geist + Geist Mono
 
@@ -142,11 +195,13 @@ Rules the builder must not trade away:
   | row padding | 12 block × 24 inline |
   | group heading | 16 above / 8 below |
   | card internal (candidate, suggestion) | 12×16; between cards 8 |
+  | dialog field (label↔hint · hint↔control · one field to the next) | 4 · 8 · 24 — a field stands a whole step further from the next than any of its own parts do, which is what makes the hierarchy readable without a rule between fields |
   | field-pane gutter | 24 |
   | document gutter — tabs and text share it | 48; paragraph gap 16; section gap 24 |
   | pane gap | 24 |
   | page margin | one token `--page-margin` (the layout ladder: 80 → 28). Below 1024 it resolves to the centred column's left edge (70 at 820), so header, strip and log bar stand on the column's lane |
 
+- A group heading appears only while the field list holds more than one group: it tells one group from the next, and with one group there is no next. The first load is therefore eleven bare rows under the pane header (export 01).
 - **Two vertical lanes.** Header, status strip, workspace and log drawer all take their inline padding from `--page-margin`; content inside a pane sits on the pane-gutter lane (margin + 24). Every left edge on the screen lands on one of these two lines — an edge on neither is a defect. The 3px state marker is compensated (row inline padding 21 = 24 − 3) so row content stays on the gutter lane; that is the one sanctioned off-scale number, by construction.
 - **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.
   1. 1920 → ~1400: margins give way (80 → 28); the source pane absorbs the rest; the field pane holds 640px.
@@ -182,6 +237,15 @@ Every state and resolution renders icon + text label — color is never the only
 **Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit, or "Revised by agent" after the agent revised its own proposal · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Applied by you · …", "Not required · …", "Awaiting customer · …". The wording is for the person reading the row; the short label is for everything that counts, lists or announces.
 
 **Copy grammar, load-bearing.** A badge is a status: a noun phrase or a past participle with its actor ("Needs review", "Edited by you"), never an imperative — "Check it" is a button, not a state. A button is a verb ("Verify", "Mark not required", "Enter value"); a status phrase on a button is a defect. Agent text is reported speech behind "Agent:". Log entries are sentences with the actor first, sentence case: "You edited Quantity: agent 800 → yours 750", "Agent opened the clarification draft". Neither wording ever comes from the state name of a `verified` field.
+
+**Settled rows keep their evidence.** A row in `verified`, whatever its resolution, keeps the `Agent: {rationale}` line and the searched chips it carried before it was settled: the evidence behind a decision stays visible after the decision. Export 11 omits them; the rule wins, and `docs/design/README.md` notes it on that row.
+
+**String sources.** Two kinds of text share the screen and only one of them is the app's.
+
+- *App-authored*, and bound by every copy rule above: labels, badges, buttons, hints, captions, log sentences, strip lines, announcements, `aria-label`s, the document and section titles in `list_rfq_documents`, and the app's own error messages. No em or en dash, middle-dot separators, plurals counted.
+- *Content, rendered verbatim*: document text from `data/` and from a package a person opened, the agent's rationale and notes, the clarification draft, and anything a person typed. It reaches the DOM as a text node and is never typographically "improved" — an apostrophe in a customer's email stays the character they sent.
+
+`src/copy.test.ts` sweeps the first kind and excludes the second by path; its exclusion list mirrors this paragraph, and a comment there points back to it.
 
 **Dot or icon.** In a field row the badge of an agent state (`empty`, `needs_review`, `conflict`, `missing`, and a reopened row) is an 8px dot in the state color plus the human wording; the badge of a `verified` row replaces the dot with the resolution icon from the table, because seven resolutions must be told apart and the null-value kinds must not read as a check. The agent-state icons from the table appear where the short label appears: group headings, the blocker line, the confirm summary. One icon set, two placements.
 

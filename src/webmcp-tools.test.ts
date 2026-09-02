@@ -123,11 +123,11 @@ test('draft covers reject unknown ids, filter nongaps and echo only the accepted
 
 test('fixture output budgets, read provenance/privacy, S4 units and quiet injection filtering', async () => {
   const { executeTool } = await import('./webmcp-tools');
-  const { packageData } = await import('./data/package');
+  const { getPackage } = await import('./data/package');
   const { dispatchHuman, getState } = await import('./state/store');
   const check = (result: unknown) => expect(JSON.stringify(result).length).toBeLessThan(1500);
   check(await executeTool('list_rfq_documents', {}));
-  for (const doc of packageData.documents) for (const section of doc.sections) {
+  for (const doc of getPackage().documents) for (const section of doc.sections) {
     const result = await executeTool('read_document', { doc_id: doc.id, section_id: section.id });
     check(result);
     expect(JSON.stringify(result)).not.toMatch(/[\w.+-]+@[\w.-]+\.[a-z]{2,}|\b\d{3}[-.]\d{3}[-.]\d{4}\b/i);
@@ -199,5 +199,46 @@ test('malformed values never throw; all seven tool results in the hand stub fit 
     if (step.actor === 'agent') expect(JSON.stringify(await executeTool(step.call.tool, step.call.input, step.at)).length).toBeLessThan(1500);
     else dispatchHuman({ ...step.action, at: step.at });
     expect(JSON.stringify(await executeTool('get_review_state', {})).length).toBeLessThan(1500);
+  }
+});
+
+test('P5: the tools read whichever package is open, and refs from the other one are rejected', async () => {
+  const { executeTool } = await import('./webmcp-tools');
+  const { samplePackage, setPackage } = await import('./data/package');
+  const { buildPackage } = await import('./data/user-package');
+  const user = buildPackage({
+    reference: 'RFQ 91-2201',
+    email: 'Bay cover quote\n\nPlease quote 240 covers.',
+    spec: '1. Purpose\n\nFabricate 240 bay covers.',
+    drawing: 'data:image/webp;base64,AAAA',
+  });
+  try {
+    setPackage(user);
+    const index = await executeTool('list_rfq_documents', {});
+    expect(index).toEqual({ documents: [
+      { id: 'email', type: 'email', title: 'Customer email', sections: [{ id: 'body', title: 'Email' }] },
+      { id: 'spec', type: 'specification', title: 'Specification', sections: [{ id: 's1', title: 'Section 1' }] },
+      { id: 'drawing', type: 'drawing', title: 'Drawing sheet 1', sections: [
+        { id: 'overall', title: 'Overall dimensions' }, { id: 'detail', title: 'Detail' }] },
+    ] });
+    expect(JSON.stringify(index).length).toBeLessThan(1500);
+
+    expect(await executeTool('read_document', { doc_id: 'spec', section_id: 's1' })).toEqual({
+      doc_id: 'spec', section_id: 's1',
+      regions: [{ id: 'spec:s1.0', text: '1. Purpose' }, { id: 'spec:s1.1', text: 'Fabricate 240 bay covers.' }],
+    });
+    expect(await executeTool('read_document', { doc_id: 'drawing', section_id: 'overall' })).toMatchObject({
+      regions: [{ id: 'drawing:sheet' }], sheet: '1 of 1',
+    });
+
+    expect(await executeTool('propose_field', {
+      field_id: 'part_name', value: 'Bay cover', source_refs: ['spec:s1.1'],
+    })).toMatchObject({ ok: true, state: 'needs_review' });
+    // The sample's regions are gone with the sample package.
+    expect(await executeTool('propose_field', {
+      field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'],
+    })).toMatchObject({ ok: false, code: 'INVALID_SOURCE_REF', ref: 'spec:s3.1' });
+  } finally {
+    setPackage(samplePackage);
   }
 });

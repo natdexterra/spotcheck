@@ -69,7 +69,7 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
 
-- Before the first tool call (`no-api` and `waiting` only) the strip is two lines. The first orients a reader arriving cold — "This page holds a customer's RFQ package: email, spec and drawing. Your agent fills the 11 quote-request fields through the page's tools; you check each against its source and confirm." — in `--ink`, no dot, `--space-2` above the status line, which keeps the dot. Line 1 holds one line from 1366 up; at 1280 it wraps to two — accepted. `live` and `confirmed` are one line and never carry it.
+- Before the first tool call (`no-api` and `waiting` only) the strip is two lines. The first orients a reader arriving cold, in `--ink`, no dot, `--space-2` above the status line, which keeps the dot. Its wording names the package on the page and is set by `tasks/P5-own-package.md` § Entry point, which supersedes the sentence this rule used to carry. Line 1 holds one line from 1366 up; at 1280 it wraps to two — accepted. `live` and `confirmed` are one line and never carry it.
 - Precedence: `confirmed` → `live` → `no-api` / `waiting`. A replay started in a browser without the API is `live` from its first step; the sample button leaves with the pre-live state. Strip state is derived, never stored.
 - Narrow (< 1024px): the `no-api` text is the short form "Live mode needs a WebMCP-capable desktop browser." with the dot inline before it (never on its own line) and a full-width primary button; `waiting` keeps the prompt line and a full-width secondary button; `live` is the quiet line + `Show tools` in one column.
 - First load in `no-api` at any width shows the eleven empty rows under the strip (screen 01 with the strip from 09). Exports 04/05 draw the pre-play strip over mid-play rows — two moments in one frame; the rule wins.
@@ -78,7 +78,7 @@ Roster (disclosure open): one row per registered tool in registration order — 
 
 ### Field pane
 
-- Risk order: `conflict` → `missing` → `needs_review` → `empty` → `verified`. Group headings with counts ("2 conflicts", "1 missing", "3 to review", "2 not extracted"); verified collapse into one line "● 4 more verified · RFQ ref · Part · Stock thickness · Delivery · Show" (`Show` is a disclosure text button; expanded rows stay in resolution order, newest first).
+- Risk order: `conflict` → `missing` → `needs_review` → `empty` → `verified`. Group headings with counts ("2 conflicts", "1 missing", "3 to review", "2 not extracted"), and only while more than one group is open (`tasks/P5-own-package.md` § First load and settled rows); verified collapse into one line "● 4 more verified · RFQ ref · Part · Stock thickness · Delivery · Show" (`Show` is a disclosure text button; expanded rows stay in resolution order, newest first).
 - Row anatomy, top to bottom: label (md, `--ink-secondary`) with the lock glyph beside it when `locked` · value + unit (lg, mono, 500; "—" when null) · badge (dot or resolution icon + text) · provenance links, one per `source_ref` · one line of agent rationale or note, sans, prefixed "Agent:" · "was: X" when `revised` is set · actions · suggestion-card slot.
 - Actions per state (text buttons unless noted):
 

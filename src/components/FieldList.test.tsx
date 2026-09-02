@@ -496,3 +496,25 @@ describe('empty rows', () => {
     }
   });
 });
+
+describe('P5: one group carries no heading', () => {
+  test('the first-load list is the pane header and eleven bare rows', () => {
+    const { container } = render(<FieldList />);
+
+    expect(container.querySelectorAll('.field-row')).toHaveLength(11);
+    expect(container.querySelectorAll('.field-list__group-heading')).toHaveLength(0);
+    // The pane title is the only heading the list carries at rest.
+    expect(within(container).getAllByRole('heading').map(node => node.textContent)).toEqual(['Quote request']);
+  });
+
+  test('the heading appears with the second group, one per group', () => {
+    act(() => replaceState({
+      ...createInitialState(),
+      fields: createInitialState().fields.map(entry =>
+        entry.id === 'part_name' ? field('part_name', 'needs_review', { value: 'Bay cover' }) : entry),
+    } as ReviewSession));
+    const { container } = render(<FieldList />);
+
+    expect(container.querySelectorAll('.field-list__group-heading')).toHaveLength(2);
+  });
+});

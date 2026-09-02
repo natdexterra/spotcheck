@@ -18,6 +18,7 @@
 .field-list__header h2,
 .field-list__group-heading,
 .clarification__label,
+.dialog__label,
 .not-required-picker__legend {
   font-size: var(--text-md);
   line-height: var(--leading-md);
@@ -195,6 +196,19 @@
   background-color: var(--bg-raised);
 }
 
+/* The two ways forward before a session starts stand on one line, the sample
+   first (DESIGN.md § Interaction states: one primary per screen). */
+.status-strip__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The notice a package leaves when the browser had no room to keep it. */
+.status-strip__notice {
+  display: block;
+}
+
 /* One md line in the secondary ink: every meta, note and action row. */
 .header__package,
 .status-strip,
@@ -216,6 +230,9 @@
 .suggestion-card__current,
 .clarification__subtitle,
 .clarification__hint,
+.dialog__file-name,
+.dialog__privacy,
+.dialog__error,
 .not-required-picker__hint {
   color: var(--ink-secondary);
   font-size: var(--text-md);
@@ -929,6 +946,7 @@
 .change-log__meta,
 .clarification__label,
 .clarification__sent-line,
+.dialog__label,
 .drawing-sheet__zoom-label,
 .inline-editor__label,
 .not-required-picker__legend {
@@ -938,7 +956,9 @@
 .inline-editor__input,
 .not-required-picker__other-input,
 .clarification__input,
-.clarification__textarea {
+.clarification__textarea,
+.dialog__input,
+.dialog__textarea {
   width: 100%;
   min-height: var(--control-input);
   padding: var(--space-3);
@@ -946,6 +966,12 @@
   background-color: var(--bg-raised);
   border: var(--rule-width) solid var(--border-input);
   border-radius: var(--radius-2);
+}
+
+/* The one example an input may carry, in the placeholder token (DESIGN.md
+   § Color tokens): never a hint, never a value. */
+.dialog__input::placeholder {
+  color: var(--ink-muted);
 }
 
 /* Segmented control (DESIGN.md § Choice controls): one box around the group,
@@ -1373,6 +1399,18 @@
     padding-inline: 0;
   }
 
+  /* One column: the sample button, then the way into a package of your own on
+     the line under it, both the full width and the narrow target. */
+  .status-strip__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-strip__actions .button {
+    width: 100%;
+    min-height: var(--control-large);
+  }
+
   .change-log__sheet {
     position: fixed;
     z-index: 1;
@@ -1563,11 +1601,11 @@
   color: var(--ink-secondary);
 }
 
-/* The slot holds the width of the three-button set (Play, Next step, Restart),
+/* The slot holds the width of the widest set (Play, Next step, Leave sample),
    so moving between states never shifts the controls sideways. */
 .replay-controls__actions {
   justify-content: flex-end;
-  min-width: calc(15 * var(--space-4));
+  min-width: calc(18 * var(--space-4));
 }
 
 /* Under the 680px column there is no room for the set beside the line, so the
@@ -1624,9 +1662,198 @@
   margin-inline-start: auto;
 }
 
+/* The control that discards the review stands apart from the one beside it, so
+   the pointer does not find it by accident (DESIGN.md § Components). */
+.change-log__start-over {
+  margin-inline-start: calc(var(--space-4) - var(--space-2));
+}
+
 .change-log__error {
   padding-inline: var(--page-margin);
   font-size: var(--text-md);
+}
+
+/* A modal dialog is a screen of its own: the element owns the top layer, the
+   backdrop, Esc, the focus trap and the return of focus. The app owns the form
+   inside it, and the scrim, which is the one place an alpha colour is allowed
+   (DESIGN.md § Color) because it lies over the page, not over a surface. */
+.dialog {
+  width: min(720px, 100% - 2 * var(--page-margin));
+  max-block-size: min(85vh, 60rem);
+  padding: 0;
+  overflow: hidden;
+  color: var(--ink);
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline-strong);
+  border-radius: var(--radius-2);
+  opacity: 0;
+  transition-property: opacity, display, overlay;
+  transition-duration: var(--dur-2);
+  transition-timing-function: var(--ease-1);
+  transition-behavior: allow-discrete;
+}
+
+.dialog[open] {
+  opacity: 1;
+
+  @starting-style {
+    opacity: 0;
+  }
+}
+
+.dialog::backdrop {
+  background-color: transparent;
+  transition-property: background-color, display, overlay;
+  transition-duration: var(--dur-2);
+  transition-timing-function: var(--ease-1);
+  transition-behavior: allow-discrete;
+}
+
+.dialog[open]::backdrop {
+  background-color: var(--scrim);
+
+  @starting-style {
+    background-color: transparent;
+  }
+}
+
+/* The universal reset in base.css reaches ::before and ::after, never the
+   backdrop the top layer paints, so the scrim is stopped here by name. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog::backdrop {
+    transition: none;
+  }
+}
+
+/* Header, body, footer: the two ends hold their place and the body carries the
+   scroll, so the actions and the title are in view at every scroll position.
+   `minmax(0, 1fr)` is what lets the middle row shrink and scroll at all. */
+.dialog__form {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  max-block-size: inherit;
+  block-size: 100%;
+}
+
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-block-end: var(--rule-width) solid var(--hairline);
+}
+
+.dialog__body {
+  padding: var(--space-6);
+  overflow-y: auto;
+}
+
+.dialog__footer {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-block-start: var(--rule-width) solid var(--hairline);
+}
+
+.dialog__title {
+  margin: 0;
+  font-size: var(--text-xl);
+  line-height: var(--leading-xl);
+  font-weight: 600;
+}
+
+/* Hierarchy by distance: a label and its hint sit at the smallest step, the
+   control a step above that, and one field stands a whole step further from
+   the next than any of its own parts do (DESIGN.md § Spacing, layout, the
+   dialog field role). */
+.dialog__field {
+  display: grid;
+}
+
+.dialog__field + .dialog__field {
+  margin-block-start: var(--space-6);
+}
+
+.dialog__textarea {
+  min-height: calc(var(--leading-lg-loose) * 6);
+  font-size: var(--text-lg);
+  line-height: var(--leading-lg-loose);
+  resize: vertical;
+}
+
+/* The native input keeps the semantics, the keyboard and the ring; the app's
+   button and the file name are its visible face (DESIGN.md § Choice controls). */
+.dialog__file {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.dialog__file:has(input:focus-visible) {
+  outline: var(--ring-width) solid var(--accent);
+  outline-offset: var(--ring-width);
+}
+
+.dialog__file-name {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+/* Plain text on the footer's own lane, so its left edge is the actions' left
+   edge under it. */
+.dialog__privacy {
+  margin: 0;
+}
+
+/* A validation message is text: the colour and the field's own invalid state
+   carry it, and no glyph repeats them. */
+.dialog__error {
+  margin: 0;
+  color: var(--state-conflict);
+}
+
+.dialog__field .dialog__input,
+.dialog__field .dialog__textarea,
+.dialog__field .dialog__file,
+.dialog__field .dialog__error {
+  margin-block-start: var(--space-2);
+}
+
+/* A hint is a line of its own, never text inside the field (§ Interaction states). */
+.dialog__hint {
+  margin: 0;
+  margin-block-start: var(--space-1);
+  color: var(--ink-secondary);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
+}
+
+.dialog__message {
+  margin: 0;
+}
+
+/* One question and its consequence: narrower than the package form. */
+.dialog--confirm {
+  width: min(480px, 100% - 2 * var(--page-margin));
+}
+
+.dialog__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+/* The close carries only its glyph, so it takes the compact height as a square
+   and reaches the narrow target through the rule below. */
+.dialog__close {
+  flex: none;
+  min-width: var(--control-compact);
+  padding-inline: 0;
 }
 
 .session-import:has(input:focus-visible) {
@@ -1649,6 +1876,46 @@
     order: 2;
     width: 100%;
     margin-inline-start: 0;
+  }
+
+  /* The dialog is a full-height sheet on one column, with the same content. */
+  .dialog {
+    width: 100%;
+    max-width: none;
+    max-block-size: none;
+    block-size: 100%;
+    max-height: 100%;
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+  }
+
+  .dialog__header,
+  .dialog__footer {
+    padding: var(--space-4);
+  }
+
+  .dialog__body {
+    padding: var(--space-4);
+  }
+
+  /* The sheet reaches the bottom of the viewport, so the footer keeps clear of
+     whatever the device draws over it. */
+  .dialog__footer {
+    padding-block-end: max(var(--space-4), env(safe-area-inset-bottom));
+  }
+
+  .dialog__close {
+    min-width: var(--control-large);
+    min-height: var(--control-large);
+  }
+
+  .dialog__actions .button {
+    min-height: var(--control-large);
+  }
+
+  .dialog__file .button {
+    min-height: var(--control-large);
   }
 }
 

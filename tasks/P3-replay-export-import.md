@@ -81,6 +81,8 @@ Field labels from `fieldLabel()`, never ids.
 
 ### Export session
 
+> Superseded on 2026-09-02 for the expanded log drawer header, which now carries the actions of the state it is in and no others, `Play sample session` among the ones it lost: `tasks/P5-own-package.md` § Change-log header by state, and the table it cites in `DESIGN.md` § Components.
+
 - `Export session` is a **secondary compact** button (DESIGN.md § Interaction states lists Export under Secondary; that table governs variants) in three places: the strip's export slot (`live` only), the expanded log drawer header (any state with at least one entry), the summary actions beside `Start over`. Disabled with an empty log.
 - Downloads `spotcheck-session-{YYYY-MM-DD}T{HHmm}.json`: `exportSession()` pretty-printed, `recorded_at` = the download moment as ISO. During a replay the export is the replayed log as it stands (the same shape a live session gives — export → import → identical final state, B8).
 - Focus stays on the button; the live region says "Session exported".

@@ -11,10 +11,10 @@ Exports of the approved screens and state sheets, at 1x. `DESIGN.md` is the sour
 | 08 | Confirm summary |
 | 09 | Status strip states |
 | 10 | Buttons and links, all interaction states |
-| 11 | Field row states and resolutions |
+| 11 | Field row states and resolutions. The export omits the agent's rationale line and the searched chips on a settled row; the rule in `DESIGN.md` wins, and production keeps them |
 | 12 | Inline editor and the not-required picker |
 | 13 | Narrow: source sheet over the field list |
 | 14 | Narrow: change log sheet |
-| 15 | Replay row: playing, paused, ended, error, and the 390 stack |
+| 15 | Replay row: playing, paused, ended, error, and the 390 stack. The export draws `Restart`, which no longer exists; the leave button in `tasks/P5-own-package.md` § Leaving a session wins, and production carries that instead |
 | 16 | Change log: export and import, the expanded header and the collapsed one-line bar |
 | 17 | Drawing zoom: the toolbar, 1× and 2×, and 2× at 390 |

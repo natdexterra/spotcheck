@@ -16,7 +16,7 @@ Resolve conflicts in this order:
 - React 18 + TypeScript + Vite, static single-page app. No router, no server framework.
 - React renders; it never owns state. The reducer in `src/state/reducer.ts` is plain TypeScript with no React imports and is tested without React. A small external store exposes `dispatchAgent` and `dispatchHuman`; components subscribe with `useSyncExternalStore`.
 - Plain CSS with custom properties from `DESIGN.md`. No Tailwind, no CSS-in-JS, no inline styles for tokens.
-- One drawing per component. The shared primitives are `Button` (variants and sizes), `Choice` (checkbox, radio, segmented), `Badge`, `ProvenanceLink`, the card, the disclosure, the inline editor, the sheet and the dialog; their class names are the ones already in `src/styles/components.css`. A task adds a modifier to an existing primitive before it adds a new block, and a new primitive enters this list in the same pull request.
+- One drawing per component. The shared primitives are listed in `DESIGN.md` § Components, one row each, with the component that renders them, their class names in `src/styles/components.css`, their states and their heights. A task adds a modifier to a primitive that is already in that table before it adds a new block, and a primitive that is new to the app enters the table in the pull request that introduces it.
 - An element that is hidden with the `hidden` attribute never receives an author `display` value without `:not([hidden])`; `base.css` carries the global `[hidden] { display: none !important }` guard, and a stylesheet test keeps it. After any change to a panel, sheet, drawer or dialog, the evidence includes the states where it must be absent, not only where it shows.
 - CSS size is reported in every pull request; it is not a gate. The JavaScript budget is.
 - Static hosting. No server code, no tracking, no third-party scripts, no secrets.
@@ -51,6 +51,8 @@ Gates on every pull request:
 1. **Builder self-check** — tests pass, `pnpm build` is clean, the task's acceptance criteria are ticked in the task file with evidence.
 2. **QA** — run by a different agent than the builder: Playwright checks against `build-spec.md` and `docs/scenarios.md` (tool contract via `getTools()`/`executeTool()`, fixture replay, console clean), accessibility audit, code review. The QA record goes into the pull request description.
 3. **Owner review** — the repository owner reviews the preview and the diff. Approval is required; no pull request merges on QA alone.
+
+Evidence screenshots under `docs/qa/` are opt-in: `EVIDENCE=1 pnpm e2e` writes them, and a plain `pnpm e2e` leaves everything under `docs/` untouched.
 
 A builder's own report never closes a task.
 

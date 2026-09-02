@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import type { Fixture } from '../src/replay/replay';
-import { executeTool, installModelContext, removeModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext, saveEvidence } from './helpers';
 
 const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 const total = fixture.steps.length;
@@ -50,7 +50,7 @@ test.afterEach(async ({ page }) => {
   expect((page as Page & { replayProblems: string[] }).replayProblems).toEqual([]);
 });
 
-test('B1 controls advance, pause, step, restart and confirm; live strip exports', async ({ page }) => {
+test('B1 controls advance, pause, step, leave and confirm; live strip exports', async ({ page }) => {
   await removeModelContext(page);
   await page.goto('/'); await start(page);
   await page.clock.runFor(3000);
@@ -63,15 +63,20 @@ test('B1 controls advance, pause, step, restart and confirm; live strip exports'
   await expect(counter(page)).toHaveText(`${Number(advanced!.split(' of ')[0]) + 1} of ${total}`);
   // Export leaves the strip: it lives in the log drawer and in the summary.
   await expect(page.locator('.status-strip').getByRole('button', { name: 'Export session' })).toHaveCount(0);
+  // A replay owns its own way out and nothing else, so the header under it
+  // carries the close alone; the finished run exports from the summary (B8).
   await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-  const exported = await download(page, '.change-log');
-  expect(exported.data.steps.length).toBeGreaterThan(0);
-  await page.getByRole('button', { name: 'Close' }).click();
-  await replay(page).getByRole('button', { name: 'Restart' }).click();
-  await expect(counter(page)).toHaveText(`0 of ${total}`);
+  await expect(page.locator('.change-log__header').getByRole('button', { name: 'Export session' })).toHaveCount(0);
+  await page.locator('.change-log__header').getByRole('button', { name: 'Close' }).click();
+  // Leaving hands back a page that came to the replay empty: first load again,
+  // with the focus on the control that starts it over.
+  await replay(page).getByRole('button', { name: 'Leave sample' }).click();
+  await expect(replay(page)).toHaveCount(0);
   await expect(page.locator('.field-row__badge')).toHaveCount(11);
   await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
-  await expect(replay(page).getByRole('button', { name: 'Play', exact: true })).toBeFocused();
+  await expect(page.locator('.change-log')).toContainText('No activity yet');
+  await expect(page.getByRole('button', { name: 'Play sample session', exact: true })).toBeFocused();
+  await start(page);
   await finish(page);
   await expect(replay(page)).toContainText(`finished · ${total} steps`);
   await expect(replay(page).getByRole('button')).toHaveCount(1);
@@ -122,44 +127,53 @@ test('import failure leaves the session intact and announces the error', async (
   await expect(replay(page)).toHaveCount(0);
 });
 
-test('the drawer header is three tab stops: Export, the native file input, Close', async ({ page }) => {
+test('the drawer header tab stops follow the state it is in', async ({ page }) => {
   await installModelContext(page); await page.goto('/');
-  await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });
-  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-  await page.locator('.change-log__header').getByRole('button', { name: 'Export session' }).focus();
   const focused = () => page.evaluate(() => {
     const element = document.activeElement as HTMLElement | null;
     if (!element) return 'none';
-    return element instanceof HTMLInputElement ? `input[type=${element.type}]` : (element.textContent ?? '');
+    return element instanceof HTMLInputElement ? 'input[type=' + element.type + ']' : (element.textContent ?? '');
   });
+
+  // Nothing has happened yet, so the header offers the way in and the way out.
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  await page.locator('.change-log__header input[type=file]').focus();
+  expect(await focused()).toBe('input[type=file]');
+  await page.keyboard.press('Tab');
+  expect(await focused()).toBe('Close');
+  await page.locator('.change-log__header').getByRole('button', { name: 'Close' }).click();
+
+  // Once there is a review, the export and the way to start again take its place.
+  await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  await page.locator('.change-log__header').getByRole('button', { name: 'Export session' }).focus();
   expect(await focused()).toBe('Export session');
   await page.keyboard.press('Tab');
-  expect(await focused()).toBe('input[type=file]');
+  expect(await focused()).toBe('Start over');
   await page.keyboard.press('Tab');
   expect(await focused()).toBe('Close');
 });
 
-test('saved live proposals survive sample reload and Start over restores them with persistence resumed', async ({ page }) => {
+test('saved live proposals survive a reload, and persistence resumes after the page is cleared', async ({ page }) => {
   await installModelContext(page); await page.goto('/');
   await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });
   await executeTool(page, 'propose_field', { field_id: 'quantity', value: '27', source_refs: ['email:p2'] });
   const saved = await page.evaluate(() => localStorage.getItem('spotcheck.session.v1'));
-  const startFromLive = async () => {
-    await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-    await start(page);
-  };
-  await startFromLive(); await page.clock.runFor(3000); await page.reload();
+
+  await page.reload();
   await expect(page.locator('[data-field-id="material"]')).toContainText('Live alloy');
   await expect(page.locator('[data-field-id="quantity"]')).toContainText('27');
   expect(await page.evaluate(() => localStorage.getItem('spotcheck.session.v1'))).toBe(saved);
-  await startFromLive(); await finish(page);
-  await page.getByRole('button', { name: 'Start over' }).click();
-  await expect(replay(page)).toHaveCount(0);
-  await expect(page.locator('.status-strip__summary')).toContainText('2 calls');
-  await expect(page.locator('[data-field-id="material"]')).toContainText('Live alloy');
+
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  await page.locator('.change-log__header').getByRole('button', { name: 'Start over' }).click();
+  await page.locator('dialog.dialog--confirm').getByRole('button', { name: 'Start over' }).click();
+  await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
+
   await executeTool(page, 'propose_field', { field_id: 'part_name', value: 'Live part', source_refs: ['spec:s1.1'] });
   await page.reload();
   await expect(page.locator('[data-field-id="part_name"]')).toContainText('Live part');
+  await expect(page.locator('[data-field-id="material"]')).not.toContainText('Live alloy');
 });
 
 for (const width of [1920, 820, 390]) {
@@ -169,10 +183,10 @@ for (const width of [1920, 820, 390]) {
     await page.goto('/');
     const capture = async (state: string) => {
       await page.evaluate(() => document.fonts.ready);
-      const path = `docs/qa/p3-1/replay-${state}-${width}.png`;
-      await mkdir('docs/qa/p3-1', { recursive: true });
-      await page.screenshot({ path, animations: 'disabled' });
-      await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
+      // The row is P5's: the leave button replaced Restart here, so the states
+      // it shows belong under P5's own folder, not under the merged task's.
+      const path = `docs/qa/p5/replay-${state}-${width}.png`;
+      if (await saveEvidence(page, path)) await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       // A stopped row carries a message instead of a count.
       if (await counter(page).count()) {
@@ -184,7 +198,7 @@ for (const width of [1920, 820, 390]) {
       }
     };
     await start(page); await page.clock.runFor(3000);
-    await expect(replay(page).getByRole('button')).toHaveCount(1);
+    await expect(replay(page).getByRole('button')).toHaveCount(2);
     await capture('playing');
     await replay(page).getByRole('button', { name: 'Pause' }).click();
     await expect(replay(page).getByRole('button')).toHaveCount(3);
@@ -199,6 +213,11 @@ for (const width of [1920, 820, 390]) {
       const leading = parseFloat(getComputedStyle(element).lineHeight);
       return { leading, lines: Math.round(element.scrollHeight / leading) };
     })).toEqual({ leading: 16, lines: 1 });
+    // A session of one's own is on the page now, so the way in is not offered
+    // until it is cleared: the header carries the actions of its own state.
+    await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+    await page.locator('.change-log__header').getByRole('button', { name: 'Start over' }).click();
+    await page.locator('dialog.dialog--confirm').getByRole('button', { name: 'Start over' }).click();
     await page.evaluate(() => { document.modelContext!.registerTool = () => { throw new Error('Tool unavailable'); }; });
     await importText(page, JSON.stringify({ recorded_at: '2026-09-01', steps: [{ actor: 'agent', at: 0, call: { tool: 'report_missing', input: { field_id: 'drawing_number', searched: ['drawing'] } } }] }));
     await page.clock.runFor(1000);
