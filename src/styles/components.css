@@ -803,6 +803,14 @@
   background-color: var(--bg-subtle);
 }
 
+/* Export 02: a candidate and a suggestion are cards on the pane, told apart
+   from it by a hairline, never by a fill of their own. */
+.suggestion-card,
+.candidate-option {
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+}
+
 /* Export 12: the editor replaces the value line inside the row, so it carries
    no fill and no border of its own; the row's marker and label stay. */
 .inline-editor {
@@ -1071,12 +1079,11 @@
 
 .candidate-option > .button {
   grid-column: 2;
-  grid-row: 1 / span 2;
+  align-self: start;
 }
 
 .suggestion-card {
-  border: var(--rule-width) solid var(--hairline-strong);
-  background-color: var(--bg-raised);
+  border-color: var(--hairline-strong);
 }
 
 .suggestion-card__sources {
