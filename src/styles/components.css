@@ -888,11 +888,18 @@
   flex: 1;
 }
 
-.inline-editor__field,
-.inline-editor__units {
+.inline-editor__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* A legend sits outside the fieldset's own box, so a column gap never reaches
+   it. It carries the step itself, and the two micro-labels read as one line
+   above their controls (export 12). */
+.inline-editor__units legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
 }
 
 .inline-editor__units,

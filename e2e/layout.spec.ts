@@ -414,6 +414,12 @@ for (const width of [1920, 390]) {
       expect(Math.abs(input.y - unit.y)).toBeLessThanOrEqual(1);
       expect(Math.abs((input.y + input.height) - (unit.y + unit.height))).toBeLessThanOrEqual(1);
       expect(Math.round(input.height)).toBe(42);
+      // Export 12: "value" and "unit" read as one line above the two controls.
+      const labels = await row.locator('.inline-editor__label').evaluateAll(
+        list => list.map(label => label.getBoundingClientRect().top),
+      );
+      expect(labels).toHaveLength(2);
+      expect(Math.abs(labels[0]! - labels[1]!)).toBeLessThanOrEqual(1);
     }
     // The editor stands in the row's content lane, not in a card of its own.
     const lane = (await row.locator('.field-row__label').boundingBox())!;
