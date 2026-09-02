@@ -37,12 +37,13 @@ describe('the drawing zoom control', () => {
 
   test('the sheet carries its own scroll region between the toolbar and the caption', () => {
     const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
-    const scroll = container.querySelector('.drawing-sheet__scroll')!;
+    // The scroll region is a tab stop with a role and a name of its own, so the
+    // keyboard can pan the sheet and speech can announce what it panned; a name
+    // on a role-less element is not exposed at all. The tab panel carries none.
+    const scroll = screen.getByRole('group', { name: 'Drawing sheet, scrollable' });
 
-    // The scroll region is a tab stop with a name of its own, so the keyboard
-    // can pan the sheet; the tab panel around it carries neither.
+    expect(scroll).toHaveClass('drawing-sheet__scroll');
     expect(scroll).toHaveAttribute('tabindex', '0');
-    expect(scroll).toHaveAttribute('aria-label', 'Drawing sheet, scrollable');
     expect(scroll.querySelector('.drawing-sheet__image-wrap')).toBeInTheDocument();
     // The toolbar and the caption sit outside it, so they never pan with the sheet.
     expect([...figure(container).children].map(child => child.className)).toEqual([
