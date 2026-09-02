@@ -145,7 +145,7 @@ Rules the builder must not trade away:
   | field-pane gutter | 24 |
   | document gutter — tabs and text share it | 48; paragraph gap 16; section gap 24 |
   | pane gap | 24 |
-  | page margin | one token `--page-margin` (the layout ladder: 80 → 28) |
+  | page margin | one token `--page-margin` (the layout ladder: 80 → 28). Below 1024 it resolves to the centred column's left edge (70 at 820), so header, strip and log bar stand on the column's lane |
 
 - **Two vertical lanes.** Header, status strip, workspace and log drawer all take their inline padding from `--page-margin`; content inside a pane sits on the pane-gutter lane (margin + 24). Every left edge on the screen lands on one of these two lines — an edge on neither is a defect. The 3px state marker is compensated (row inline padding 21 = 24 − 3) so row content stays on the gutter lane; that is the one sanctioned off-scale number, by construction.
 - **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.

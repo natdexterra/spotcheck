@@ -210,7 +210,7 @@ for (const width of [1920, 820, 390]) {
 // The row's whole job is to be readable while it runs: one line of text with
 // the controls beside it, and nothing moving as the state changes.
 for (const width of [770, 820, 1024]) {
-  test(`${width}px keeps the replay text on one line with the controls beside it`, async ({ page }) => {
+  test(`${width}px keeps the replay controls beside the text block`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await removeModelContext(page);
     await page.goto('/');
