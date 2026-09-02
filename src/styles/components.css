@@ -529,7 +529,9 @@
    hairlines never meet. */
 .confirm-summary__details,
 .confirm-summary__log,
-.confirm-summary__actions {
+.confirm-summary__actions,
+.confirm-summary__section + .confirm-summary__section,
+.document-section + .document-section {
   margin-block-start: var(--space-6);
 }
 
@@ -556,10 +558,6 @@
   font-weight: 500;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.confirm-summary__section + .confirm-summary__section {
-  margin-block-start: var(--space-6);
 }
 
 /* Plain rows, no markers: the summary lists are records, not an agenda. */
@@ -639,10 +637,6 @@
   padding: var(--space-8) var(--document-gutter);
 }
 
-.document-section + .document-section {
-  margin-block-start: var(--space-6);
-}
-
 .document-region + .document-region {
   margin-block-start: var(--space-4);
 }
@@ -693,12 +687,6 @@
   align-items: center;
   justify-content: flex-end;
   margin-block-end: var(--space-6);
-}
-
-.drawing-sheet__zoom {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 /* The sheet's own scroll region: it takes the height the toolbar and the
@@ -887,11 +875,6 @@
 .inline-editor {
   display: grid;
   gap: var(--space-2);
-}
-
-.inline-editor__label {
-  font-size: var(--text-sm);
-  line-height: var(--leading-sm);
 }
 
 .inline-editor__controls {
@@ -1103,12 +1086,6 @@
 
 .not-required-picker__legend {
   margin-block-end: var(--space-2);
-}
-
-.not-required-picker__other {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 .not-required-picker__other-input {
@@ -1512,6 +1489,7 @@
 
 .change-log__meta,
 .drawing-sheet__zoom-label,
+.inline-editor__label,
 .field-row__chip,
 .field-row__revision,
 .field-row__agent-original,
@@ -1537,7 +1515,9 @@
 .replay-controls,
 .replay-controls__text,
 .replay-controls__actions,
-.change-log__file-actions {
+.change-log__file-actions,
+.drawing-sheet__zoom,
+.not-required-picker__other {
   display: flex;
   align-items: center;
   gap: var(--space-2);
