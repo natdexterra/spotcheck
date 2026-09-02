@@ -201,6 +201,7 @@
 .confirm-footer__status,
 .field-row__sources,
 .field-row__agent-note,
+.field-row__resolution,
 .field-row__revision,
 .field-row__agent-original,
 .field-list__verified-summary,
@@ -1194,6 +1195,7 @@
 
 .field-row__sources,
 .field-row__agent-note,
+.field-row__resolution,
 .field-row__revision,
 .field-row__agent-original,
 .inline-editor__context,
