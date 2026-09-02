@@ -297,3 +297,20 @@ describe('the verified group header', () => {
     expect(disclosure.querySelector('svg')).not.toBeNull();
   });
 });
+
+describe('FieldRow consequence lines', () => {
+  test('a row marked for the clarification email says what that means', () => {
+    render(<FieldRow field={field('surface_finish', 'needs_review', { ask_customer: true })} />);
+
+    expect(screen.getByRole('button', { name: 'Ask customer' })).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText(
+      'Marked for the clarification email. This field still counts as open.',
+    )).toBeInTheDocument();
+  });
+
+  test('an untouched row says nothing about the clarification email', () => {
+    render(<FieldRow field={field('surface_finish', 'needs_review')} />);
+
+    expect(screen.queryByText(/Marked for the clarification email/)).not.toBeInTheDocument();
+  });
+});

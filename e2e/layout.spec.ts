@@ -286,3 +286,26 @@ test('the document column stops at its measure and the tabs stand on its edge', 
   expect(tabs.x).toBeCloseTo(column.x, 0);
   expect(tabs.width).toBeCloseTo(column.width, 0);
 });
+
+test('the Ask customer on-state is an icon and ink, never a pill', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const row = page.locator('[data-field-id="surface_finish"]');
+  const toggle = row.getByRole('button', { name: 'Ask customer' });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+  // Move the pointer off it and let the hover fill finish leaving: the pill
+  // belongs to hover, not to the state.
+  await page.mouse.move(0, 0);
+  await expect
+    .poll(() => toggle.evaluate(element => {
+      const style = getComputedStyle(element);
+      return `${style.backgroundColor} ${style.color}`;
+    }))
+    .toBe('rgba(0, 0, 0, 0) rgb(14, 17, 22)');
+  expect(await toggle.evaluate(element => element.querySelectorAll('svg').length)).toBe(1);
+  await expect(row).toContainText('Marked for the clarification email. This field still counts as open.');
+});

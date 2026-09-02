@@ -146,6 +146,12 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         </div>
       ) : null}
 
+      {field.ask_customer && !editorOpen ? (
+        <p className="field-row__resolution">
+          Marked for the clarification email. This field still counts as open.
+        </p>
+      ) : null}
+
       {field.state === 'conflict' && !editorOpen ? (
         <ConflictPanel
           editorButtonRef={editorButtonRef}
