@@ -2,6 +2,7 @@ import { useEffect, useState, type ComponentType } from 'react';
 import { useReview } from '../hooks/useReview';
 import {
   CheckCircleIcon,
+  ChevronDownIcon,
   CircleDotIcon,
   DashedCircleIcon,
   DashIcon,
@@ -124,8 +125,12 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
         <section className="field-list__group field-list__group--verified">
           <div className="field-list__verified-summary">
             <CheckCircleIcon />
-            <span>
-              {verified.fields.length} more verified · {verified.fields.map(field => fieldLabel(field.id)).join(' · ')}
+            {/* "more" is only true while something else is still open. */}
+            <span className="field-list__verified-count">
+              {verified.fields.length} {openGroups.length > 0 ? 'more verified' : 'verified'}
+            </span>
+            <span className="field-list__verified-names">
+              {verified.fields.map(field => fieldLabel(field.id)).join(' · ')}
             </span>
             <Button
               aria-expanded={verifiedOpen}
@@ -133,6 +138,7 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
               onClick={() => setVerifiedOpen(open => !open)}
             >
               {verifiedOpen ? 'Hide' : 'Show'}
+              <ChevronDownIcon />
             </Button>
           </div>
           {verifiedOpen

@@ -1413,7 +1413,10 @@
   line-height: var(--leading-md);
 }
 
-.change-log__entry--collapsed .change-log__sentence {
+/* One line, cut with an ellipsis: the collapsed log sentence and the roll of
+   verified field names. The full text lives in what they expand into. */
+.change-log__entry--collapsed .change-log__sentence,
+.field-list__verified-names {
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
@@ -1428,7 +1431,9 @@
 }
 
 .change-log__entry--collapsed .change-log__time,
-.change-log__collapsed > .button {
+.change-log__collapsed > .button,
+.field-list__verified-count,
+.field-list__verified-summary .button {
   flex: none;
 }
 

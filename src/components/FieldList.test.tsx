@@ -138,7 +138,8 @@ describe('FieldList', () => {
 
     const rowIds = [...document.querySelectorAll<HTMLElement>('.field-row')].map(row => row.dataset.fieldId);
     expect(rowIds).toEqual(['quantity', 'delivery', 'material', 'part_name']);
-    expect(screen.getByText('2 more verified · Customer RFQ ref · Drawing number')).toBeInTheDocument();
+    expect(document.querySelector('.field-list__verified-count')).toHaveTextContent('2 more verified');
+    expect(document.querySelector('.field-list__verified-names')).toHaveTextContent('Customer RFQ ref · Drawing number');
 
     await userEvent.click(screen.getByRole('button', { name: 'Show' }));
     const verifiedGroup = document.querySelector('.field-list__group--verified');
@@ -260,5 +261,39 @@ describe('FieldRow with an open editor', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.getByRole('button', { name: 'Mark not required' })).toHaveFocus();
+  });
+});
+
+describe('the verified group header', () => {
+  const allVerified = () => act(() => replaceState({
+    confirmed: false,
+    fields: (['customer_rfq_ref', 'part_name', 'quantity'] as FieldId[]).map(id => field(id, 'verified')),
+  }));
+
+  test('says "more" only while another group is still open', () => {
+    act(() => replaceState({
+      confirmed: false,
+      fields: [field('material', 'needs_review'), field('part_name', 'verified')],
+    }));
+    render(<FieldList />);
+
+    expect(document.querySelector('.field-list__verified-count')).toHaveTextContent('1 more verified');
+  });
+
+  test('drops "more" once every field is verified', () => {
+    allVerified();
+    render(<FieldList />);
+
+    expect(document.querySelector('.field-list__verified-count')).toHaveTextContent('3 verified');
+  });
+
+  test('keeps the names on one line and the disclosure on its chevron', () => {
+    allVerified();
+    render(<FieldList />);
+
+    const names = document.querySelector('.field-list__verified-names');
+    expect(names).toHaveTextContent('Customer RFQ ref · Part · Quantity');
+    const disclosure = screen.getByRole('button', { name: 'Show' });
+    expect(disclosure.querySelector('svg')).not.toBeNull();
   });
 });
