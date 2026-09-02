@@ -51,13 +51,10 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
       (field.resolution?.kind === 'edited' || field.resolution?.kind === 'picked' || field.resolution?.kind === 'applied')) ||
     (field.locked && field.state !== 'verified')
   ) ? field.proposal : undefined;
-  const nullResolution = field.resolution?.kind;
+  // The value slot carries the value or nothing at all: how a field was
+  // settled is the badge's job, never the value line's.
   const value = field.value === null
-    ? nullResolution === 'dismissed'
-      ? 'Not required'
-      : nullResolution === 'asked_customer'
-        ? 'Awaiting customer'
-        : NO_VALUE
+    ? NO_VALUE
     : `${field.locked && field.state !== 'verified' ? 'your entry: ' : ''}${field.value}${field.unit ? ` ${field.unit}` : ''}`;
   const openSource = onSource
     ? (ref: string) => (event: { preventDefault: () => void }) => {
