@@ -59,6 +59,41 @@ const scrollBy = (page: Page, left: number, top: number) => page.evaluate(
   { left, top },
 );
 
+/** Every panel in the source pane: what it says it is, and what room it takes. */
+const panelBoxes = (page: Page) => page.evaluate(() => {
+  const pane = document.querySelector<HTMLElement>('.source-pane')!;
+  const rows = [...pane.children] as HTMLElement[];
+  const panels = rows.filter(row => row.classList.contains('source-pane__panel'));
+  return {
+    panels: panels.map(panel => ({
+      id: panel.id,
+      hidden: panel.hasAttribute('hidden'),
+      display: getComputedStyle(panel).display,
+      height: Math.round(panel.getBoundingClientRect().height),
+      scrollHeight: panel.scrollHeight,
+    })),
+    // The rows around the panels: tabs, and on the sheet a header and a footer.
+    aroundHeight: Math.round(rows
+      .filter(row => !row.classList.contains('source-pane__panel'))
+      .reduce((total, row) => total + row.getBoundingClientRect().height, 0)),
+    paneHeight: Math.round(pane.getBoundingClientRect().height),
+  };
+});
+
+/** The one panel on show fills the column the other rows leave; no other panel
+    takes a pixel, and every hidden one is display: none. */
+const expectOnlyPanelShowing = (
+  boxes: Awaited<ReturnType<typeof panelBoxes>>, id: string,
+): void => {
+  const showing = boxes.panels.filter(panel => panel.height > 0);
+  expect(showing.map(panel => panel.id)).toEqual([id]);
+  expect(boxes.panels.filter(panel => panel.hidden).map(panel => panel.display))
+    .toEqual(boxes.panels.filter(panel => panel.hidden).map(() => 'none'));
+  // Within the hairlines that close the rows around it.
+  expect(Math.abs(showing[0]!.height - (boxes.paneHeight - boxes.aroundHeight)))
+    .toBeLessThanOrEqual(2);
+};
+
 const seedDimensions = (page: Page) => executeTool(page, 'propose_field', {
   field_id: 'overall_dimensions',
   value: '20 × 14.5',
@@ -213,6 +248,39 @@ test.describe('drawing zoom', () => {
     expect(problems).toEqual([]);
   });
 
+  test('the Drawing panel takes no room while another tab is on show', async ({ page }) => {
+    const problems = watchConsole(page);
+    await installModelContext(page);
+    await page.goto('/');
+
+    // Email is the tab the pane opens on: the sheet's rows must not render
+    // under the letter, and the letter must keep the whole column.
+    await expect(page.locator('.drawing-sheet__toolbar')).toBeHidden();
+    await expect(page.locator('.drawing-sheet__scroll')).toBeHidden();
+    // Out of the flow means out of the tab order and out of the tree with it.
+    await expect(page.getByRole('radio', { name: 'Zoom 1x' })).toBeHidden();
+    const onEmail = await panelBoxes(page);
+    expectOnlyPanelShowing(onEmail, 'source-panel-email');
+    const emailScrollHeight = onEmail.panels.find(panel => panel.id === 'source-panel-email')!.scrollHeight;
+
+    await page.getByRole('tab', { name: 'Spec' }).click();
+    await expect(page.locator('.drawing-sheet__toolbar')).toBeHidden();
+    expectOnlyPanelShowing(await panelBoxes(page), 'source-panel-spec');
+
+    await page.getByRole('tab', { name: 'Drawing' }).click();
+    await expect(page.locator('.drawing-sheet__toolbar')).toBeVisible();
+    await expect(page.locator('.drawing-sheet__scroll')).toBeVisible();
+    expectOnlyPanelShowing(await panelBoxes(page), 'source-panel-drawing');
+
+    // Back on the letter, nothing about it changed.
+    await page.getByRole('tab', { name: 'Email' }).click();
+    const back = await panelBoxes(page);
+    expectOnlyPanelShowing(back, 'source-panel-email');
+    expect(back.panels.find(panel => panel.id === 'source-panel-email')!.scrollHeight)
+      .toBe(emailScrollHeight);
+    expect(problems).toEqual([]);
+  });
+
   test('reduced motion changes nothing: the zoom is instant either way', async ({ page }) => {
     const problems = watchConsole(page);
     await installModelContext(page);
@@ -243,6 +311,24 @@ test.describe('drawing zoom', () => {
 
 test.describe('drawing zoom on the narrow sheet', () => {
   test.use({ viewport: { width: 390, height: 844 } });
+
+  test('the Drawing panel takes no room on the narrow sheet either', async ({ page }) => {
+    const problems = watchConsole(page);
+    await installModelContext(page);
+    await page.goto('/');
+    await seedDimensions(page);
+
+    await page.locator('[data-field-id="overall_dimensions"]')
+      .getByRole('link', { name: 'drawing width' }).click();
+    await expect(page.locator('.source-pane--sheet')).toBeVisible();
+    expectOnlyPanelShowing(await panelBoxes(page), 'source-panel-drawing');
+
+    await page.getByRole('tab', { name: 'Email' }).click();
+    await expect(page.locator('.drawing-sheet__toolbar')).toBeHidden();
+    await expect(page.locator('.drawing-sheet__scroll')).toBeHidden();
+    expectOnlyPanelShowing(await panelBoxes(page), 'source-panel-email');
+    expect(problems).toEqual([]);
+  });
 
   test('390px scrolls the sheet inside its own region and keeps 44px targets', async ({ page }) => {
     const problems = watchConsole(page);

@@ -52,6 +52,12 @@ textarea {
   outline-offset: calc(var(--ring-width) * -1);
 }
 
+/* A panel with a display of its own outranks the browser's own [hidden] rule
+   (the drawing tab panel is a flex column), so the attribute is enforced here. */
+[hidden] {
+  display: none !important;
+}
+
 .visually-hidden {
   position: absolute;
   inline-size: 1px;

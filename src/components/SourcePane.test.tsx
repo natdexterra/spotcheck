@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -132,6 +133,24 @@ describe('source documents', () => {
     render(<SourcePane onFocusField={vi.fn()} quiet />);
     expect(screen.queryByText(/ignore previous instructions/)).not.toBeInTheDocument();
     expect(document.getElementById('email:note')).toBeNull();
+  });
+
+  test('a panel with a display of its own still disappears when it is hidden', () => {
+    render(<SourcePane onFocusField={vi.fn()} />);
+
+    // The pane opens on the letter; every other panel is out of the flow, so
+    // the sheet's toolbar never renders under the document on show.
+    const drawing = document.getElementById('source-panel-drawing')!;
+    expect(drawing).toHaveAttribute('hidden');
+    expect(drawing).not.toBeVisible();
+    expect(screen.queryByText('Sheet 1 of 4')).not.toBeVisible();
+    expect(within(document.getElementById('source-panel-email')!).queryByText('Sheet 1 of 4')).toBeNull();
+
+    // jsdom loads no stylesheet, and the browser's own [hidden] rule loses to
+    // any author rule that gives the panel a display — so the guard is that the
+    // stylesheet carries a [hidden] rule of its own.
+    expect(readFileSync('src/styles/base.css', 'utf8'))
+      .toMatch(/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
   });
 
   test('the Drawing tab panel is a column, not a scroll container with a tab stop', () => {
