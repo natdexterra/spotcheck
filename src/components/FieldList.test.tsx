@@ -99,11 +99,11 @@ describe('FieldRow', () => {
 
   test.each<[ResolutionKind, string]>([
     ['verified', '6061'],
-    ['edited', 'agent original'],
+    ['edited', '6061'],
     ['entered', '6061'],
-    ['picked', 'agent original'],
+    ['picked', '6061'],
     ['dismissed', '—'],
-    ['applied', 'agent original'],
+    ['applied', '6061'],
     ['asked_customer', '—'],
   ])('renders the %s resolution and Reopen action', (kind, expected) => {
     const value = kind === 'dismissed' || kind === 'asked_customer' ? null : '6061';
@@ -315,5 +315,53 @@ describe('FieldRow consequence lines', () => {
     render(<FieldRow field={field('surface_finish', 'needs_review')} />);
 
     expect(screen.queryByText(/Marked for the clarification email/)).not.toBeInTheDocument();
+  });
+});
+
+describe('the sentence under a verified value', () => {
+  const verified = (kind: ResolutionKind, value: string | null = '750') => field('quantity', 'verified', {
+    value,
+    resolution: { kind, at: 1_000 },
+    proposal: { value: '800', source_refs: ['spec:s1.1'] },
+  });
+
+  test('a field verified as proposed says the value is the agent’s', () => {
+    render(<FieldRow field={verified('verified', '800')} />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'the agent’s value, kept as proposed · spec §1.1',
+    );
+  });
+
+  test.each<ResolutionKind>(['edited', 'picked', 'applied'])('a %s field names both values', kind => {
+    render(<FieldRow field={verified(kind)} />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'agent 800 → yours 750 · spec §1.1',
+    );
+    // The bare agent line is gone: the sentence carries it.
+    expect(document.querySelector('.field-row__agent-original')).toBeNull();
+  });
+
+  test('a field the estimator typed says there was nothing to compare against', () => {
+    render(<FieldRow field={field('quantity', 'verified', {
+      value: '750',
+      resolution: { kind: 'entered', at: 1_000 },
+    })} />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'no agent proposal · you typed this one',
+    );
+  });
+
+  test('a reopened row keeps the bare agent line instead', () => {
+    render(<FieldRow field={field('quantity', 'needs_review', {
+      value: '750',
+      locked: true,
+      proposal: { value: '800', source_refs: ['spec:s1.1'] },
+    })} />);
+
+    expect(document.querySelector('.field-row__agent-original')).toHaveTextContent('agent 800 · spec §1.1');
+    expect(document.querySelector('.field-row__resolution')).toBeNull();
   });
 });

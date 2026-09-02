@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
 import { fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
@@ -45,11 +45,9 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
   // Where the agent looked is evidence, not prose: one chip per place.
   const searched = [...new Set(field.searched?.searched.map(searchedLabel) ?? [])];
   const note = field.proposal?.rationale ?? field.searched?.note ?? '';
-  const showAgentOriginal = field.proposal && (
-    (field.state === 'verified' &&
-      (field.resolution?.kind === 'edited' || field.resolution?.kind === 'picked' || field.resolution?.kind === 'applied')) ||
-    (field.locked && field.state !== 'verified')
-  ) ? field.proposal : undefined;
+  const showAgentOriginal = field.proposal && field.locked && field.state !== 'verified'
+    ? field.proposal
+    : undefined;
   // The value slot carries the value or nothing at all: how a field was
   // settled is the badge's job, never the value line's.
   const value = field.value === null
@@ -74,6 +72,23 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
     if (picker) setPickerOpen(false); else setEditorOpen(false);
     setCloses(count => count + 1);
   };
+
+  /* Export 11: one sentence under a settled value saying how it got there.
+     The wording turns on the resolution kind, never on the state name. */
+  const sourceRun = (refs: readonly string[]): ReactNode => refs.map(ref => (
+    <span key={ref}>
+      {' · '}
+      <ProvenanceLink href={sourceHref(ref)} onClick={openSource?.(ref)}>{sourceLabel(ref)}</ProvenanceLink>
+    </span>
+  ));
+  const kind = field.state === 'verified' ? field.resolution?.kind : undefined;
+  let resolution: ReactNode = null;
+  if (kind === 'entered') resolution = 'no agent proposal · you typed this one';
+  else if (field.proposal && kind === 'verified') {
+    resolution = <>the agent’s value, kept as proposed{sourceRun(field.proposal.source_refs)}</>;
+  } else if (field.proposal && (kind === 'edited' || kind === 'picked' || kind === 'applied')) {
+    resolution = <>agent {field.proposal.value} → yours {field.value}{sourceRun(field.proposal.source_refs)}</>;
+  }
 
   return (
     <article
@@ -124,6 +139,10 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
             </span>
           ))}
         </p>
+      ) : null}
+
+      {resolution && !editorOpen ? (
+        <p className="field-row__resolution">{resolution}</p>
       ) : null}
 
       {field.state === 'needs_review' && !editorOpen ? (
