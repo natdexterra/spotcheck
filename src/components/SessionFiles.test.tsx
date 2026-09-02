@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, expect, test, vi } from 'vitest';
 import { ChangeLogDrawer } from './ChangeLogDrawer';
 import { LiveRegion } from './LiveRegion';
+import { ExportSessionButton } from './ExportSessionButton';
 import { ReplayControls } from './ReplayControls';
 import { createInitialState, type ReviewSession } from '../state/session';
 import { replaceState } from '../state/store';
@@ -73,6 +74,18 @@ test('successful import passes parsed fixture to controller and closes drawer', 
   await act(async () => { fireEvent.change(screen.getByLabelText('Import session'), { target: { files: [file] } }); });
   expect(start).toHaveBeenCalledWith(fixture, 'Imported session');
   expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+});
+
+test('Export session announces "Session exported" through the live region', () => {
+  vi.useFakeTimers();
+  vi.stubGlobal('URL', { createObjectURL: () => 'blob:session', revokeObjectURL: vi.fn() });
+  vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+  replaceState({ ...createInitialState(), log: [{ actor: 'agent', at: 1,
+    event: { actor: 'agent', action: { type: 'read', operation: 'list' } } }] } as ReviewSession);
+  render(<><ExportSessionButton /><LiveRegion /></>);
+  act(() => { fireEvent.click(screen.getByRole('button', { name: 'Export session' })); });
+  expect(document.querySelector('[aria-live]')).toHaveTextContent('Session exported');
+  vi.clearAllTimers(); vi.useRealTimers(); vi.unstubAllGlobals();
 });
 
 test('a successful import hands focus to Pause on the replay row', async () => {
