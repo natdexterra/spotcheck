@@ -34,6 +34,23 @@ describe('the drawing zoom control', () => {
     expect(group).toHaveTextContent('2×');
   });
 
+  test('the sheet carries its own scroll region between the toolbar and the caption', () => {
+    const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
+    const scroll = container.querySelector('.drawing-sheet__scroll')!;
+
+    // The scroll region is a tab stop with a name of its own, so the keyboard
+    // can pan the sheet; the tab panel around it carries neither.
+    expect(scroll).toHaveAttribute('tabindex', '0');
+    expect(scroll).toHaveAttribute('aria-label', 'Drawing sheet, scrollable');
+    expect(scroll.querySelector('.drawing-sheet__image-wrap')).toBeInTheDocument();
+    // The toolbar and the caption sit outside it, so they never pan with the sheet.
+    expect([...figure(container).children].map(child => child.className)).toEqual([
+      'drawing-sheet__toolbar',
+      'drawing-sheet__scroll',
+      'drawing-sheet__caption',
+    ]);
+  });
+
   test('choosing 2× puts the zoom modifier on the figure and 1× takes it off again', () => {
     const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
     expect(figure(container)).not.toHaveClass('drawing-sheet--zoom-2');

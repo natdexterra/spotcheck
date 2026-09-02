@@ -29,9 +29,9 @@ export function DrawingSheet({
   const wrapRef = useRef<HTMLDivElement>(null);
 
   // A box is positioned in percentages of the wrap, so at 2× it can sit outside
-  // the panel's viewport. A provenance link, a region click and a zoom change
-  // all end with the active box centered in the panel — instantly: the flash is
-  // the motion, and smooth scrolling here would fight reduced motion.
+  // the scroll region's viewport. A provenance link, a region click and a zoom
+  // change all end with the active box centered in that region — instantly: the
+  // flash is the motion, and smooth scrolling here would fight reduced motion.
   useEffect(() => {
     if (!highlightedRef) return;
     wrapRef.current
@@ -73,30 +73,40 @@ export function DrawingSheet({
           </div>
         </div>
       </div>
+      {/* The sheet scrolls inside this wrapper, never in the tab panel: the
+          toolbar and the caption stay on the document lane while only the
+          drawing pans. A scroll container needs a tab stop of its own to be
+          reachable from the keyboard, and its own name says what it moves. */}
       <div
-        className={[
-          'drawing-sheet__image-wrap',
-          readingSectionId && 'drawing-sheet__image-wrap--reading',
-        ].filter(Boolean).join(' ')}
-        data-reading-section={readingSectionId}
-        ref={wrapRef}
+        aria-label="Drawing sheet, scrollable"
+        className="drawing-sheet__scroll"
+        tabIndex={0}
       >
-        <img
-          alt="Drawing sheet 1 for the hanging KVM mount bracket"
-          className="drawing-sheet__image"
-          src={drawingSheetUrl}
-        />
-        <div className="drawing-sheet__overlays">
-          {boxedRegions.map(region => (
-            <OverlayBox
-              active={highlightedRef === region.id}
-              box={region.box}
-              key={region.id}
-              label={region.id === 'drawing:title_area' ? titleAreaCaption : region.text}
-              onActivate={onActivateRegion}
-              sourceRef={region.id}
-            />
-          ))}
+        <div
+          className={[
+            'drawing-sheet__image-wrap',
+            readingSectionId && 'drawing-sheet__image-wrap--reading',
+          ].filter(Boolean).join(' ')}
+          data-reading-section={readingSectionId}
+          ref={wrapRef}
+        >
+          <img
+            alt="Drawing sheet 1 for the hanging KVM mount bracket"
+            className="drawing-sheet__image"
+            src={drawingSheetUrl}
+          />
+          <div className="drawing-sheet__overlays">
+            {boxedRegions.map(region => (
+              <OverlayBox
+                active={highlightedRef === region.id}
+                box={region.box}
+                key={region.id}
+                label={region.id === 'drawing:title_area' ? titleAreaCaption : region.text}
+                onActivate={onActivateRegion}
+                sourceRef={region.id}
+              />
+            ))}
+          </div>
         </div>
       </div>
       <figcaption className="drawing-sheet__caption">
