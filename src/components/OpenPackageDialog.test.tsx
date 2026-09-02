@@ -184,6 +184,20 @@ describe('P5: the dialog is a header, a scrolling body and a footer', () => {
     expect(rule('.dialog')).toMatch(/overflow:\s*hidden/);
     expect(rule('.dialog__form')).not.toMatch(/overflow-y:\s*auto/);
   });
+
+  test('one field stands a step further from the next than its own parts do', () => {
+    const componentsCss = readFileSync('src/styles/components.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rule = (selector: string): string => {
+      const head = componentsCss.indexOf(selector + ' {');
+      return head < 0 ? '' : componentsCss.slice(head, componentsCss.indexOf('}', head));
+    };
+
+    // Label to hint the smallest step, hint to control one above it, and one
+    // field to the next the between-blocks step (DESIGN.md spacing roles).
+    expect(rule('.dialog__hint')).toMatch(/margin-block-start:\s*var\(--space-1\)/);
+    expect(rule('.dialog__field .dialog__error')).toMatch(/margin-block-start:\s*var\(--space-2\)/);
+    expect(rule('.dialog__field + .dialog__field')).toMatch(/margin-block-start:\s*var\(--space-6\)/);
+  });
 });
 
 describe('the image a person attaches', () => {
