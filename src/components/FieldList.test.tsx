@@ -99,9 +99,9 @@ describe('FieldRow', () => {
     ['edited', 'agent original'],
     ['entered', '6061'],
     ['picked', 'agent original'],
-    ['dismissed', 'Not required'],
+    ['dismissed', '—'],
     ['applied', 'agent original'],
-    ['asked_customer', 'Awaiting customer'],
+    ['asked_customer', '—'],
   ])('renders the %s resolution and Reopen action', (kind, expected) => {
     const value = kind === 'dismissed' || kind === 'asked_customer' ? null : '6061';
     render(<FieldRow field={field('material', 'verified', {
@@ -189,6 +189,29 @@ describe('FieldList', () => {
 
     expect(screen.getByText('Steel')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
+  });
+});
+
+describe('FieldRow value slot', () => {
+  const resolved = (kind: ResolutionKind, value: string | null) => field('surface_finish', 'verified', {
+    value,
+    resolution: { kind, at: 1_000 },
+  });
+
+  test.each<[ResolutionKind, string]>([
+    ['dismissed', 'Not required'],
+    ['asked_customer', 'Awaiting customer'],
+  ])('a %s row with no value shows a dash, and the wording stays in the badge', kind => {
+    render(<FieldRow field={resolved(kind, null)} now={1_000} />);
+
+    expect(document.querySelector('.field-row__value')).toHaveTextContent('—');
+    expect(document.querySelector('.field-row__badge')).toHaveTextContent(`${kind === 'dismissed' ? 'Not required' : 'Awaiting customer'} · 0:00 ago`);
+  });
+
+  test('an asked-customer row that had a value keeps it', () => {
+    render(<FieldRow field={resolved('asked_customer', 'Black powder coat')} now={1_000} />);
+
+    expect(document.querySelector('.field-row__value')).toHaveTextContent('Black powder coat');
   });
 });
 
