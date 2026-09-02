@@ -13,6 +13,30 @@ afterEach(() => {
 });
 
 describe('ChangeLogDrawer', () => {
+  test('an edit on a unit-bearing field names the unit on both sides of the arrow', () => {
+    const state = createInitialState();
+    const dimensions = state.fields.find(field => field.id === 'overall_dimensions')!;
+    dimensions.proposal = { value: '20.000 × 14.500', unit: 'in', source_refs: ['drawing:width'] };
+    dimensions.value = '20.000 × 14.600';
+    dimensions.unit = 'in';
+    const session: ReviewSession = {
+      ...state,
+      log: [{
+        actor: 'estimator',
+        at: 2_000,
+        event: {
+          actor: 'human',
+          action: { type: 'edit', field_id: 'overall_dimensions', value: '20.000 × 14.600', unit: 'in' },
+        },
+      }],
+    };
+    act(() => replaceState(session));
+    render(<ChangeLogDrawer />);
+
+    expect(screen.getByLabelText('Change log')).toHaveTextContent(
+      'You edited Overall dimensions: agent 20.000 × 14.500 in → yours 20.000 × 14.600 in',
+    );
+  });
   test('shows the latest actor-first sentence collapsed and the full log oldest first', async () => {
     const user = userEvent.setup();
     const state = createInitialState();

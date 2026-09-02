@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useReview } from '../hooks/useReview';
-import { duration, fieldLabel, groupLabel, NO_VALUE } from '../lib/format';
+import { displayValue, duration, fieldLabel, groupLabel } from '../lib/format';
 import { createInitialState } from '../state/session';
 import type { LogEntry } from '../state/session';
 import { replaceState } from '../state/store';
@@ -24,9 +24,6 @@ const RESOLUTIONS: readonly ResolutionKind[] = [
   'applied',
   'asked_customer',
 ];
-
-const displayValue = (value: string | null, unit?: string | null): string =>
-  `${value ?? NO_VALUE}${unit ? ` ${unit}` : ''}`;
 
 const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined => {
   const entry = [...log].reverse().find(item =>

@@ -343,6 +343,19 @@ describe('the sentence under a verified value', () => {
     expect(document.querySelector('.field-row__agent-original')).toBeNull();
   });
 
+  test('a unit-bearing field keeps its unit on both sides of the arrow', () => {
+    render(<FieldRow field={field('overall_dimensions', 'verified', {
+      value: '20.000 × 14.600',
+      unit: 'in',
+      resolution: { kind: 'edited', at: 1_000 },
+      proposal: { value: '20.000 × 14.500', unit: 'in', source_refs: ['drawing:width'] },
+    })} />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'agent 20.000 × 14.500 in → yours 20.000 × 14.600 in · drawing width',
+    );
+  });
+
   test('a settled row prints its provenance once, inside the sentence', () => {
     render(<FieldRow field={verified('verified', '800')} />);
 
