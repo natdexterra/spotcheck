@@ -2,11 +2,17 @@ import { useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
-import { ChevronDownIcon, CrossIcon } from '../icons';
+import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
 import { fieldLabel } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
+import { describeRead } from '../replay/describe';
+import { focusPause, startImported, startSample } from '../replay/controller';
+import { useReplay } from '../hooks/useReplay';
+import { parseFixture } from '../replay/serialization';
+import { ExportSessionButton } from './ExportSessionButton';
+import { announce } from './LiveRegion';
 
 // Notes the app writes about the agent are app copy; only the agent's own note
 // text is reported speech and takes the "Agent:" prefix (DESIGN.md constraint 1).
@@ -43,7 +49,7 @@ const fieldName = (entry: LogEntry) => {
 
 const agentSentence = (entry: LogEntry) => {
   const action = entry.event.action;
-  if (action.type === 'read') return 'Agent read the RFQ package';
+  if (action.type === 'read') return describeRead(action.operation ?? 'list', action.input, true);
   if (entry.result?.ok === false) {
     return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected — ${String(entry.result.code ?? 'ERROR')}`;
   }
@@ -76,11 +82,11 @@ const humanSentence = (entry: LogEntry, fields: Field[]) => {
 export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
   entry.actor === 'agent' ? agentSentence(entry) : humanSentence(entry, fields);
 
-export const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] }) => (
-  <div className="change-log__entry">
+export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry; fields: Field[]; collapsed?: boolean }) => (
+  <div className={`change-log__entry${collapsed ? ' change-log__entry--collapsed' : ''}`}>
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
-    <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
-    {entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
+    <span className="change-log__sentence">{collapsed ? <span className="change-log__clip">{formatLogEntry(entry, fields)}</span> : formatLogEntry(entry, fields)}</span>
+    {!collapsed && entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
       <span className="change-log__agent-note" key={note}>
         {agentAuthored(note) ? `Agent: ${note}` : note}
       </span>
@@ -90,11 +96,28 @@ export const LogLine = ({ entry, fields }: { entry: LogEntry; fields: Field[] })
 
 export const ChangeLogDrawer = () => {
   const { log, state } = useReview();
+  const replay = useReplay();
   const [expanded, setExpanded] = useState(false);
+  const [error, setError] = useState<string>();
+  const fileRef = useRef<HTMLInputElement>(null);
   const disclosureRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowLayout();
   const latest = log.at(-1);
+
+  const importFile = async (file: File | undefined) => {
+    setError(undefined);
+    if (!file) return;
+    try {
+      const fixture = parseFixture(await file.text());
+      await startImported(fixture, 'Imported session');
+      setExpanded(false);
+      focusPause();
+    } catch (cause) {
+      const message = `Could not import: ${cause instanceof Error ? cause.message : String(cause)}`;
+      setError(message); announce(message);
+    } finally { if (fileRef.current) fileRef.current.value = ''; }
+  };
 
   const close = () => {
     setExpanded(false);
@@ -113,7 +136,7 @@ export const ChangeLogDrawer = () => {
     >
       {!expanded ? (
         <div className="change-log__collapsed">
-          {latest ? <LogLine entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
+          {latest ? <LogLine collapsed entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
           <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
             Show change log
             <ChevronDownIcon />
@@ -129,8 +152,23 @@ export const ChangeLogDrawer = () => {
         >
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
+            <div className="change-log__file-actions">
+              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
+              <ExportSessionButton />
+              <div className="session-import">
+                <label className="visually-hidden" htmlFor="session-file">Import session</label>
+                <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
+                {/* The native input is the control: it holds the tab stop and
+                    the focus ring (.session-import:has(input:focus-visible)).
+                    The visible button only forwards a pointer click, so it
+                    stays out of the tab order and out of the accessibility
+                    tree — otherwise "Import session" would name two controls. */}
+                <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+              </div>
+            </div>
             <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
+          {error && <p className="session-error change-log__error"><OpposingArrowsIcon />{error}</p>}
           {log.length ? (
             <ol className="change-log__entries">
               {log.map((entry, index) => (

@@ -7,7 +7,8 @@ test('sample replay exposes review decisions and reaches the confirmation summar
     if (message.type() === 'error' || message.type() === 'warning') browserProblems.push(message.text());
   });
   page.on('pageerror', error => browserProblems.push(error.message));
-  await page.clock.install();
+  await page.clock.install({ time: new Date('2026-09-02T10:00:00Z') });
+  await page.clock.pauseAt(new Date('2026-09-02T10:00:00Z'));
   await page.goto('/');
   await page.getByRole('button', { name: 'Play sample session' }).click();
 
@@ -55,7 +56,7 @@ test('sample replay exposes review decisions and reaches the confirmation summar
 
   await page.clock.runFor(3_500);
   await expect(page.getByRole('heading', { name: /Confirmed/ })).toBeVisible();
-  await expect(page.getByText(/Reviewed in/)).toBeVisible();
+  await expect(page.getByText(/Recorded review/)).toBeVisible();
 
   // The summary lists are plain rows — no bullets, no ordinals — and the count
   // chips are sans, because mono is reserved for values.

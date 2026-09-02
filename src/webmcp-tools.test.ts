@@ -19,6 +19,7 @@ export const modelContext = () => {
 };
 
 test('registration: six literal tools on load, exact descriptions, annotations and budgets', async () => {
+  expect(readFileSync('src/webmcp-tools.ts', 'utf8')).toContain('Keep value short and as written in the source; explanation goes in rationale.');
   const { roster, context } = modelContext();
   await import('./webmcp-tools');
   expect([...roster.keys()]).toEqual(['list_rfq_documents', 'read_document', 'propose_field', 'report_conflict', 'report_missing', 'get_review_state']);
