@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
@@ -103,5 +104,23 @@ describe('the drawing zoom control', () => {
     expect(caption).toHaveTextContent('a revision letter would live here; there is none');
     expect(caption).toHaveTextContent('regions are clickable');
     expect(caption.textContent).not.toContain('Sheet 1 of 4');
+  });
+});
+
+describe('the toolbar type scale', () => {
+  const componentsCss = readFileSync('src/styles/components.css', 'utf8');
+
+  /** Every font-size token the stylesheet gives a selector, in source order. */
+  const sizeTokens = (selector: string): string[] => componentsCss.split('}').flatMap(rule => {
+    const parts = rule.split('{');
+    if (parts.length < 2) return [];
+    const heads = parts[parts.length - 2]!.split(',').map(head => head.trim());
+    if (!heads.includes(selector)) return [];
+    const size = parts[parts.length - 1]!.match(/font-size:\s*var\((--text-[a-z-]+)\)/);
+    return size ? [size[1]!] : [];
+  });
+
+  test('the Zoom micro-label is sm, the step export 17 measures', () => {
+    expect(sizeTokens('.drawing-sheet__zoom-label')).toEqual(['--text-sm']);
   });
 });
