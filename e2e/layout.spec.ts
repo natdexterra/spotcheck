@@ -328,3 +328,23 @@ test('a candidate is a raised card and Pick keeps the compact button height', as
   // It sits beside the value, not stretched down the side of the card.
   expect(box.height).toBeLessThan((await candidate.boundingBox())!.height);
 });
+
+test('first load fits eleven one-line rows, and the line arrives with the agent', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+
+  const rows = page.locator('.field-row');
+  await expect(rows).toHaveCount(11);
+  const heights = await rows.evaluateAll(list => list.map(row => Math.round(row.getBoundingClientRect().height)));
+  expect(Math.max(...heights)).toBeLessThanOrEqual(48);
+  // All eleven stand inside the pane: nothing is scrolled out of sight.
+  const list = await page.locator('.field-list').evaluate(element => ({
+    scrollHeight: element.scrollHeight, clientHeight: element.clientHeight,
+  }));
+  expect(list.scrollHeight).toBeLessThanOrEqual(list.clientHeight);
+
+  await seed(page);
+  const empty = page.locator('[data-field-id="drawing_number"]');
+  await expect(empty).toContainText('The agent has proposed nothing here');
+  await expect(empty.getByRole('button', { name: 'Enter value' })).toBeVisible();
+});

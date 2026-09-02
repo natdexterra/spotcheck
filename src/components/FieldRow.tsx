@@ -13,6 +13,8 @@ import { ProvenanceLink } from './ProvenanceLink';
 import { SuggestionCard } from './SuggestionCard';
 
 export interface FieldRowProps {
+  /** True before the first tool call: the row is label, value and badge only. */
+  bare?: boolean;
   field: Field;
   /** Set when the agent's newest call on this locked field was a rejected report. */
   lockedReport?: string;
@@ -25,7 +27,7 @@ const fieldSources = (field: Field): string[] => {
   return [];
 };
 
-export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) {
+export function FieldRow({ bare = false, field, lockedReport, now, onSource }: FieldRowProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [closes, setCloses] = useState(0);
@@ -83,7 +85,8 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
   ));
   const kind = field.state === 'verified' ? field.resolution?.kind : undefined;
   let resolution: ReactNode = null;
-  if (kind === 'entered') resolution = 'no agent proposal · you typed this one';
+  if (field.state === 'empty') resolution = 'The agent has proposed nothing here. It may still be reading, or it skipped the field.';
+  else if (kind === 'entered') resolution = 'no agent proposal · you typed this one';
   else if (field.proposal && kind === 'verified') {
     resolution = <>the agent’s value, kept as proposed{sourceRun(field.proposal.source_refs)}</>;
   } else if (field.proposal && (kind === 'edited' || kind === 'picked' || kind === 'applied')) {
@@ -92,7 +95,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
 
   return (
     <article
-      className={`field-row field-row--${field.state}`}
+      className={`field-row field-row--${field.state}${bare ? ' field-row--bare' : ''}`}
       data-field-id={field.id}
       id={`field-${field.id}`}
       ref={rowRef}
@@ -141,7 +144,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         </p>
       ) : null}
 
-      {resolution && !editorOpen ? (
+      {resolution && !editorOpen && !bare ? (
         <p className="field-row__resolution">{resolution}</p>
       ) : null}
 
@@ -185,7 +188,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         />
       ) : null}
 
-      {(field.state === 'missing' || field.state === 'empty') && !editorOpen ? (
+      {(field.state === 'missing' || field.state === 'empty') && !editorOpen && !bare ? (
         <div className="field-row__actions">
           <Button ref={editorButtonRef} variant="secondary" onClick={openEditor}>Enter value</Button>
           <Button ref={pickerButtonRef} variant="text" onClick={openPicker}>Mark not required</Button>

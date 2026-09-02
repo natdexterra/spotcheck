@@ -365,3 +365,29 @@ describe('the sentence under a verified value', () => {
     expect(document.querySelector('.field-row__resolution')).toBeNull();
   });
 });
+
+describe('empty rows', () => {
+  test('an empty row says why it is empty once the agent has started', () => {
+    render(<FieldRow field={field('delivery', 'empty')} />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'The agent has proposed nothing here. It may still be reading, or it skipped the field.',
+    );
+    expect(screen.getByRole('button', { name: 'Enter value' })).toBeInTheDocument();
+  });
+
+  test('before the first tool call the row is one line: label, dash, badge', () => {
+    act(() => replaceState(createInitialState()));
+    render(<FieldList />);
+
+    const rows = [...document.querySelectorAll('.field-row')];
+    expect(rows).toHaveLength(11);
+    for (const row of rows) {
+      expect(row).toHaveClass('field-row--bare');
+      expect(row.querySelector('.field-row__resolution')).toBeNull();
+      expect(row.querySelector('.field-row__actions')).toBeNull();
+      expect(row.querySelector('.field-row__value')).toHaveTextContent('—');
+      expect(row.querySelector('.field-row__badge')).toHaveTextContent('Not extracted');
+    }
+  });
+});
