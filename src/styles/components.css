@@ -525,9 +525,16 @@
   white-space: nowrap;
 }
 
+/* Export 08: every block of the summary stands off the one above it, so two
+   hairlines never meet. */
 .confirm-summary__details,
 .confirm-summary__log,
-.confirm-summary__actions,
+.confirm-summary__actions {
+  margin-block-start: var(--space-6);
+}
+
+/* The details and the log are cards on the canvas; the actions under them are
+   not (export 08). */
 .confirm-summary__details,
 .confirm-summary__log {
   max-width: var(--pane-field-max);
