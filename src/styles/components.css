@@ -329,7 +329,7 @@
 .source-pane__reading,
 .source-pane__draft-dot {
   display: inline-block;
-  margin-inline-start: var(--space-1);
+  margin-inline: var(--space-1);
 }
 
 .status-strip__dot {
@@ -640,8 +640,12 @@
   line-height: var(--leading-lg-loose);
 }
 
+/* Export 02: the provenance highlight is inset from the text it marks, and
+   the inset is always there so nothing moves when it lights up. */
 .document-section,
 .document-region {
+  padding-inline: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
   transition: background-color var(--dur-3) var(--ease-1);
 }
 

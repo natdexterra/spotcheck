@@ -246,12 +246,13 @@ export function SourcePane({
             tabIndex={activeTab === tab ? 0 : -1}
             type="button"
           >
+            {/* Exports 07 and 13 put the unsent marker before the name. */}
+            {tab === 'clarification' && draft && !sent && (
+              <span aria-hidden="true" className="source-pane__draft-dot" />
+            )}
             {TAB_LABELS[tab]}
             {readingVisible && reading?.docId === tab && (
               <span aria-label="reading" className="source-pane__reading" role="img" />
-            )}
-            {tab === 'clarification' && draft && !sent && (
-              <span aria-hidden="true" className="source-pane__draft-dot" />
             )}
           </button>
         ))}
