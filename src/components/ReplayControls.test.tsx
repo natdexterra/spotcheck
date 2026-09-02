@@ -32,6 +32,16 @@ test('Next call is disabled during an in-flight step', async () => {
   expect(screen.getByRole('button', { name: 'Next call' })).toBeEnabled();
 });
 
+test('focusPause falls back to Restart when the row carries no Pause', async () => {
+  await controller.startSample(); controller.pause();
+  vi.spyOn(tools, 'executeTool').mockRejectedValueOnce(new Error('Tool unavailable'));
+  render(<ReplayControls />);
+  await act(async () => { await controller.next(); });
+  expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+  act(() => { controller.focusPause(); });
+  expect(screen.getByRole('button', { name: 'Restart' })).toHaveFocus();
+});
+
 test('error and ended rows show Restart only with their status text', async () => {
   await controller.startSample(); controller.pause();
   vi.spyOn(tools, 'executeTool').mockRejectedValueOnce(new Error('Tool unavailable'));

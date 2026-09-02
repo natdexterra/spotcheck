@@ -8,7 +8,7 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { describeRead } from '../replay/describe';
-import { startImported, startSample } from '../replay/controller';
+import { focusPause, startImported, startSample } from '../replay/controller';
 import { useReplay } from '../hooks/useReplay';
 import { parseFixture } from '../replay/serialization';
 import { ExportSessionButton } from './ExportSessionButton';
@@ -112,7 +112,7 @@ export const ChangeLogDrawer = () => {
       const fixture = parseFixture(await file.text());
       await startImported(fixture, 'Imported session');
       setExpanded(false);
-      requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.replay-controls__actions button')?.focus());
+      focusPause();
     } catch (cause) {
       const message = `Could not import: ${cause instanceof Error ? cause.message : String(cause)}`;
       setError(message); announce(message);
@@ -153,7 +153,7 @@ export const ChangeLogDrawer = () => {
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
             <div className="change-log__file-actions">
-              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.replay-controls__actions button')?.focus()); }}>Play sample session</Button>}
+              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
               <ExportSessionButton />
               <div className="session-import">
                 <label className="visually-hidden" htmlFor="session-file">Import session</label>

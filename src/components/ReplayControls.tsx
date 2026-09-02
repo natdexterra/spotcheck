@@ -9,9 +9,18 @@ import { announce } from './LiveRegion';
 export function ReplayControls() {
   const replay = useReplay();
   const toggle = useRef<HTMLButtonElement>(null);
+  const restartButton = useRef<HTMLButtonElement>(null);
+  const focused = useRef(replay.focusRequest);
   const [restartFocus, setRestartFocus] = useState(0);
   useEffect(() => { if (replay.error) announce(`Replay stopped at step ${replay.position + 1}: ${replay.error}`); }, [replay.error, replay.position]);
   useLayoutEffect(() => { if (restartFocus) toggle.current?.focus(); }, [restartFocus]);
+  // A focus request from outside the row lands after this render committed, so
+  // the buttons it asks for exist. Ended and errored rows have Restart only.
+  useLayoutEffect(() => {
+    if (focused.current === replay.focusRequest) return;
+    focused.current = replay.focusRequest;
+    (toggle.current ?? restartButton.current)?.focus();
+  }, [replay.focusRequest]);
   if (!replay.active) return null;
   return (
     <div className="replay-controls" role="group" aria-label="Replay controls">
@@ -25,7 +34,7 @@ export function ReplayControls() {
           <Button ref={toggle} variant="secondary" onClick={replay.playing ? pause : play}>{replay.playing ? 'Pause' : 'Play'}</Button>
           <Button variant="text" disabled={replay.busy} onClick={() => void next()}>Next call</Button>
         </>}
-        <Button variant="text" disabled={replay.busy} onClick={() => { restart(); setRestartFocus(value => value + 1); }}>Restart</Button>
+        <Button ref={restartButton} variant="text" disabled={replay.busy} onClick={() => { restart(); setRestartFocus(value => value + 1); }}>Restart</Button>
       </div>
     </div>
   );
