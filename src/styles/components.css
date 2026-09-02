@@ -1360,7 +1360,12 @@
     padding: var(--space-6) var(--space-4);
   }
 
-  .source-pane__panel--clarification {
+  /* Narrow, the sheet's rows share the sheet lane with the tabs above them;
+     the zoom-2 rule still outranks this one, so the region goes full-bleed. */
+  .source-pane__panel--clarification,
+  .drawing-sheet__toolbar,
+  .drawing-sheet__scroll,
+  .drawing-sheet__caption {
     padding-inline: var(--space-4);
   }
 

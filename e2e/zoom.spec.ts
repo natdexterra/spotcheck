@@ -236,6 +236,21 @@ test.describe('drawing zoom on the narrow sheet', () => {
     await page.locator('[data-field-id="overall_dimensions"]')
       .getByRole('link', { name: 'drawing width' }).click();
     await expect(page.locator('.source-pane--sheet')).toBeVisible();
+
+    // Narrow, every row of the sheet stands on the sheet's own 16px lane: the
+    // sheet name and the caption line up with the tabs above them (export 17).
+    const lane = await page.evaluate(() => {
+      const left = (selector: string) =>
+        Math.round(document.querySelector(selector)!.getBoundingClientRect().left);
+      return {
+        name: left('.drawing-sheet__name'),
+        caption: left('.drawing-sheet__caption span'),
+        tab: left('.source-pane__tab'),
+      };
+    });
+    expect(lane.name).toBe(lane.tab);
+    expect(lane.caption).toBe(lane.tab);
+
     await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-390.png' });
     await zoomTo(page, '2×');
 
