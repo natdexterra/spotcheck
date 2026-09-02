@@ -178,7 +178,6 @@
 }
 
 .icon {
-  display: inline-block;
   flex: none;
   width: var(--space-4);
   height: var(--space-4);
@@ -449,7 +448,9 @@
   }
 }
 
-.field-pane {
+/* The two panes are one drawing: a white panel on the canvas, hairlined. */
+.field-pane,
+.source-pane {
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -479,7 +480,6 @@
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  text-align: center;
 }
 
 .confirm-summary {
@@ -520,9 +520,11 @@
 }
 
 .confirm-summary__details,
+.confirm-summary__log,
+.confirm-summary__actions,
+.confirm-summary__details,
 .confirm-summary__log {
   max-width: var(--pane-field-max);
-  margin-block-start: var(--space-6);
   padding: var(--space-4);
   background-color: var(--bg-raised);
   border: var(--rule-width) solid var(--hairline);
@@ -560,22 +562,12 @@
   margin-block-start: var(--space-2);
 }
 
-.confirm-summary__actions {
-  margin-block-start: var(--space-6);
-}
-
 .source-pane {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  background-color: var(--bg-raised);
-  border: var(--rule-width) solid var(--hairline);
-  border-radius: var(--radius-2);
 }
 
-/* The two regions that scroll inside the shell. */
+/* The regions that scroll inside the shell. */
+.field-list,
 .summary-main,
 .source-pane__panel {
   flex: 1;
@@ -705,8 +697,6 @@
   position: fixed;
   z-index: 1;
   inset: 0;
-  display: flex;
-  flex-direction: column;
   border: 0;
   border-radius: 0;
 }
@@ -1098,9 +1088,6 @@
 
 .field-list {
   min-width: 0;
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
 }
 
 .field-list__header {
