@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import type { Field, FieldId, FieldState, ResolutionKind } from '../state/types';
-import { badgeText, duration, fieldLabel, groupLabel, relativeTime } from './format';
+import { badgeText, duration, fieldLabel, groupLabel, plural, relativeTime } from './format';
 
 const field = (overrides: Partial<Field> = {}): Field => ({
   id: 'material',
@@ -97,5 +97,20 @@ describe('groupLabel', () => {
     ['asked_customer', 'Asked customer'],
   ])('%s uses the short label %s', (state, label) => {
     expect(groupLabel(state)).toBe(label);
+  });
+});
+
+describe('plural', () => {
+  test.each([
+    [0, '0 calls'],
+    [1, '1 call'],
+    [2, '2 calls'],
+  ])('%i reads as %s', (count, expected) => {
+    expect(plural(count, 'call', 'calls')).toBe(expected);
+  });
+
+  test('irregular plurals are spelled out', () => {
+    expect(plural(1, 'entry', 'entries')).toBe('1 entry');
+    expect(plural(23, 'entry', 'entries')).toBe('23 entries');
   });
 });

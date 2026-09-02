@@ -3,7 +3,7 @@ import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
-import { fieldLabel, NO_VALUE } from '../lib/format';
+import { fieldLabel, NO_VALUE, plural } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -141,7 +141,7 @@ export const ChangeLogDrawer = () => {
           <span className="change-log__label">Change log</span>
           {latest ? <LogLine collapsed entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
           <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
-            {log.length} entries
+            {plural(log.length, 'entry', 'entries')}
             <ChevronDownIcon />
           </Button>
         </div>
@@ -155,7 +155,7 @@ export const ChangeLogDrawer = () => {
         >
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
-            <p className="change-log__meta">{log.length} entries · agent and you</p>
+            <p className="change-log__meta">{plural(log.length, 'entry', 'entries')} · agent and you</p>
             <div className="change-log__file-actions">
               {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
               <ExportSessionButton />

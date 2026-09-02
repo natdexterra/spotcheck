@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
+import { plural } from '../lib/format';
 import type { AgentAction } from '../state/types';
 import { Button } from './Button';
 import { useReplay } from '../hooks/useReplay';
@@ -124,7 +125,7 @@ export function StatusStrip({
           {state === 'live' && (
             <>
               <strong>Live</strong>
-              <span className="numeric">{sizeChange ?? `${rosterSize} tools`} · {agentEntries.length} calls</span>
+              <span className="numeric">{sizeChange ?? plural(rosterSize, 'tool', 'tools')} · {plural(agentEntries.length, 'call', 'calls')}</span>
               <span>{lastActivity(lastAgent?.event.action as AgentAction | undefined)} · just now</span>
               <Button variant="text" aria-expanded={toolsOpen} onClick={() => setToolsOpen(open => !open)}>
                 Show tools <ChevronDownIcon />
@@ -150,7 +151,7 @@ export function StatusStrip({
             >
               <code>{tool.name}</code>
               <span>{tool.readOnly ? 'read' : 'write'}</span>
-              <span className="numeric">{tool.calls} calls</span>
+              <span className="numeric">{plural(tool.calls, 'call', 'calls')}</span>
               {tool.code && <code>{tool.code}</code>}
             </li>
           ))}
