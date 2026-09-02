@@ -46,7 +46,7 @@ describe('ChangeLogDrawer', () => {
     expect(entries[0]).toHaveTextContent('Agent proposed Material — 6061');
     expect(entries[1]).toHaveTextContent('You edited Material — agent 6061 → yours 7075');
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: /Export|Import/ })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Export session' })).toBeEnabled();
   });
 
   test('renders rejection codes, agent notes and skipped replay entries', async () => {

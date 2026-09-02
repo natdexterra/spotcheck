@@ -27,7 +27,7 @@ The fallback becomes a complete, controllable replay and the session becomes a f
 | `src/hooks/useReplay.ts` (create) | `useSyncExternalStore` over the controller: `{ active, label, recordedAt, position, total, playing, ended, error, next, finishedByViewer, recordedMs }` |
 | `src/lib/download.ts` (create) | `downloadJson(name, text)`: Blob → object URL → `<a download>` click → revoke; no library |
 | `src/components/ReplayControls.tsx` (create) | the replay row (§ Replay row); rendered by `StatusStrip` under the quiet line while a replay is active |
-| `src/components/StatusStrip.tsx` (modify) | the `Export session` text button fills the existing export slot in `live`; renders `ReplayControls`; `onPlaySample` calls `startSample()` |
+| `src/components/StatusStrip.tsx` (modify) | the `Export session` button (secondary compact, per DESIGN.md § Interaction states) fills the existing export slot in `live`; renders `ReplayControls`; `onPlaySample` calls `startSample()` |
 | `src/components/ChangeLogDrawer.tsx` (modify) | collapsed bar one line; read entries name what was read (§ Collapsed log bar); expanded header gains `Export session` and `Import session` (file input) with an error line |
 | `src/components/ConfirmSummary.tsx` (modify) | the review-time line per § Summary; `Export session` beside `Start over`; `Start over` goes through `controller.leave()` |
 | `src/App.tsx` (modify) | no replay ref; the strip and the summary reach the controller through the hook; unmount calls `leave()` |
@@ -56,7 +56,7 @@ Text, left: `{label} · recorded {date} · {position} / {total}`, then the next-
 
 | State | Text after the counter | Controls (right, in this order) |
 |---|---|---|
-| playing | `next: …` | `Pause` (secondary compact) · `Next call` (text, disabled while a step is in flight) · `Restart` (text) |
+| playing | `next: …` | `Pause` (secondary compact) · `Next call` (text, disabled while a step is in flight) · `Restart` (text) — then `Export session` (secondary compact) in the slot at the far right |
 | paused | `next: …` | `Play` (secondary compact) · `Next call` · `Restart` |
 | ended | `finished` | `Restart` |
 | error | `stopped at step {n}: {message}` in `--state-conflict` with the conflict icon | `Restart` |
@@ -79,13 +79,13 @@ Field labels from `fieldLabel()`, never ids.
 
 ### Export session
 
-- A text button `Export session` in three places: the strip's export slot (`live` only), the expanded log drawer header (any state with at least one entry), the summary actions beside `Start over`. Disabled with an empty log.
+- `Export session` is a **secondary compact** button (DESIGN.md § Interaction states lists Export under Secondary; that table governs variants) in three places: the strip's export slot (`live` only), the expanded log drawer header (any state with at least one entry), the summary actions beside `Start over`. Disabled with an empty log.
 - Downloads `spotcheck-session-{YYYY-MM-DD}T{HHmm}.json`: `exportSession()` pretty-printed, `recorded_at` = the download moment as ISO. During a replay the export is the replayed log as it stands (the same shape a live session gives — export → import → identical final state, B8).
 - Focus stays on the button; the live region says "Session exported".
 
 ### Import session
 
-- In the expanded log drawer header, right of `Export session`: a native `<input type="file" accept="application/json,.json">` labelled "Import session" — the native control is kept (DESIGN.md § Choice controls); the visible trigger is a secondary compact button that forwards the click, and the input stays in the tab order with the same focus ring. Narrow: the same controls in the log sheet's header, 44px targets.
+- In the expanded log drawer header, right of `Export session`: a native `<input type="file" accept="application/json,.json">` labelled "Import session" — the native control is kept (DESIGN.md § Choice controls); the visible trigger is a secondary compact button like Export (two secondaries side by side, `--space-2` apart) that forwards the click, and the input stays in the tab order with the same focus ring. Narrow: the same controls in the log sheet's header, 44px targets.
 - On a file: read as text → `parseFixture` → on success `startImported(fixture, "Imported session")` playing from step 0 (the drawer closes; focus moves to the strip's `Pause`); on failure an error line under the header, `--state-conflict` with the conflict icon, "Could not import: {message}", announced through the one live region; nothing else changes. The next attempt clears the line.
 - Import never touches storage: the imported session is a replay and follows the lifecycle above.
 

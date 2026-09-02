@@ -7,6 +7,7 @@ import { Button } from './Button';
 import { useReplay } from '../hooks/useReplay';
 import { startSample } from '../replay/controller';
 import { ReplayControls } from './ReplayControls';
+import { ExportSessionButton } from './ExportSessionButton';
 
 const PROMPT = 'Extract this RFQ into a quote request';
 const MARKER_MS = 2_000;
@@ -137,7 +138,7 @@ export function StatusStrip({
         {preLive && (
           <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
         )}
-        {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
+        {state === 'live' && <div className="status-strip__export-slot"><ExportSessionButton /></div>}
       </div>
       <ReplayControls />
       {toolsOpen && state === 'live' && (
