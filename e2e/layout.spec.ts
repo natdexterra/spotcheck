@@ -235,3 +235,34 @@ test('the md meta group keeps its size: blocker line, header reference, log sent
     expect(size[0]).toBe(size[1]);
   }
 });
+
+test('a provenance link is sm mono in every context it appears in', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+  await page.evaluate(() => document.fonts.ready);
+
+  const sm = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-sm').trim());
+  const expected = await page.evaluate(token => {
+    const probe = document.createElement('span');
+    probe.style.fontSize = token;
+    document.body.append(probe);
+    const size = getComputedStyle(probe).fontSize;
+    probe.remove();
+    return size;
+  }, sm);
+
+  // The row, the conflict card and the open editor's context line: one size.
+  await page.locator('[data-field-id="material"]').getByRole('button', { name: 'Edit' }).click();
+  const contexts = ['.field-row__sources', '.candidate-option__sources', '.inline-editor__context'];
+  for (const parent of contexts) {
+    const link = page.locator(`${parent} .inline-link--provenance`).first();
+    await expect(link).toBeVisible();
+    const style = await link.evaluate(element => {
+      const computed = getComputedStyle(element);
+      return { size: computed.fontSize, family: computed.fontFamily };
+    });
+    expect(style.size).toBe(expected);
+    expect(style.family).toMatch(/mono/i);
+  }
+});

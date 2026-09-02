@@ -155,7 +155,11 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* A source ref is a chip-sized token wherever it lands: row, candidate card,
+   suggestion card, verified row, editor context line (exports 02, 11). */
 .inline-link--provenance {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
   text-decoration-line: underline;
   text-decoration-style: dotted;
   text-decoration-thickness: auto;
