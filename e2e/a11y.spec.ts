@@ -133,7 +133,7 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
   // Segmented unit control: the ring paints on the visible segment, not the clipped input.
   const dimensions = page.locator('[data-field-id="overall_dimensions"]');
   await dimensions.getByRole('button', { name: 'Add unit' }).click();
-  await dimensions.getByRole('textbox', { name: 'Overall dimensions' }).click();
+  await dimensions.getByRole('textbox', { name: 'Overall dimensions value' }).click();
   await page.keyboard.press('Tab');
   const segment = dimensions.locator('.inline-editor__segment').first();
   await expect(segment.locator('input')).toBeFocused();
@@ -160,14 +160,14 @@ test('the editor opened from a conflict row returns focus to Enter another value
   const trigger = row.getByRole('button', { name: 'Enter another value' });
 
   await trigger.click();
-  await expect(row.getByRole('textbox', { name: 'Quantity' })).toBeFocused();
+  await expect(row.getByRole('textbox', { name: 'Quantity value' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
 
   // The `e` binding on the row reaches the same editor and the same return.
   await row.focus();
   await page.keyboard.press('e');
-  await expect(row.getByRole('textbox', { name: 'Quantity' })).toBeFocused();
+  await expect(row.getByRole('textbox', { name: 'Quantity value' })).toBeFocused();
   await page.keyboard.press('Escape');
   await expect(trigger).toBeFocused();
 });

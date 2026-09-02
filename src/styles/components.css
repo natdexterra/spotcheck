@@ -17,7 +17,6 @@
 .field-list__header h2,
 .field-list__group-heading,
 .clarification__label,
-.inline-editor__label,
 .not-required-picker__legend {
   font-size: var(--text-md);
   line-height: var(--leading-md);
@@ -202,7 +201,9 @@
 .field-row__agent-original,
 .field-list__verified-summary,
 .change-log__entry,
+.inline-editor__context,
 .inline-editor__hint,
+.inline-editor__keys,
 .inline-editor__error,
 .candidate-option__note,
 .suggestion-card__reason,
@@ -781,7 +782,6 @@
   line-height: var(--leading-lg-loose);
 }
 
-.inline-editor,
 .not-required-picker,
 .suggestion-card,
 .candidate-option {
@@ -790,8 +790,16 @@
   background-color: var(--bg-subtle);
 }
 
+/* Export 12: the editor replaces the value line inside the row, so it carries
+   no fill and no border of its own; the row's marker and label stay. */
 .inline-editor {
-  border: var(--rule-width) solid var(--border-input);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.inline-editor__label {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
 }
 
 .inline-editor__controls {
@@ -852,7 +860,7 @@
 }
 
 .inline-editor__segment {
-  min-height: var(--control-input);
+  min-height: calc(var(--control-input) - 2 * var(--rule-width));
   display: grid;
   place-items: center;
   padding-inline: var(--space-4);
@@ -961,15 +969,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  margin: var(--space-2) 0 0;
   color: var(--state-conflict);
+}
+
+/* Export 12: the input and the segmented control beside it are one control
+   height, tops and bottoms aligned, so the block padding gives way to the
+   min-height and the segments sit inside the group's two hairlines. */
+.inline-editor__input {
+  padding-block: 0;
 }
 
 .inline-editor__input[aria-invalid="true"] {
   border-color: var(--state-conflict);
 }
 
-.inline-editor__actions,
 .not-required-picker__actions,
 .suggestion-card__actions,
 .candidate-option__sources,
@@ -1156,6 +1169,7 @@
 
 .field-row__sources,
 .field-row__actions,
+.inline-editor__actions,
 .clarification__actions {
   display: flex;
   align-items: center;
@@ -1166,7 +1180,10 @@
 .field-row__sources,
 .field-row__agent-note,
 .field-row__revision,
-.field-row__agent-original {
+.field-row__agent-original,
+.inline-editor__context,
+.inline-editor__hint,
+.inline-editor__error {
   margin: 0;
 }
 
@@ -1294,8 +1311,13 @@
     flex-direction: column;
   }
 
+  .inline-editor__input {
+    min-height: var(--control-large);
+  }
+
   .inline-editor__segment {
     flex: 1;
+    min-height: calc(var(--control-large) - 2 * var(--rule-width));
   }
 
   /* Choice rows reach the narrow target through padding, not bigger boxes. */
