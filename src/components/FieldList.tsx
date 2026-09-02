@@ -9,6 +9,7 @@ import {
   OpposingArrowsIcon,
 } from '../icons';
 import { fieldLabel } from '../lib/format';
+import { dismissReason, lastSent } from '../lib/log';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId, FieldState } from '../state/types';
 import { Button } from './Button';
@@ -67,6 +68,7 @@ const lockedReportFor = (field: Field, log: LogEntry[]): string | undefined => {
 
 export function FieldList({ focusRequest, onSource }: FieldListProps) {
   const { groups, log, verifiedCount } = useReview();
+  const sent = lastSent(log);
   const [verifiedOpen, setVerifiedOpen] = useState(false);
   const verified = groups.find(group => group.state === 'verified');
   const hasPendingSuggestion = verified?.fields.some(field => field.suggestion !== undefined) === true;
@@ -112,10 +114,12 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
             {group.fields.map(field => (
               <FieldRow
                 bare={log.length === 0}
+                dismissReason={dismissReason(log, field.id)}
                 field={field}
                 key={field.id}
                 lockedReport={lockedReportFor(field, log)}
                 onSource={onSource}
+                sent={sent}
               />
             ))}
           </section>
@@ -145,10 +149,12 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
           {verifiedOpen
             ? verified.fields.map(field => (
               <FieldRow
+                dismissReason={dismissReason(log, field.id)}
                 field={field}
                 key={field.id}
                 lockedReport={lockedReportFor(field, log)}
                 onSource={onSource}
+                sent={sent}
               />
             ))
             : null}

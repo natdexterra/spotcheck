@@ -405,6 +405,68 @@ describe('the sentence under a verified value', () => {
   });
 });
 
+describe('a row settled without a value of its own', () => {
+  test('a not-required row gives the reason you chose', () => {
+    render(<FieldRow
+      dismissReason="covered by our shop standard"
+      field={field('general_tolerance', 'verified', {
+        value: null,
+        resolution: { kind: 'dismissed', at: 1_000 },
+      })}
+    />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'your reason: covered by our shop standard',
+    );
+  });
+
+  test('an asked-customer row says when the question went and what it covers', () => {
+    render(<FieldRow
+      field={field('surface_finish', 'verified', {
+        value: 'Black powder coat',
+        resolution: { kind: 'asked_customer', at: 1_000 },
+      })}
+      sent={{ at: new Date(2026, 8, 2, 14, 36).getTime(), covers: ['surface_finish', 'general_tolerance'] }}
+    />);
+
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'sent 14:36 · covers this field and General tolerance · see the sent text',
+    );
+  });
+
+  test('the list reads both out of the log', async () => {
+    const at = new Date(2026, 8, 2, 14, 36).getTime();
+    const state = createInitialState();
+    act(() => replaceState({
+      ...state,
+      fields: [
+        field('general_tolerance', 'verified', { value: null, resolution: { kind: 'dismissed', at } }),
+        field('surface_finish', 'verified', { value: 'Black powder coat', resolution: { kind: 'asked_customer', at } }),
+      ],
+      log: [
+        {
+          actor: 'estimator',
+          at,
+          event: {
+            actor: 'human',
+            action: { type: 'dismiss', field_id: 'general_tolerance', reason: 'covered by our shop standard' },
+          },
+        },
+        {
+          actor: 'estimator',
+          at,
+          event: { actor: 'human', action: { type: 'send', covers: ['surface_finish'] } },
+        },
+      ],
+    } as never));
+    render(<FieldList />);
+    await userEvent.click(screen.getByRole('button', { name: 'Show' }));
+
+    expect(document.body).toHaveTextContent('your reason: covered by our shop standard');
+    expect(document.body).toHaveTextContent('sent 14:36 · covers this field · see the sent text');
+  });
+});
+
 describe('empty rows', () => {
   test('an empty row says why it is empty once the agent has started', () => {
     render(<FieldRow field={field('delivery', 'empty')} />);

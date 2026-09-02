@@ -58,6 +58,12 @@ export function duration(ms: number): string {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 }
 
+/** Wall-clock time as the log and the row stamp it: 14:36. */
+export function clockTime(at: number): string {
+  const date = new Date(at);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+}
+
 export function relativeTime(at: number, now: number): string {
   return `${duration(now - at)} ago`;
 }
