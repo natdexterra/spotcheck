@@ -1,11 +1,19 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
-import { act, cleanup, render, screen } from '@testing-library/react';
+import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { createInitialState, type ReviewSession } from '../state/session';
-import { replaceState } from '../state/store';
+import { getState, replaceState } from '../state/store';
 import { ChangeLogDrawer } from './ChangeLogDrawer';
+
+/* jsdom carries no top layer; the element's own behaviour is proved in the browser. */
+beforeAll(() => {
+  Object.assign(HTMLDialogElement.prototype, {
+    showModal(this: HTMLDialogElement) { this.open = true; },
+    close(this: HTMLDialogElement) { this.open = false; this.dispatchEvent(new Event('close')); },
+  });
+});
 
 afterEach(() => {
   cleanup();
@@ -125,5 +133,61 @@ describe('ChangeLogDrawer', () => {
     expect(document.querySelector('.change-log__sheet')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Close' }));
     expect(screen.getByRole('button', { name: /entr(y|ies)$/ })).toBeInTheDocument();
+  });
+});
+
+describe('P5: the log header during a live session', () => {
+  const liveSession = (entries = 3): ReviewSession => ({
+    ...createInitialState(),
+    log: Array.from({ length: entries }, (_, index) => ({
+      actor: 'agent' as const,
+      at: 1_000 + index,
+      event: { actor: 'agent' as const, action: { type: 'propose' as const, at: 1_000 + index } },
+      result: { ok: true },
+    })),
+  });
+
+  test('carries the way into a package of your own beside the sample', async () => {
+    const onOpenPackage = vi.fn();
+    const user = userEvent.setup();
+    act(() => replaceState(liveSession()));
+    render(<ChangeLogDrawer onOpenPackage={onOpenPackage} />);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+
+    expect(screen.getByRole('button', { name: 'Play sample session' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Open your own package' }));
+    expect(onOpenPackage).toHaveBeenCalledOnce();
+  });
+
+  test('Start over asks first, and Cancel changes nothing', async () => {
+    const user = userEvent.setup();
+    act(() => replaceState(liveSession()));
+    render(<ChangeLogDrawer />);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+    await user.click(screen.getByRole('button', { name: 'Start over' }));
+
+    expect(screen.getByText('This discards 3 entries and every value on the page.')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(getState()).toEqual(liveSession());
+  });
+
+  test('confirming clears the page and the session that was saved with it', async () => {
+    const user = userEvent.setup();
+    act(() => replaceState(liveSession()));
+    render(<ChangeLogDrawer />);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+    await user.click(screen.getByRole('button', { name: 'Start over' }));
+    const dialog = document.querySelector('.dialog--confirm') as HTMLElement;
+    await act(async () => { await user.click(within(dialog).getByRole('button', { name: 'Start over' })); });
+
+    expect(getState()).toEqual(createInitialState());
+  });
+
+  test('an empty page is offered no way to start over', async () => {
+    const user = userEvent.setup();
+    render(<ChangeLogDrawer />);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+
+    expect(screen.queryByRole('button', { name: 'Start over' })).toBeNull();
   });
 });

@@ -95,12 +95,12 @@ test('a successful import hands focus to Pause on the replay row', async () => {
   expect(screen.getByRole('button', { name: 'Pause' })).toHaveFocus();
 });
 
-test('an imported fixture that ends at once hands focus to Restart, the row it has', async () => {
+test('an imported fixture that ends at once hands focus to the way out, the row it has', async () => {
   render(<><ChangeLogDrawer /><ReplayControls /></>);
   fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   await importFile('{"recorded_at":"2026-09-01","steps":[]}');
   expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: 'Restart' })).toHaveFocus();
+  expect(screen.getByRole('button', { name: 'Leave session' })).toHaveFocus();
 });
 
 test('failed import is visible and announced; next attempt clears error', async () => {

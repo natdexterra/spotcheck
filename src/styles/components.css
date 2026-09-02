@@ -195,6 +195,19 @@
   background-color: var(--bg-raised);
 }
 
+/* The two ways forward before a session starts stand on one line, the sample
+   first (DESIGN.md § Interaction states: one primary per screen). */
+.status-strip__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The notice a package leaves when the browser had no room to keep it. */
+.status-strip__notice {
+  display: block;
+}
+
 /* One md line in the secondary ink: every meta, note and action row. */
 .header__package,
 .status-strip,
@@ -1375,6 +1388,18 @@
     padding-inline: 0;
   }
 
+  /* One column: the sample button, then the way into a package of your own on
+     the line under it, both the full width and the narrow target. */
+  .status-strip__actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .status-strip__actions .button {
+    width: 100%;
+    min-height: var(--control-large);
+  }
+
   .change-log__sheet {
     position: fixed;
     z-index: 1;
@@ -1739,6 +1764,15 @@
 
 .dialog__warning {
   font-weight: 500;
+}
+
+.dialog__message {
+  margin: 0;
+}
+
+/* One question and its consequence: narrower than the package form. */
+.dialog--confirm {
+  width: min(480px, 100% - 2 * var(--page-margin));
 }
 
 .dialog__actions {
