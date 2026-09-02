@@ -16,17 +16,41 @@ const zoomTo = (page: Page, level: '1×' | '2×') =>
 
 const geometry = (page: Page) => page.evaluate(() => {
   const panel = document.querySelector<HTMLElement>('.source-pane__panel--drawing')!;
+  const scroller = document.querySelector<HTMLElement>('.drawing-sheet__scroll')!;
   const wrap = document.querySelector<HTMLElement>('.drawing-sheet__image-wrap')!;
   return {
     panelClientWidth: panel.clientWidth,
     panelScrollWidth: panel.scrollWidth,
     panelScrollHeight: panel.scrollHeight,
     panelClientHeight: panel.clientHeight,
+    scrollerClientWidth: scroller.clientWidth,
+    scrollerOffsetWidth: scroller.offsetWidth,
+    scrollerScrollWidth: scroller.scrollWidth,
+    scrollerClientHeight: scroller.clientHeight,
+    scrollerScrollHeight: scroller.scrollHeight,
     wrapScrollWidth: wrap.scrollWidth,
     pageScrollWidth: document.documentElement.scrollWidth,
     pageClientWidth: document.documentElement.clientWidth,
   };
 });
+
+/** The rows that must never pan with the sheet. */
+const rowRects = (page: Page) => page.evaluate(() => {
+  const rect = (selector: string) => {
+    const { x, y, width, height } = document.querySelector(selector)!.getBoundingClientRect();
+    return { x: Math.round(x), y: Math.round(y), width: Math.round(width), height: Math.round(height) };
+  };
+  return { toolbar: rect('.drawing-sheet__toolbar'), caption: rect('.drawing-sheet__caption') };
+});
+
+const scrollBy = (page: Page, left: number, top: number) => page.evaluate(
+  ({ left: x, top: y }) => {
+    const scroller = document.querySelector<HTMLElement>('.drawing-sheet__scroll')!;
+    scroller.scrollLeft = x;
+    scroller.scrollTop = y;
+  },
+  { left, top },
+);
 
 const seedDimensions = (page: Page) => executeTool(page, 'propose_field', {
   field_id: 'overall_dimensions',
@@ -38,23 +62,36 @@ const seedDimensions = (page: Page) => executeTool(page, 'propose_field', {
 test.describe('drawing zoom', () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
-  test('2× doubles the sheet inside the panel and never widens the page', async ({ page }) => {
+  test('2× doubles the sheet inside its own scroll region and never widens the page', async ({ page }) => {
     const problems = watchConsole(page);
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
 
     const one = await geometry(page);
-    // 1×: the sheet fits the panel, so nothing scrolls sideways.
+    // 1×: the sheet fits the region, so nothing scrolls sideways.
+    expect(one.scrollerScrollWidth).toBe(one.scrollerClientWidth);
     expect(one.panelScrollWidth).toBe(one.panelClientWidth);
     await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-1920.png' });
 
+    const atRest = await rowRects(page);
     await zoomTo(page, '2×');
     const two = await geometry(page);
-    expect(Math.abs(two.wrapScrollWidth - 2 * two.panelClientWidth)).toBeLessThanOrEqual(2);
-    // The panel is the scroll region — in both axes — and the page is not.
-    expect(two.panelScrollWidth).toBeGreaterThan(two.panelClientWidth);
-    expect(two.panelScrollHeight).toBeGreaterThan(two.panelClientHeight);
+    // At 2× the region runs to the panel edges, so 200% of its content width is
+    // two panel widths less the room its own scrollbar takes.
+    expect(two.scrollerOffsetWidth).toBe(two.panelClientWidth);
+    expect(Math.abs(two.wrapScrollWidth - 2 * two.scrollerClientWidth)).toBeLessThanOrEqual(2);
+    // The region is the scroll container — in both axes. The panel is not, and
+    // neither is the page.
+    expect(two.scrollerScrollWidth).toBeGreaterThan(two.scrollerClientWidth);
+    expect(two.scrollerScrollHeight).toBeGreaterThan(two.scrollerClientHeight);
+    expect(two.panelScrollWidth).toBe(two.panelClientWidth);
+    expect(two.panelScrollHeight).toBe(two.panelClientHeight);
     expect(two.pageScrollWidth).toBe(two.pageClientWidth);
+
+    // The toolbar and the caption keep the lane while the sheet pans under them.
+    await scrollBy(page, 200, 200);
+    expect(await rowRects(page)).toEqual(atRest);
+    await scrollBy(page, 0, 0);
 
     // The boxes are percentages of the wrap, so they grow with it and the
     // dashed edge stays a 1px border rather than a scaled stroke.
@@ -77,11 +114,11 @@ test.describe('drawing zoom', () => {
     expect(box.transition).toBe('0s');
 
     await zoomTo(page, '1×');
-    expect((await geometry(page)).panelScrollWidth).toBe(one.panelClientWidth);
+    expect((await geometry(page)).scrollerScrollWidth).toBe(one.scrollerClientWidth);
     expect(problems).toEqual([]);
   });
 
-  test('a provenance link brings its box into the panel at 2×', async ({ page }) => {
+  test('a provenance link brings its box into the scroll region at 2×', async ({ page }) => {
     test.setTimeout(60_000);
     const problems = watchConsole(page);
     await page.clock.install();
@@ -99,14 +136,15 @@ test.describe('drawing zoom', () => {
     await expect(page.locator('.drawing-overlay--active')).toBeVisible();
 
     const inView = await page.evaluate(() => {
-      const panel = document.querySelector('.source-pane__panel--drawing')!.getBoundingClientRect();
+      const scroller = document.querySelector('.drawing-sheet__scroll')!;
+      const region = scroller.getBoundingClientRect();
       const active = document.querySelector('.drawing-overlay--active')!.getBoundingClientRect();
       return {
-        left: active.left >= panel.left - 1,
-        right: active.right <= panel.right + 1,
-        top: active.top >= panel.top - 1,
-        bottom: active.bottom <= panel.bottom + 1,
-        scrolled: document.querySelector('.source-pane__panel--drawing')!.scrollLeft,
+        left: active.left >= region.left - 1,
+        right: active.right <= region.right + 1,
+        top: active.top >= region.top - 1,
+        bottom: active.bottom <= region.bottom + 1,
+        scrolled: scroller.scrollLeft,
       };
     });
     expect(inView.left && inView.right && inView.top && inView.bottom).toBe(true);
@@ -128,11 +166,12 @@ test.describe('drawing zoom', () => {
 
     await expect(page.getByRole('radio', { name: 'Zoom 1x' })).toBeChecked();
     await expect(page.getByRole('radio', { name: 'Zoom 2x' })).not.toBeChecked();
-    expect((await geometry(page)).panelScrollWidth).toBe((await geometry(page)).panelClientWidth);
+    const still = await geometry(page);
+    expect(still.scrollerScrollWidth).toBe(still.scrollerClientWidth);
     expect(problems).toEqual([]);
   });
 
-  test('arrow keys move between the segments and the panel scrolls from the keyboard', async ({ page }) => {
+  test('arrow keys move between the segments and the scroll region scrolls from the keyboard', async ({ page }) => {
     const problems = watchConsole(page);
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
@@ -142,14 +181,14 @@ test.describe('drawing zoom', () => {
     await expect(page.getByRole('radio', { name: 'Zoom 2x' })).toBeChecked();
     await expect(page.getByRole('radio', { name: 'Zoom 2x' })).toBeFocused();
 
-    // The panel wraps the toolbar, so it precedes the segments in tab order:
-    // Shift+Tab from the checked segment is the way back onto the scroller.
-    await page.keyboard.press('Shift+Tab');
-    const panel = page.locator('.source-pane__panel--drawing');
-    await expect(panel).toBeFocused();
+    // The scroll region follows the toolbar in the document, so it is the next
+    // tab stop after the radio group — and it answers the arrows.
+    await page.keyboard.press('Tab');
+    const scroller = page.locator('.drawing-sheet__scroll');
+    await expect(scroller).toBeFocused();
 
     await page.keyboard.press('ArrowDown');
-    await expect.poll(() => panel.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+    await expect.poll(() => scroller.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
 
     // Back on the group, the arrows move the choice again.
     await page.getByRole('radio', { name: 'Zoom 2x' }).focus();
@@ -173,7 +212,7 @@ test.describe('drawing zoom', () => {
         transition: style.transitionDuration,
         animation: style.animationName,
         behavior: getComputedStyle(
-          document.querySelector<HTMLElement>('.source-pane__panel--drawing')!,
+          document.querySelector<HTMLElement>('.drawing-sheet__scroll')!,
         ).scrollBehavior,
       };
     });
@@ -188,7 +227,7 @@ test.describe('drawing zoom', () => {
 test.describe('drawing zoom on the narrow sheet', () => {
   test.use({ viewport: { width: 390, height: 844 } });
 
-  test('390px scrolls the sheet inside the panel and keeps 44px targets', async ({ page }) => {
+  test('390px scrolls the sheet inside its own region and keeps 44px targets', async ({ page }) => {
     const problems = watchConsole(page);
     await installModelContext(page);
     await page.goto('/');
@@ -201,8 +240,10 @@ test.describe('drawing zoom on the narrow sheet', () => {
     await zoomTo(page, '2×');
 
     const metrics = await geometry(page);
-    expect(Math.abs(metrics.wrapScrollWidth - 2 * metrics.panelClientWidth)).toBeLessThanOrEqual(2);
-    expect(metrics.panelScrollWidth).toBeGreaterThan(metrics.panelClientWidth);
+    expect(metrics.scrollerOffsetWidth).toBe(metrics.panelClientWidth);
+    expect(Math.abs(metrics.wrapScrollWidth - 2 * metrics.scrollerClientWidth)).toBeLessThanOrEqual(2);
+    expect(metrics.scrollerScrollWidth).toBeGreaterThan(metrics.scrollerClientWidth);
+    expect(metrics.panelScrollWidth).toBe(metrics.panelClientWidth);
     expect(metrics.pageScrollWidth).toBe(metrics.pageClientWidth);
 
     const segments = await page.locator('.segmented__option').evaluateAll(
