@@ -2,11 +2,13 @@
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createInitialState, type LogEntry, type ReviewSession } from '../state/session';
 import { getState, replaceState } from '../state/store';
 import type { Field, ResolutionKind } from '../state/types';
 import { ConfirmSummary } from './ConfirmSummary';
+import { samplePackage, setPackage } from '../data/package';
+import { buildPackage } from '../data/user-package';
 
 const resolve = (field: Field, kind: ResolutionKind, value: string = field.id): Field => ({
   ...field,
@@ -78,6 +80,7 @@ const confirmedFixture = (): ReviewSession => {
 afterEach(() => {
   cleanup();
   act(() => replaceState(createInitialState()));
+  act(() => setPackage(samplePackage));
 });
 
 describe('ConfirmSummary', () => {
@@ -119,6 +122,34 @@ describe('ConfirmSummary', () => {
     expect(getState().fields).toHaveLength(11);
     expect(getState().fields.every(field => field.state === 'empty')).toBe(true);
     expect(screen.queryByRole('heading', { name: /Confirmed/ })).not.toBeInTheDocument();
+  });
+
+  test('P5: the confirmed review offers the way into a package, beside starting over', async () => {
+    const onOpenPackage = vi.fn();
+    act(() => replaceState(confirmedFixture()));
+    render(<ConfirmSummary onOpenPackage={onOpenPackage} />);
+
+    const actions = document.querySelector('.confirm-summary__actions') as HTMLElement;
+    expect(within(actions).getAllByRole('button').map(button => button.textContent))
+      .toEqual(['Export session', 'Start over', 'Open your own package']);
+    await userEvent.click(within(actions).getByRole('button', { name: 'Open your own package' }));
+    expect(onOpenPackage).toHaveBeenCalledOnce();
+  });
+
+  test('P5: the summary reads the label from the package the page is holding', () => {
+    act(() => replaceState(confirmedFixture()));
+    act(() => setPackage(buildPackage({ reference: 'RFQ 91-2201', email: 'Subject line\n\nBody.' })));
+    render(<ConfirmSummary onOpenPackage={vi.fn()} />);
+
+    expect(screen.getByRole('button', { name: 'Open another package' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open your own package' })).toBeNull();
+  });
+
+  test('a summary given no way into a package shows none', () => {
+    act(() => replaceState(confirmedFixture()));
+    render(<ConfirmSummary />);
+
+    expect(screen.queryByRole('button', { name: 'Open another package' })).toBeNull();
   });
 
   test('uses the plain Confirmed title when no customer questions remain', () => {

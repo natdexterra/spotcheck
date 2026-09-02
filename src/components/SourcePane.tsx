@@ -6,6 +6,7 @@ import {
   type RefObject,
 } from 'react';
 import { documentIndex } from '../data/package';
+import { usePackage } from '../hooks/usePackage';
 import { fieldLabel } from '../lib/format';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
@@ -40,7 +41,8 @@ interface ReadingTarget {
   key: string;
 }
 
-const DOCUMENT_TABS: readonly SourceTab[] = ['email', 'spec', 'drawing'];
+/** The order the tabs stand in; which of them exist is the package's to say. */
+const DOCUMENT_ORDER: readonly SourceTab[] = ['email', 'spec', 'drawing'];
 const TAB_LABELS: Record<SourceTab, string> = {
   email: 'Email',
   spec: 'Spec',
@@ -54,11 +56,13 @@ const DRAWING_FIELD_DEFAULTS: Partial<Record<string, FieldId>> = {
   'drawing:title_area': 'drawing_revision',
 };
 
-const tabFromRef = (sourceRef: string | undefined): SourceTab | undefined => {
+const tabFromRef = (sourceRef: string | undefined, tabs: readonly SourceTab[]): SourceTab | undefined => {
   const prefix = sourceRef?.split(':', 1)[0];
   // "clarification" names the tab and no region inside it: the sent text is one
   // panel, so the settled row links to the panel rather than to a paragraph.
-  return [...DOCUMENT_TABS, 'clarification' as const].find(tab => tab === prefix);
+  // A ref into a document this package does not hold resolves to no tab, and
+  // the link that carried it is a no-op.
+  return tabs.find(tab => tab === prefix);
 };
 
 const sourceRefsForField = (field: Field): string[] => [
@@ -67,7 +71,10 @@ const sourceRefsForField = (field: Field): string[] => [
   ...(field.suggestion?.source_refs ?? []),
 ];
 
-const lastReadingTarget = (log: ReturnType<typeof useReview>['log']): ReadingTarget | undefined => {
+const lastReadingTarget = (
+  log: ReturnType<typeof useReview>['log'],
+  tabs: readonly SourceTab[],
+): ReadingTarget | undefined => {
   for (let index = log.length - 1; index >= 0; index -= 1) {
     const entry = log[index];
     if (!entry) continue;
@@ -75,7 +82,7 @@ const lastReadingTarget = (log: ReturnType<typeof useReview>['log']): ReadingTar
     if (action?.type !== 'read' || action.operation !== 'section') continue;
     const input = action.input;
     if (typeof input !== 'object' || input === null) continue;
-    const docId = 'doc_id' in input && typeof input.doc_id === 'string' ? tabFromRef(`${input.doc_id}:`) : undefined;
+    const docId = 'doc_id' in input && typeof input.doc_id === 'string' ? tabFromRef(`${input.doc_id}:`, tabs) : undefined;
     const sectionId = 'section_id' in input && typeof input.section_id === 'string' ? input.section_id : undefined;
     if (docId && sectionId) return { docId, sectionId, key: `${index}:${entry.at}:${docId}:${sectionId}` };
   }
@@ -92,10 +99,23 @@ export function SourcePane({
   target,
 }: SourcePaneProps) {
   const { draft, gaps, log, session, state } = useReview();
+  const pkg = usePackage();
   const sent = session.sent;
   const clarificationVisible = sent !== undefined || (draft !== undefined && gaps.length > 0);
-  const reading = useMemo(() => lastReadingTarget(log), [log]);
-  const initialTab = tabFromRef(target?.ref) ?? (clarificationVisible ? 'clarification' : reading?.docId ?? 'email');
+  // A tab exists only for a document the package holds: a package with no
+  // specification has no Spec tab and no Spec panel behind it.
+  const documentTabs = useMemo(
+    () => DOCUMENT_ORDER.filter(tab => pkg.documents.some(doc => doc.id === tab)),
+    [pkg],
+  );
+  const knownTabs = useMemo<readonly SourceTab[]>(
+    () => [...documentTabs, 'clarification'],
+    [documentTabs],
+  );
+  const reading = useMemo(() => lastReadingTarget(log, knownTabs), [knownTabs, log]);
+  const firstTab = documentTabs[0] ?? 'clarification';
+  const initialTab = tabFromRef(target?.ref, knownTabs)
+    ?? (clarificationVisible ? 'clarification' : reading?.docId ?? firstTab);
   const [activeTab, setActiveTab] = useState<SourceTab>(initialTab);
   const [highlightedRef, setHighlightedRef] = useState<string | undefined>(target?.ref);
   const [readingVisible, setReadingVisible] = useState(reading !== undefined);
@@ -105,8 +125,8 @@ export function SourcePane({
   const readingContextRef = useRef({ hasTarget: false, onClarification: false });
   readingContextRef.current = { hasTarget: target !== undefined, onClarification: clarificationVisible };
   const sourceTabs: readonly SourceTab[] = clarificationVisible
-    ? [...DOCUMENT_TABS, 'clarification']
-    : DOCUMENT_TABS;
+    ? [...documentTabs, 'clarification']
+    : documentTabs;
   const sourceFieldMap = useMemo(() => {
     const map = new Map<string, FieldId>();
     for (const field of state.fields) {
@@ -131,8 +151,13 @@ export function SourcePane({
   }, [draft, gaps.length]);
 
   useEffect(() => {
-    if (!clarificationVisible && activeTab === 'clarification') setActiveTab('email');
-  }, [activeTab, clarificationVisible]);
+    if (!clarificationVisible && activeTab === 'clarification') setActiveTab(firstTab);
+  }, [activeTab, clarificationVisible, firstTab]);
+
+  // A package opened under an open pane leaves the tab that was active behind.
+  useEffect(() => {
+    if (!sourceTabs.includes(activeTab)) setActiveTab(firstTab);
+  }, [activeTab, firstTab, sourceTabs]);
 
   // The marker belongs to one read entry: it lights when that entry arrives and
   // clears 2 s later, whatever the reviewer is looking at. Keying the effect on
@@ -159,7 +184,7 @@ export function SourcePane({
 
   useEffect(() => {
     if (!target) return;
-    const tab = tabFromRef(target.ref);
+    const tab = tabFromRef(target.ref, knownTabs);
     if (!tab) return;
     setActiveTab(tab);
     setHighlightedRef(target.ref);
@@ -290,37 +315,41 @@ export function SourcePane({
           />
         </div>
       )}
-      <div
-        aria-labelledby="source-tab-spec"
-        className="source-pane__panel"
-        hidden={activeTab !== 'spec'}
-        id="source-panel-spec"
-        role="tabpanel"
-      >
-        <SpecDoc
-          highlightedRef={highlightedRef}
-          linkedRefs={linkedRefs}
-          onActivateRegion={focusFieldForSource}
-          readingSectionId={readingSectionFor('spec')}
-        />
-      </div>
+      {documentTabs.includes('spec') && (
+        <div
+          aria-labelledby="source-tab-spec"
+          className="source-pane__panel"
+          hidden={activeTab !== 'spec'}
+          id="source-panel-spec"
+          role="tabpanel"
+        >
+          <SpecDoc
+            highlightedRef={highlightedRef}
+            linkedRefs={linkedRefs}
+            onActivateRegion={focusFieldForSource}
+            readingSectionId={readingSectionFor('spec')}
+          />
+        </div>
+      )}
       {/* This panel does not scroll: the sheet carries its own scroll region
           around the drawing, so the toolbar and the caption keep the document
           lane while the drawing pans. The panel is the column that hands that
           region whatever height the toolbar and the caption leave. */}
-      <div
-        aria-labelledby="source-tab-drawing"
-        className="source-pane__panel source-pane__panel--drawing"
-        hidden={activeTab !== 'drawing'}
-        id="source-panel-drawing"
-        role="tabpanel"
-      >
-        <DrawingSheet
-          highlightedRef={highlightedRef}
-          onActivateRegion={focusFieldForSource}
-          readingSectionId={readingSectionFor('drawing')}
-        />
-      </div>
+      {documentTabs.includes('drawing') && (
+        <div
+          aria-labelledby="source-tab-drawing"
+          className="source-pane__panel source-pane__panel--drawing"
+          hidden={activeTab !== 'drawing'}
+          id="source-panel-drawing"
+          role="tabpanel"
+        >
+          <DrawingSheet
+            highlightedRef={highlightedRef}
+            onActivateRegion={focusFieldForSource}
+            readingSectionId={readingSectionFor('drawing')}
+          />
+        </div>
+      )}
       {narrow && target && (
         <footer className="source-pane__footer">
           <Button variant="text" onClick={() => onFocusField(target.fieldId)}>

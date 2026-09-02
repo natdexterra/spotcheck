@@ -1,4 +1,21 @@
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
+import { mkdir } from 'node:fs/promises';
+import { dirname } from 'node:path';
+
+/**
+ * Evidence screenshots are written into `docs/`, which is a record the
+ * repository keeps, so a plain run leaves them alone: they are regenerated only
+ * when the run asks for it with `EVIDENCE=1`.
+ */
+export const EVIDENCE = process.env.EVIDENCE === '1';
+
+/** Writes one evidence screenshot, and reports whether the run wanted it. */
+export async function saveEvidence(target: Locator | Page, path: string): Promise<boolean> {
+  if (!EVIDENCE) return false;
+  await mkdir(dirname(path), { recursive: true });
+  await target.screenshot({ path, animations: 'disabled' });
+  return true;
+}
 
 export async function installModelContext(page: Page): Promise<void> {
   await page.addInitScript(() => {

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
@@ -8,9 +8,10 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { describeRead } from '../replay/describe';
-import { focusPause, startImported, startSample } from '../replay/controller';
+import { clearReview, focusPause, startImported } from '../replay/controller';
 import { useReplay } from '../hooks/useReplay';
 import { parseFixture } from '../replay/serialization';
+import { ConfirmDialog } from './ConfirmDialog';
 import { ExportSessionButton } from './ExportSessionButton';
 import { announce } from './LiveRegion';
 
@@ -96,12 +97,14 @@ export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry;
 );
 
 export const ChangeLogDrawer = () => {
-  const { log, state } = useReview();
+  const { confirmed, log, state } = useReview();
   const replay = useReplay();
   const [expanded, setExpanded] = useState(false);
+  const [startOverOpen, setStartOverOpen] = useState(false);
   const [error, setError] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
   const disclosureRef = useRef<HTMLButtonElement>(null);
+  const cleared = useRef(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowLayout();
   const latest = log.at(-1);
@@ -124,6 +127,17 @@ export const ChangeLogDrawer = () => {
     setExpanded(false);
     requestAnimationFrame(() => disclosureRef.current?.focus());
   };
+
+  /* Starting over empties the page, so the button that was pressed and the log
+     that held it are both gone by the time the dialog closes. Focus goes where
+     the page now offers something to do: the strip's own first action, which on
+     a first-load page is Play sample session. The move waits for the dialog's
+     own close, which runs in the child's effect before this one. */
+  useEffect(() => {
+    if (!cleared.current || log.length > 0) return;
+    cleared.current = false;
+    document.querySelector<HTMLElement>('.status-strip__actions button')?.focus();
+  }, [log.length]);
 
   // Narrow only: the expanded log is a full-height sheet over the page, so it
   // owns focus while it is open. On desktop it expands in place inside the bar.
@@ -164,20 +178,36 @@ export const ChangeLogDrawer = () => {
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
             <p className="change-log__meta">{plural(log.length, 'entry', 'entries')} · agent and you</p>
-            <div className="change-log__file-actions">
-              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
-              <ExportSessionButton />
-              <div className="session-import">
-                <label className="visually-hidden" htmlFor="session-file">Import session</label>
-                <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
-                {/* The native input is the control: it holds the tab stop and
-                    the focus ring (.session-import:has(input:focus-visible)).
-                    The visible button only forwards a pointer click, so it
-                    stays out of the tab order and out of the accessibility
-                    tree; otherwise "Import session" would name two controls. */}
-                <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+            {/* The header carries the actions of the state it is in and no
+                others (DESIGN.md § Components, Change-log header by state): a
+                replay owns its own way out, an empty log has nothing to send,
+                and a confirmed review leaves starting over to the summary. */}
+            {!replay.active && (
+              <div className="change-log__file-actions">
+                {log.length === 0 ? (
+                  <div className="session-import">
+                    <label className="visually-hidden" htmlFor="session-file">Import session</label>
+                    <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
+                    {/* The native input is the control: it holds the tab stop and
+                        the focus ring (.session-import:has(input:focus-visible)).
+                        The visible button only forwards a pointer click, so it
+                        stays out of the tab order and out of the accessibility
+                        tree; otherwise "Import session" would name two controls. */}
+                    <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+                  </div>
+                ) : (
+                  <>
+                    <ExportSessionButton />
+                    {/* The one control on the page that throws a person's own
+                        work away, so it asks before it does, and stands apart
+                        from the button beside it. */}
+                    {!confirmed && (
+                      <Button className="change-log__start-over" variant="text" onClick={() => setStartOverOpen(true)}>Start over</Button>
+                    )}
+                  </>
+                )}
               </div>
-            </div>
+            )}
             <Button aria-controls="change-log" aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
           {error && <p className="session-error change-log__error"><OpposingArrowsIcon />{error}</p>}
@@ -190,6 +220,20 @@ export const ChangeLogDrawer = () => {
           ) : <p className="change-log__empty">No activity yet</p>}
         </div>
       )}
+      <ConfirmDialog
+        confirmLabel="Start over"
+        message={`This discards ${plural(log.length, 'entry', 'entries')} and every value on the page.`}
+        onCancel={() => setStartOverOpen(false)}
+        onConfirm={() => {
+          setStartOverOpen(false);
+          setExpanded(false);
+          cleared.current = true;
+          clearReview();
+          announce('Review cleared');
+        }}
+        open={startOverOpen}
+        title="Start over?"
+      />
     </aside>
   );
 };

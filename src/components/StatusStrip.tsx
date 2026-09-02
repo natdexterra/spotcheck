@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { samplePackage } from '../data/package';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
+import { useOpenPackageLabel, usePackage } from '../hooks/usePackage';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
 import { plural } from '../lib/format';
@@ -14,8 +16,16 @@ const MARKER_MS = 2_000;
 const NO_API_LONG = 'Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app’s browser, or Chrome 149+ with the WebMCP flag.';
 const NO_API_SHORT = 'Live mode needs a WebMCP-capable desktop browser.';
 // The page has to orient a first-time reader on its own: what the documents
-// are, what the task is. It shows only before the first tool call.
-const INTRO = 'This page holds a customer’s RFQ package: email, spec and drawing. Your agent fills the 11 quote-request fields through the page’s tools; you check each against its source and confirm.';
+// are, what the task is. It shows only before the first tool call, and it names
+// the package in front of them, sample or their own.
+const TASK = 'Your agent fills the 11 quote-request fields through the page’s tools; you check each against its source and confirm.';
+const DOCUMENT_WORDS: Record<string, string> = { email: 'email', spec: 'spec', drawing: 'drawing' };
+
+const documentList = (ids: string[]): string => {
+  const words = ids.map(id => DOCUMENT_WORDS[id] ?? id);
+  if (words.length < 2) return words[0] ?? 'no documents';
+  return `${words.slice(0, -1).join(', ')} and ${words.at(-1)}`;
+};
 
 const BASE_TOOLS = [
   ['list_rfq_documents', true],
@@ -48,14 +58,21 @@ function lastActivity(action: AgentAction | undefined): string {
 
 export interface StatusStripProps {
   apiAvailable?: boolean;
+  /** A sentence the strip carries under the orienting line until the page reloads. */
+  notice?: string;
+  onOpenPackage?: () => void;
   onPlaySample?: () => void;
 }
 
 export function StatusStrip({
   apiAvailable = typeof document.modelContext?.registerTool === 'function',
+  notice,
+  onOpenPackage,
   onPlaySample = () => { void startSample(); },
 }: StatusStripProps) {
   const { confirmed, gaps, log } = useReview();
+  const pkg = usePackage();
+  const openPackageLabel = useOpenPackageLabel();
   const replay = useReplay();
   const narrow = useNarrowLayout();
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -102,13 +119,25 @@ export function StatusStrip({
 
   const copyPrompt = () => void navigator.clipboard?.writeText(PROMPT);
   const preLive = state === 'no-api' || state === 'waiting';
+  const bundled = pkg === samplePackage;
+  const intro = bundled
+    ? `This page holds a sample RFQ package: ${documentList(pkg.documents.map(doc => doc.id))}. ${TASK}`
+    : `This page holds your package ${pkg.reference ?? ''}: ${documentList(pkg.documents.map(doc => doc.id))}. ${TASK}`;
+  // No agent runs on a one-column device, so its first load stays light: the
+  // way into a package of your own is in the change-log sheet header instead.
+  const stripOpenButton = onOpenPackage !== undefined && !(narrow && state === 'no-api');
 
   return (
     <section
       aria-label="Session status"
       className={`status-strip status-strip--${state}${replay.active ? ' status-strip--replay' : ''}`}
     >
-      {preLive && <p className="status-strip__intro">{INTRO}</p>}
+      {preLive && (
+        <p className="status-strip__intro">
+          {intro}
+          {notice === undefined ? null : <span className="status-strip__notice">{notice}</span>}
+        </p>
+      )}
       <div className="status-strip__line">
         <div className="status-strip__summary">
           <span
@@ -139,7 +168,12 @@ export function StatusStrip({
           )}
         </div>
         {preLive && (
-          <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
+          <div className="status-strip__actions">
+            <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
+            {stripOpenButton && (
+              <Button variant="text" onClick={onOpenPackage}>{openPackageLabel}</Button>
+            )}
+          </div>
         )}
       </div>
       <ReplayControls />

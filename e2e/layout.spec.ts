@@ -73,7 +73,7 @@ for (const width of [1920, 1366]) {
     await page.setViewportSize({ width, height: 900 });
     await removeModelContext(page);
     await page.goto('/');
-    await expect(page.locator('.status-strip__intro')).toContainText('a customer’s RFQ package');
+    await expect(page.locator('.status-strip__intro')).toContainText('a sample RFQ package');
     // Measure with the real face, not the fallback: the line fits 1366 by ~4%.
     await page.evaluate(() => document.fonts.ready);
 

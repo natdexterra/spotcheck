@@ -3,6 +3,7 @@ import { readFileSync } from 'node:fs';
 import '@testing-library/jest-dom/vitest';
 import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
+import type { DocumentData } from '../data/package';
 import { DrawingSheet } from './DrawingSheet';
 
 const scrollIntoView = vi.fn();
@@ -125,5 +126,61 @@ describe('the toolbar type scale', () => {
 
   test('the Zoom micro-label is sm, the step export 17 measures', () => {
     expect(sizeTokens('.drawing-sheet__zoom-label')).toEqual(['--text-sm']);
+  });
+});
+
+describe('P5: a drawing a person attached', () => {
+  const userDrawing: DocumentData & { image: string } = {
+    id: 'drawing',
+    type: 'drawing',
+    title: 'Drawing sheet 1',
+    image: 'data:image/webp;base64,AAAA',
+    sheet: '1 of 1',
+    sections: [
+      { id: 'overall', title: 'Overall dimensions', regions: [{
+        id: 'drawing:sheet',
+        text: 'Drawing sheet 1: image, no transcription.',
+        box: [0, 0, 1, 1],
+      } as never] },
+      { id: 'detail', title: 'Detail', regions: [] },
+    ],
+  };
+
+  test('shows the attached image, not the bundled sheet', () => {
+    const { container } = render(<DrawingSheet document={userDrawing} onActivateRegion={vi.fn()} />);
+
+    expect(container.querySelector<HTMLImageElement>('.drawing-sheet__image')?.getAttribute('src'))
+      .toBe('data:image/webp;base64,AAAA');
+  });
+
+  test('carries one box over the whole sheet', () => {
+    const { container } = render(<DrawingSheet document={userDrawing} onActivateRegion={vi.fn()} />);
+
+    expect(boxGeometry(container)).toEqual(['0% 0% 100% 100%']);
+  });
+
+  test('says the sheet is an image and nothing was read from it', () => {
+    const { container } = render(<DrawingSheet document={userDrawing} onActivateRegion={vi.fn()} />);
+    const caption = container.querySelector('.drawing-sheet__caption');
+
+    expect(caption).toHaveTextContent('Image only · no text is read from this sheet');
+    // The bundled sheet's line about the empty title block belongs to that sheet.
+    expect(caption).not.toHaveTextContent('a revision letter would live here');
+  });
+
+  test('an image source that is not an image is not rendered as one', () => {
+    const tampered = { ...userDrawing, image: 'data:text/html;base64,PHNjcmlwdD4=' };
+    const { container } = render(<DrawingSheet document={tampered} onActivateRegion={vi.fn()} />);
+
+    expect(container.querySelector<HTMLImageElement>('.drawing-sheet__image')?.getAttribute('src'))
+      .not.toBe('data:text/html;base64,PHNjcmlwdD4=');
+  });
+
+  test('the bundled sheet keeps its own caption', () => {
+    const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
+    const caption = container.querySelector('.drawing-sheet__caption');
+
+    expect(caption).toHaveTextContent('a revision letter would live here; there is none');
+    expect(caption).not.toHaveTextContent('Image only');
   });
 });
