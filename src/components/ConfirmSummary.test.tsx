@@ -86,7 +86,7 @@ describe('ConfirmSummary', () => {
     render(<ConfirmSummary />);
 
     expect(screen.getByRole('heading', { name: 'Confirmed with 4 open questions' })).toBeInTheDocument();
-    expect(document.querySelector('.confirm-summary__timer')).toHaveTextContent('Reviewed in 1:48 — from the agent’s first write to confirm');
+    expect(document.querySelector('.confirm-summary__timer')).toHaveTextContent('Reviewed in 1:48 · from the agent’s first write to confirm');
 
     const counts = screen.getByLabelText('Resolution counts');
     for (const text of ['2 verified', '1 edited', '1 entered', '1 picked', '1 not required', '1 applied', '4 asked customer']) {
@@ -102,8 +102,8 @@ describe('ConfirmSummary', () => {
     // The full log is the drawer's line: a clock time and a sentence with the actor first.
     const fullLog = screen.getByRole('region', { name: 'Full change log' });
     expect(within(fullLog).getAllByRole('listitem')).toHaveLength(3);
-    expect(within(fullLog).getByText('Agent proposed Customer RFQ ref — RFQ-1')).toBeInTheDocument();
-    expect(within(fullLog).getByText('You marked General tolerance not required — Covered by our shop standard')).toBeInTheDocument();
+    expect(within(fullLog).getByText('Agent proposed Customer RFQ ref: RFQ-1')).toBeInTheDocument();
+    expect(within(fullLog).getByText('You marked General tolerance not required: Covered by our shop standard')).toBeInTheDocument();
     expect(within(fullLog).queryByText(/You · confirm/)).not.toBeInTheDocument();
     expect(within(fullLog).getAllByText(/^\d{2}:\d{2}$/).length).toBe(3);
   });

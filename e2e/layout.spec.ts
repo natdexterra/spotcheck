@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext } from './helpers';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -32,6 +32,7 @@ const seed = async (page: import('@playwright/test').Page) => {
 };
 
 test('the header sets the package reference in the sans, not in the mono of values', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   const families = await page.evaluate(() => ({
     reference: getComputedStyle(document.querySelector('.header__package')!).fontFamily,
@@ -70,6 +71,7 @@ const stripParts = (page: import('@playwright/test').Page) => page.evaluate(() =
 for (const width of [1920, 1366]) {
   test(`${width}px opens on the orienting line above the status line`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await removeModelContext(page);
     await page.goto('/');
     await expect(page.locator('.status-strip__intro')).toContainText('a customer’s RFQ package');
     // Measure with the real face, not the fallback: the line fits 1366 by ~4%.
@@ -89,6 +91,7 @@ for (const width of [1920, 1366]) {
 
 test('390px keeps the orienting line and puts the button full width under the text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
+  await removeModelContext(page);
   await page.goto('/');
 
   const intro = (await page.locator('.status-strip__intro').boundingBox())!;
@@ -130,6 +133,33 @@ test('the orienting line leaves with the first tool call', async ({ page }) => {
   expect(await page.locator('.drawing-sheet__caption').evaluate(element => ({ size: getComputedStyle(element).fontSize, family: getComputedStyle(element).fontFamily }))).toEqual({ size: '14.976px', family: 'Geist, "Geist Fallback", system-ui' });
   await expect(page.locator('.status-strip')).toContainText('Live');
   await expect(page.locator('.status-strip__intro')).toHaveCount(0);
+});
+
+// The strip's block padding belongs to the states that carry a second line:
+// the two pre-live ones and a replay. A live session without a replay row is a
+// single line and keeps the row height.
+test('a live strip with no replay row keeps the one-line height', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+  await expect(page.locator('.status-strip')).toContainText('Live');
+  await expect(page.locator('.replay-controls')).toHaveCount(0);
+
+  const strip = (await page.locator('.status-strip').boundingBox())!;
+  expect(Math.round(strip.height)).toBe(44);
+});
+
+test('the replay row stands off the strip’s closing hairline', async ({ page }) => {
+  await removeModelContext(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play sample session' }).click();
+  await expect(page.locator('.replay-controls')).toBeVisible();
+
+  const strip = (await page.locator('.status-strip').boundingBox())!;
+  const row = (await page.locator('.replay-controls').boundingBox())!;
+  const rule = await page.locator('.status-strip')
+    .evaluate(element => Number.parseFloat(getComputedStyle(element).borderBottomWidth));
+  expect(strip.y + strip.height - rule - (row.y + row.height)).toBeGreaterThanOrEqual(12);
 });
 
 test('the desktop page does not scroll and each pane scrolls on its own', async ({ page }) => {
@@ -192,7 +222,7 @@ test('the change log expands in place on desktop, not as a full-screen sheet', a
   await page.goto('/');
   await seed(page);
 
-  await page.getByRole('button', { name: /Show change log/ }).click();
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
   const sheet = page.locator('.change-log__sheet');
   await expect(sheet).toBeVisible();
   expect(await sheet.evaluate(element => getComputedStyle(element).position)).toBe('static');
@@ -217,6 +247,7 @@ test('control heights: the sample button is compact, Confirm is large', async ({
 });
 
 test('control heights: the sample button stays compact when it is the primary (no-api)', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   const sample = page.getByRole('button', { name: 'Play sample session' });
   await expect(sample).toHaveClass(/button--primary/);
@@ -224,6 +255,7 @@ test('control heights: the sample button stays compact when it is the primary (n
 });
 
 test('the md meta group keeps its size: blocker line, header reference, log sentence', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
   const md = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-md').trim());
@@ -235,3 +267,200 @@ test('the md meta group keeps its size: blocker line, header reference, log sent
     expect(size[0]).toBe(size[1]);
   }
 });
+
+test('a provenance link is sm mono in every context it appears in', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+  await page.evaluate(() => document.fonts.ready);
+
+  const sm = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-sm').trim());
+  const expected = await page.evaluate(token => {
+    const probe = document.createElement('span');
+    probe.style.fontSize = token;
+    document.body.append(probe);
+    const size = getComputedStyle(probe).fontSize;
+    probe.remove();
+    return size;
+  }, sm);
+
+  // The row, the conflict card and the open editor's context line: one size.
+  await page.locator('[data-field-id="material"]').getByRole('button', { name: 'Edit' }).click();
+  const contexts = ['.field-row__sources', '.candidate-option__sources', '.inline-editor__context'];
+  for (const parent of contexts) {
+    const link = page.locator(`${parent} .inline-link--provenance`).first();
+    await expect(link).toBeVisible();
+    const style = await link.evaluate(element => {
+      const computed = getComputedStyle(element);
+      return { size: computed.fontSize, family: computed.fontFamily };
+    });
+    expect(style.size).toBe(expected);
+    expect(style.family).toMatch(/mono/i);
+  }
+});
+
+test('the document column stops at its measure and the tabs stand on its edge', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const pane = (await page.locator('.source-pane').boundingBox())!;
+  const open = '.source-pane__panel:not([hidden]) ';
+  const column = (await page.locator(`${open}.document-text`).boundingBox())!;
+  const tabs = (await page.locator('.source-pane__tabs').boundingBox())!;
+  const region = (await page.locator(`${open}.document-region`).first().boundingBox())!;
+
+  // The pane is far wider than the measure; the text does not follow it out.
+  expect(pane.width).toBeGreaterThan(900);
+  expect(column.width).toBeLessThanOrEqual(776);
+  // The region box carries the highlight's 4px inset on each side, so the
+  // text inside it still measures the 680 column.
+  const inset = await page.locator(`${open}.document-region`).first()
+    .evaluate(element => Number.parseFloat(getComputedStyle(element).paddingLeft));
+  expect(inset).toBe(4);
+  expect(region.width - 2 * inset).toBeLessThanOrEqual(680);
+  // Tabs and text share one left edge and one right edge (exports 02, 07).
+  expect(tabs.x).toBeCloseTo(column.x, 0);
+  expect(tabs.width).toBeCloseTo(column.width, 0);
+});
+
+test('the Ask customer on-state is an icon and ink, never a pill', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const row = page.locator('[data-field-id="surface_finish"]');
+  const toggle = row.getByRole('button', { name: 'Ask customer' });
+  await toggle.click();
+  await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+
+  // Move the pointer off it and let the hover fill finish leaving: the pill
+  // belongs to hover, not to the state.
+  await page.mouse.move(0, 0);
+  await expect
+    .poll(() => toggle.evaluate(element => {
+      const style = getComputedStyle(element);
+      return `${style.backgroundColor} ${style.color}`;
+    }))
+    .toBe('rgba(0, 0, 0, 0) rgb(14, 17, 22)');
+  expect(await toggle.evaluate(element => element.querySelectorAll('svg').length)).toBe(1);
+  await expect(row).toContainText('Marked for the clarification email. This field still counts as open.');
+});
+
+test('a candidate is a raised card and Pick keeps the compact button height', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const candidate = page.locator('[data-field-id="quantity"] .candidate-option').first();
+  const card = await candidate.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, border: `${style.borderTopWidth} ${style.borderTopColor}` };
+  });
+  expect(card).toEqual({ background: 'rgb(255, 255, 255)', border: '1px rgb(227, 232, 238)' });
+
+  const pick = candidate.getByRole('button', { name: 'Pick' });
+  const box = (await pick.boundingBox())!;
+  expect(Math.round(box.height)).toBe(30);
+  // It sits beside the value, not stretched down the side of the card and not
+  // dropped onto a row of its own under the note (export 02).
+  const card_ = (await candidate.boundingBox())!;
+  expect(box.height).toBeLessThan(card_.height);
+  expect(Math.abs((box.y + box.height / 2) - (card_.y + card_.height / 2))).toBeLessThanOrEqual(1);
+});
+
+test('first load fits eleven one-line rows, and the line arrives with the agent', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+
+  const rows = page.locator('.field-row');
+  await expect(rows).toHaveCount(11);
+  const heights = await rows.evaluateAll(list => list.map(row => Math.round(row.getBoundingClientRect().height)));
+  expect(Math.max(...heights)).toBeLessThanOrEqual(48);
+  // All eleven stand inside the pane: nothing is scrolled out of sight.
+  const list = await page.locator('.field-list').evaluate(element => ({
+    scrollHeight: element.scrollHeight, clientHeight: element.clientHeight,
+  }));
+  expect(list.scrollHeight).toBeLessThanOrEqual(list.clientHeight);
+
+  // Export 01: the eleven dashes stand on one edge, so the value slot reads as
+  // a column instead of trailing each label.
+  const dashes = await page.locator('.field-row--bare .field-row__value')
+    .evaluateAll(values => values.map(value => value.getBoundingClientRect().x));
+  expect(dashes).toHaveLength(11);
+  expect(Math.max(...dashes) - Math.min(...dashes)).toBeLessThanOrEqual(1);
+
+  await seed(page);
+  const empty = page.locator('[data-field-id="drawing_number"]');
+  await expect(empty).toContainText('The agent has proposed nothing here');
+  await expect(empty.getByRole('button', { name: 'Enter value' })).toBeVisible();
+});
+
+test('the provenance highlight is inset from the text it marks', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const region = page.locator('.source-pane__panel:not([hidden]) .document-region').first();
+  const before = (await region.boundingBox())!;
+  const text = await region.evaluate(element => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect().x;
+  });
+  // Export 02: the tint runs 4px past the text on each side, and it is always
+  // reserved, so lighting a region up moves nothing.
+  expect(text - before.x).toBeCloseTo(4, 0);
+
+  await page.locator('[data-field-id="delivery"]').getByRole('link', { name: 'spec §2.6' }).click();
+  await expect(page.locator('.document-region--highlighted')).toBeVisible();
+  const after = (await region.boundingBox())!;
+  expect(after.x).toBeCloseTo(before.x, 0);
+});
+
+// The editor replaces the value line inside the row (export 12): the row keeps
+// its marker, label, lock and badge, and everything about the old value goes.
+for (const width of [1920, 390]) {
+  test(`${width}px opens the editor in the row's own lane, one control height`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await installModelContext(page);
+    await page.goto('/');
+    await executeTool(page, 'propose_field', {
+      field_id: 'overall_dimensions', value: '20.000 × 14.500', source_refs: ['drawing:width'],
+      rationale: 'read from the drawing title block',
+    });
+
+    const row = page.locator('[data-field-id="overall_dimensions"]');
+    await expect(row.locator('.field-row__value')).toBeVisible();
+    await row.getByRole('button', { name: 'Add unit' }).click();
+    await page.evaluate(() => document.fonts.ready);
+
+    // Nothing about the closed row's value survives the editor.
+    await expect(row.locator('.field-row__value')).toHaveCount(0);
+    await expect(row.locator('.field-row__sources')).toHaveCount(0);
+    await expect(row.locator('.field-row__agent-note')).toHaveCount(0);
+    await expect(row.locator('.field-row__actions')).toHaveCount(0);
+    await expect(row.locator('.field-row__label')).toBeVisible();
+    await expect(row.locator('.field-row__badge')).toContainText('Unit missing');
+    await expect(row.locator('.inline-editor__context')).toContainText('no unit given');
+
+    const input = (await row.locator('.inline-editor__input').boundingBox())!;
+    const unit = (await row.locator('.segmented').boundingBox())!;
+    expect(Math.abs(input.height - unit.height)).toBeLessThanOrEqual(1);
+    if (width >= 1024) {
+      expect(Math.abs(input.y - unit.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs((input.y + input.height) - (unit.y + unit.height))).toBeLessThanOrEqual(1);
+      expect(Math.round(input.height)).toBe(42);
+      // Export 12: "value" and "unit" read as one line above the two controls.
+      const labels = await row.locator('.inline-editor__label').evaluateAll(
+        list => list.map(label => label.getBoundingClientRect().top),
+      );
+      expect(labels).toHaveLength(2);
+      expect(Math.abs(labels[0]! - labels[1]!)).toBeLessThanOrEqual(1);
+    }
+    // The editor stands in the row's content lane, not in a card of its own.
+    const lane = (await row.locator('.field-row__label').boundingBox())!;
+    expect(Math.abs((await row.locator('.inline-editor').boundingBox())!.x - lane.x)).toBeLessThanOrEqual(1);
+    expect(await row.locator('.inline-editor').evaluate(element => getComputedStyle(element).borderTopWidth)).toBe('0px');
+  });
+}

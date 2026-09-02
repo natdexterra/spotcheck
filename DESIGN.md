@@ -63,7 +63,7 @@ Only the two alarming agent flags (conflict, missing) and the human-only verifie
 
 ## Interaction states
 
-Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time.
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen.
 
 | Class | Default | Hover | Active | Disabled |
 |---|---|---|---|---|
@@ -81,8 +81,8 @@ Radios, checkboxes and the segmented unit control are the app's own drawing, not
 
 | Control | Box | Checked | Label |
 |---|---|---|---|
-| Radio | 16×16 circle, 1px `--border-input`, `--bg-raised` fill | 1.5px `--accent` ring, 6px `--accent` dot centered | md, `--ink`, 8px from the box; the whole row is the click target |
-| Checkbox | 16×16, `--radius-1`, 1px `--border-input`, `--bg-raised` fill | `--ink` fill, no border, the 12px check from the icon set in `--bg-raised` | same |
+| Radio | 16×16 circle, 1px `--border-input`, `--bg-raised` fill | `--accent-strong` fill and border, 8px `--bg-raised` dot centered | md, `--ink`, 8px from the box; the whole row is the click target |
+| Checkbox | 16×16, `--radius-1`, 1px `--border-input`, `--bg-raised` fill | `--accent-strong` fill and border, the 12px check from the icon set in `--bg-raised` | same |
 | Segmented (unit `in` \| `mm`) | radio group in one `--border-input` box, `--radius-2`; each segment the input's height, padding 0 16, `--hairline-strong` separator | `--bg-subtle` fill, `--ink` mono 500 (unchecked: `--bg-raised`, `--ink-secondary` mono) | none on the segments; the group carries the visible micro-label |
 
 Picker rows sit 4px apart on a 32px line (44px on narrow through padding, never larger boxes). Hover: border `--ink-secondary`. Focus: the global ring on the box. Disabled: `--ink-faint` border and label. A choice control never carries a state color — accent here means *chosen*, the same meaning it has on links and markers. The Ask customer toggle's leading icon is this checked checkbox at 16px.
@@ -145,7 +145,7 @@ Rules the builder must not trade away:
   | field-pane gutter | 24 |
   | document gutter — tabs and text share it | 48; paragraph gap 16; section gap 24 |
   | pane gap | 24 |
-  | page margin | one token `--page-margin` (the layout ladder: 80 → 28) |
+  | page margin | one token `--page-margin` (the layout ladder: 80 → 28). Below 1024 it resolves to the centred column's left edge (70 at 820), so header, strip and log bar stand on the column's lane |
 
 - **Two vertical lanes.** Header, status strip, workspace and log drawer all take their inline padding from `--page-margin`; content inside a pane sits on the pane-gutter lane (margin + 24). Every left edge on the screen lands on one of these two lines — an edge on neither is a defect. The 3px state marker is compensated (row inline padding 21 = 24 − 3) so row content stays on the gutter lane; that is the one sanctioned off-scale number, by construction.
 - **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.
@@ -181,7 +181,7 @@ Every state and resolution renders icon + text label — color is never the only
 
 **Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit, or "Revised by agent" after the agent revised its own proposal · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Applied by you · …", "Not required · …", "Awaiting customer · …". The wording is for the person reading the row; the short label is for everything that counts, lists or announces.
 
-**Copy grammar, load-bearing.** A badge is a status: a noun phrase or a past participle with its actor ("Needs review", "Edited by you"), never an imperative — "Check it" is a button, not a state. A button is a verb ("Verify", "Mark not required", "Enter value"); a status phrase on a button is a defect. Agent text is reported speech behind "Agent:". Log entries are sentences with the actor first, sentence case: "You edited Quantity — agent 800 → yours 750", "Agent opened the clarification draft". Neither wording ever comes from the state name of a `verified` field.
+**Copy grammar, load-bearing.** A badge is a status: a noun phrase or a past participle with its actor ("Needs review", "Edited by you"), never an imperative — "Check it" is a button, not a state. A button is a verb ("Verify", "Mark not required", "Enter value"); a status phrase on a button is a defect. Agent text is reported speech behind "Agent:". Log entries are sentences with the actor first, sentence case: "You edited Quantity: agent 800 → yours 750", "Agent opened the clarification draft". Neither wording ever comes from the state name of a `verified` field.
 
 **Dot or icon.** In a field row the badge of an agent state (`empty`, `needs_review`, `conflict`, `missing`, and a reopened row) is an 8px dot in the state color plus the human wording; the badge of a `verified` row replaces the dot with the resolution icon from the table, because seven resolutions must be told apart and the null-value kinds must not read as a check. The agent-state icons from the table appear where the short label appears: group headings, the blocker line, the confirm summary. One icon set, two placements.
 

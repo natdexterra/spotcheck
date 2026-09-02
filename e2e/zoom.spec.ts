@@ -435,13 +435,13 @@ test.describe('the focus ring where a container clips the box', () => {
     await seedDimensions(page);
     const dimensions = page.locator('[data-field-id="overall_dimensions"]');
     await dimensions.getByRole('button', { name: 'Add unit' }).click();
-    const segments = dimensions.locator('.inline-editor__segments');
+    const segments = dimensions.locator('.segmented');
     const unitAtRest = await segments.screenshot();
-    await dimensions.getByRole('textbox', { name: 'Overall dimensions' }).click();
+    await dimensions.getByRole('textbox', { name: 'Overall dimensions value' }).click();
     await page.keyboard.press('Tab');
-    await expect(dimensions.locator('.inline-editor__segment input').first()).toBeFocused();
+    await expect(dimensions.locator('.segmented__option input').first()).toBeFocused();
     expect((await segments.screenshot()).equals(unitAtRest)).toBe(false);
-    expect(await ringStyle(dimensions.locator('.inline-editor__segment').first())).toEqual(zoomRing);
+    expect(await ringStyle(dimensions.locator('.segmented__option').first())).toEqual(zoomRing);
 
     expect(problems).toEqual([]);
   });

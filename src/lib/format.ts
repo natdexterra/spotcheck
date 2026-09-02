@@ -38,11 +38,30 @@ const VERIFIED_BADGE_LABELS: Record<ResolutionKind, string> = {
   asked_customer: 'Awaiting customer',
 };
 
+/** The empty value in the interface: the one sanctioned dash character. */
+export const NO_VALUE = '—';
+
+/** A value as the interface prints it: the unit travels with it, or a dash stands in for it. */
+export function displayValue(value: string | null, unit?: string | null): string {
+  return `${value ?? NO_VALUE}${unit ? ` ${unit}` : ''}`;
+}
+
+/** Counts read as counts: one call, two calls, one entry, 23 entries. */
+export function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 export function duration(ms: number): string {
   const totalSeconds = Math.floor(Math.max(0, ms) / 1_000);
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+}
+
+/** Wall-clock time as the log and the row stamp it: 14:36. */
+export function clockTime(at: number): string {
+  const date = new Date(at);
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 }
 
 export function relativeTime(at: number, now: number): string {
@@ -71,16 +90,6 @@ export function searchedLabel(ref: string): string {
   if (documentId === 'spec' && /^s\d/.test(section)) return `spec \u00a7${section.slice(1)}`;
   if (documentId === 'email' && /^p\d/.test(section)) return `email \u00b6${section.slice(1)}`;
   return DOCUMENT_WORDS[documentId ?? ''] ?? ref;
-}
-
-/** The places the agent looked, as a sentence: "Searched spec \u00a73 and the drawing." */
-export function searchedSentence(searched: readonly string[]): string {
-  const places = [...new Set(searched.map(searchedLabel))];
-  if (places.length === 0) return '';
-  const list = places.length === 1
-    ? places[0]!
-    : `${places.slice(0, -1).join(', ')} and ${places.at(-1)}`;
-  return `Searched ${list}.`;
 }
 
 /** The bare fragment: with no handler the link still lands on the region. */

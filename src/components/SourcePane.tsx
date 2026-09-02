@@ -56,7 +56,9 @@ const DRAWING_FIELD_DEFAULTS: Partial<Record<string, FieldId>> = {
 
 const tabFromRef = (sourceRef: string | undefined): SourceTab | undefined => {
   const prefix = sourceRef?.split(':', 1)[0];
-  return DOCUMENT_TABS.find(tab => tab === prefix);
+  // "clarification" names the tab and no region inside it: the sent text is one
+  // panel, so the settled row links to the panel rather than to a paragraph.
+  return [...DOCUMENT_TABS, 'clarification' as const].find(tab => tab === prefix);
 };
 
 const sourceRefsForField = (field: Field): string[] => [
@@ -134,7 +136,7 @@ export function SourcePane({
 
   // The marker belongs to one read entry: it lights when that entry arrives and
   // clears 2 s later, whatever the reviewer is looking at. Keying the effect on
-  // anything else — a provenance target, the clarification tab appearing — would
+  // anything else (a provenance target, the clarification tab appearing) would
   // cancel the timeout and relight a read the agent finished long ago, so the
   // rest is read from a ref that render keeps current.
   useEffect(() => {
@@ -168,7 +170,7 @@ export function SourcePane({
   }, [target?.fieldId, target?.ref]);
 
   // Scrolling waits for the tab switch to commit: until the panel is visible the
-  // region has no box, so scrollIntoView would be a no-op (B1 — scroll model).
+  // region has no box, so scrollIntoView would be a no-op (B1, scroll model).
   useEffect(() => {
     if (!target) return;
     document.getElementById(target.ref)?.scrollIntoView?.({ block: 'center' });
@@ -178,7 +180,7 @@ export function SourcePane({
     tabsRef.current[activeTab]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }, [activeTab]);
 
-  // Narrow: the pane is a modal sheet over the field list — focus moves in, Tab
+  // Narrow: the pane is a modal sheet over the field list: focus moves in, Tab
   // stays inside, body scroll is locked, Escape closes and returns focus.
   useSheetDialog({ active: narrow && open, onClose, returnFocusRef, sheetRef });
 
@@ -246,12 +248,13 @@ export function SourcePane({
             tabIndex={activeTab === tab ? 0 : -1}
             type="button"
           >
+            {/* Exports 07 and 13 put the unsent marker before the name. */}
+            {tab === 'clarification' && draft && !sent && (
+              <span aria-hidden="true" className="source-pane__draft-dot" />
+            )}
             {TAB_LABELS[tab]}
             {readingVisible && reading?.docId === tab && (
               <span aria-label="reading" className="source-pane__reading" role="img" />
-            )}
-            {tab === 'clarification' && draft && !sent && (
-              <span aria-hidden="true" className="source-pane__draft-dot" />
             )}
           </button>
         ))}

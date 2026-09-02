@@ -15,7 +15,7 @@ export interface ChoiceProps {
 /**
  * One drawing for every choice in the app (DESIGN.md § Choice controls): the
  * native input stays for semantics and keyboard, `appearance: none` hands the
- * box to the stylesheet, and the checked mark is drawn on it — the accent dot
+ * box to the stylesheet, and the checked mark is drawn on it: the accent dot
  * for a radio, the icon-set check for a checkbox. The row is the click target.
  */
 export function Choice({

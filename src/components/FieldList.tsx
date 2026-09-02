@@ -2,12 +2,14 @@ import { useEffect, useState, type ComponentType } from 'react';
 import { useReview } from '../hooks/useReview';
 import {
   CheckCircleIcon,
+  ChevronDownIcon,
   CircleDotIcon,
   DashedCircleIcon,
   DashIcon,
   OpposingArrowsIcon,
 } from '../icons';
 import { fieldLabel } from '../lib/format';
+import { dismissReason, lastSent } from '../lib/log';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId, FieldState } from '../state/types';
 import { Button } from './Button';
@@ -66,6 +68,7 @@ const lockedReportFor = (field: Field, log: LogEntry[]): string | undefined => {
 
 export function FieldList({ focusRequest, onSource }: FieldListProps) {
   const { groups, log, verifiedCount } = useReview();
+  const sent = lastSent(log);
   const [verifiedOpen, setVerifiedOpen] = useState(false);
   const verified = groups.find(group => group.state === 'verified');
   const hasPendingSuggestion = verified?.fields.some(field => field.suggestion !== undefined) === true;
@@ -110,10 +113,13 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
             </h3>
             {group.fields.map(field => (
               <FieldRow
+                bare={log.length === 0}
+                dismissReason={dismissReason(log, field.id)}
                 field={field}
                 key={field.id}
                 lockedReport={lockedReportFor(field, log)}
                 onSource={onSource}
+                sent={sent}
               />
             ))}
           </section>
@@ -124,27 +130,39 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
         <section className="field-list__group field-list__group--verified">
           <div className="field-list__verified-summary">
             <CheckCircleIcon />
-            <span>
-              {verified.fields.length} more verified · {verified.fields.map(field => fieldLabel(field.id)).join(' · ')}
+            {/* "more" is only true while something else is still open. */}
+            <span className="field-list__verified-count">
+              {verified.fields.length} {openGroups.length > 0 ? 'more verified' : 'verified'}
+            </span>
+            <span className="field-list__verified-names">
+              {verified.fields.map(field => fieldLabel(field.id)).join(' · ')}
             </span>
             <Button
+              aria-controls="verified-fields"
               aria-expanded={verifiedOpen}
               variant="text"
               onClick={() => setVerifiedOpen(open => !open)}
             >
               {verifiedOpen ? 'Hide' : 'Show'}
+              <ChevronDownIcon />
             </Button>
           </div>
-          {verifiedOpen
-            ? verified.fields.map(field => (
-              <FieldRow
-                field={field}
-                key={field.id}
-                lockedReport={lockedReportFor(field, log)}
-                onSource={onSource}
-              />
-            ))
-            : null}
+          {/* The region the disclosure names stands whether it holds rows or
+              not, so the reference is never dangling. */}
+          <div id="verified-fields">
+            {verifiedOpen
+              ? verified.fields.map(field => (
+                <FieldRow
+                  dismissReason={dismissReason(log, field.id)}
+                  field={field}
+                  key={field.id}
+                  lockedReport={lockedReportFor(field, log)}
+                  onSource={onSource}
+                  sent={sent}
+                />
+              ))
+              : null}
+          </div>
         </section>
       ) : null}
     </section>

@@ -17,7 +17,8 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await page.getByRole('button', { name: /Show tools/ }).click();
   const material = page.locator('[data-field-id="material"]');
   await material.getByRole('button', { name: 'Verify' }).click();
-  await expect(page.getByText('1 more verified · Material')).toBeVisible();
+  await expect(page.locator('.field-list__verified-summary')).toContainText('1 more verified');
+  await expect(page.locator('.field-list__verified-names')).toHaveText('Material');
 
   const locked = await executeTool(page, 'propose_field', {
     field_id: 'material', value: 'Steel', source_refs: ['email:p3'], rationale: 'The email says steel.',
@@ -47,11 +48,10 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await expect(page.getByRole('tab', { name: 'Spec' })).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('[id="spec:s1.1"]')).toHaveClass(/document-region--highlighted/);
 
-  // S5: the searched places read as a sentence in the agent line, never as chips.
-  await expect(page.locator('[data-field-id="general_tolerance"]')).toContainText(
-    'Agent: No general tolerance was stated. Searched the drawing and the specification.',
-  );
-  await expect(page.locator('.field-row__chip')).toHaveCount(0);
+  // S5: where the agent looked is a row of chips, and its own note follows.
+  const tolerance = page.locator('[data-field-id="general_tolerance"]');
+  await expect(tolerance.locator('.field-row__chip')).toHaveText(['the drawing', 'the specification']);
+  await expect(tolerance).toContainText('Agent: No general tolerance was stated.');
 
   const visibleOrder = await page.locator('.field-row').evaluateAll(rows => rows.map(row => row.getAttribute('data-field-id')));
   expect(visibleOrder.slice(0, 2)).toEqual(['quantity', 'general_tolerance']);
@@ -75,7 +75,6 @@ test('registered tools drive risk order and protect human decisions', async ({ p
   await expect(page.locator('[data-field-id="quantity"]')).not.toContainText('Verified by you');
 
   await page.locator('[data-field-id="quantity"]').getByRole('button', { name: 'Pick' }).first().click();
-  const tolerance = page.locator('[data-field-id="general_tolerance"]');
   await tolerance.getByRole('button', { name: 'Mark not required' }).first().click();
   await tolerance.getByRole('radio', { name: 'Not required for this quote' }).check();
   await tolerance.getByRole('button', { name: 'Mark not required' }).last().click();

@@ -8,28 +8,51 @@ import { ReplayControls } from './ReplayControls';
 
 afterEach(async () => { cleanup(); await controller.leave(); localStorage.clear(); vi.restoreAllMocks(); });
 
-test('playing and paused controls preserve focus; restart focuses Play and resets the counter', async () => {
+const row = () => document.querySelector('.replay-controls__text')!;
+const buttons = () => screen.getAllByRole('button').map(button => button.textContent);
+
+test('playing offers Pause alone and names the recording, the step and the total', async () => {
   await controller.startSample();
   render(<ReplayControls />);
-  const toggle = screen.getByRole('button', { name: 'Pause' }); toggle.focus();
-  fireEvent.click(toggle);
-  expect(screen.getByRole('button', { name: 'Play' })).toHaveFocus();
-  await act(async () => { await controller.next(); });
-  fireEvent.click(screen.getByRole('button', { name: 'Restart' }));
-  expect(screen.getByRole('button', { name: 'Play' })).toHaveFocus();
-  expect(screen.getByText(`0 / ${controller.getSnapshot().total}`)).toBeInTheDocument();
+
+  expect(row()).toHaveTextContent(`Sample session · recorded 2026-09-01 · step 0 of ${controller.getSnapshot().total}`);
+  expect(row()).not.toHaveTextContent('next:');
+  expect(buttons()).toEqual(['Pause']);
 });
 
-test('Next call is disabled during an in-flight step', async () => {
+test('pausing adds the next step and the three controls, and keeps focus on the toggle', async () => {
+  await controller.startSample();
+  render(<ReplayControls />);
+  const toggle = screen.getByRole('button', { name: 'Pause' });
+  toggle.focus();
+  fireEvent.click(toggle);
+
+  expect(screen.getByRole('button', { name: 'Play' })).toHaveFocus();
+  expect(buttons()).toEqual(['Play', 'Next step', 'Restart']);
+  expect(row()).toHaveTextContent('next: agent lists the documents');
+});
+
+test('Restart resets the counter and focuses Play', async () => {
+  await controller.startSample();
+  render(<ReplayControls />);
+  fireEvent.click(screen.getByRole('button', { name: 'Pause' }));
+  await act(async () => { await controller.next(); });
+  fireEvent.click(screen.getByRole('button', { name: 'Restart' }));
+
+  expect(screen.getByRole('button', { name: 'Play' })).toHaveFocus();
+  expect(row()).toHaveTextContent(`step 0 of ${controller.getSnapshot().total}`);
+});
+
+test('Next step is disabled during an in-flight step', async () => {
   await controller.startSample(); controller.pause();
   let release!: () => void;
   vi.spyOn(tools, 'executeTool').mockImplementationOnce(() => new Promise(resolve => { release = () => resolve({}); }));
   render(<ReplayControls />);
   let pending!: Promise<boolean>;
   act(() => { pending = controller.next(); });
-  expect(screen.getByRole('button', { name: 'Next call' })).toBeDisabled();
+  expect(screen.getByRole('button', { name: 'Next step' })).toBeDisabled();
   await act(async () => { release(); await pending; });
-  expect(screen.getByRole('button', { name: 'Next call' })).toBeEnabled();
+  expect(screen.getByRole('button', { name: 'Next step' })).toBeEnabled();
 });
 
 test('focusPause falls back to Restart when the row carries no Pause', async () => {
@@ -42,14 +65,20 @@ test('focusPause falls back to Restart when the row carries no Pause', async () 
   expect(screen.getByRole('button', { name: 'Restart' })).toHaveFocus();
 });
 
-test('error and ended rows show Restart only with their status text', async () => {
+test('a stopped replay names the step it stopped on and offers Restart alone', async () => {
   await controller.startSample(); controller.pause();
   vi.spyOn(tools, 'executeTool').mockRejectedValueOnce(new Error('Tool unavailable'));
   render(<ReplayControls />);
   await act(async () => { await controller.next(); });
+
   expect(screen.getByText('stopped at step 1: Tool unavailable')).toBeInTheDocument();
-  expect(screen.getAllByRole('button')).toHaveLength(1);
-  await act(async () => { await controller.startImported({ recorded_at: '2026-09-01', steps: [] }); });
-  expect(screen.getByText('finished')).toBeInTheDocument();
-  expect(screen.getAllByRole('button')).toHaveLength(1);
+  expect(buttons()).toEqual(['Restart']);
+});
+
+test('a finished replay counts the steps it ran and offers Restart alone', async () => {
+  await act(async () => { await controller.startImported({ recorded_at: '2026-09-01', steps: [] }, 'Imported session'); });
+  render(<ReplayControls />);
+
+  expect(row()).toHaveTextContent('Imported session · finished · 0 steps');
+  expect(buttons()).toEqual(['Restart']);
 });

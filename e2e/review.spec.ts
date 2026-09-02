@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { removeModelContext } from './helpers';
 
 test('sample replay exposes review decisions and reaches the confirmation summary', async ({ page }) => {
   test.setTimeout(60_000);
@@ -9,6 +10,8 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   page.on('pageerror', error => browserProblems.push(error.message));
   await page.clock.install({ time: new Date('2026-09-02T10:00:00Z') });
   await page.clock.pauseAt(new Date('2026-09-02T10:00:00Z'));
+  // B1: the fallback path, declared, not inherited from the runner.
+  await removeModelContext(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Play sample session' }).click();
 
@@ -19,7 +22,8 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await first.getByRole('link').click();
   await expect(page.locator('.document-region--highlighted')).toBeVisible();
   await first.getByRole('button', { name: 'Verify' }).click();
-  await expect(page.getByText(/1 more verified · Customer RFQ ref/)).toBeVisible();
+  await expect(page.locator('.field-list__verified-summary')).toContainText('1 more verified');
+  await expect(page.locator('.field-list__verified-names')).toHaveText('Customer RFQ ref');
   // B3: log stamps are wall-clock, so the badge reads a real elapsed time.
   await page.locator('.field-list__verified-summary').getByRole('button', { name: 'Show' }).click();
   await expect(first).toContainText(/Verified by you · 0:\d\d ago/);
@@ -54,6 +58,21 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await expect(page.getByText(/Sent · 3 fields asked/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
 
+  // The value slot never carries the badge's wording: an asked field with no
+  // value reads as a dash, and one that had a value keeps it (export 11).
+  const reveal = page.locator('.field-list__verified-summary').getByRole('button', { name: 'Show' });
+  if (await reveal.count()) await reveal.click();
+  for (const id of ['general_tolerance', 'drawing_number', 'drawing_revision']) {
+    const row = page.locator(`[data-field-id="${id}"]`);
+    await expect(row.locator('.field-row__badge')).toContainText('Awaiting customer');
+    // All three went to the customer with no value of their own, so all three
+    // read as the dash. A row that had one keeps it: FieldList covers that.
+    await expect(row.locator('.field-row__value')).toHaveText('—');
+  }
+
+  // Every field settled: the verified header drops the word "more".
+  await expect(page.locator('.field-list__verified-count')).toHaveText('11 verified');
+
   await page.clock.runFor(3_500);
   await expect(page.getByRole('heading', { name: /Confirmed/ })).toBeVisible();
   await expect(page.getByText(/Recorded review/)).toBeVisible();
@@ -72,5 +91,25 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   expect(summary.lists).toBeGreaterThan(0);
   expect(summary.markers).toEqual(['none']);
   expect(summary.chip).toBe(summary.sans);
+
+  // Export 08: the details and the log are cards on the canvas; the actions
+  // under them are not, and every block keeps its own gap so that no two
+  // hairlines ever meet.
+  const blocks = await page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    const actions = document.querySelector('.confirm-summary__actions')!;
+    const style = getComputedStyle(actions);
+    return {
+      detailsToLog: box('.confirm-summary__log').top - box('.confirm-summary__details').bottom,
+      logToActions: actions.getBoundingClientRect().top - box('.confirm-summary__log').bottom,
+      border: style.borderTopWidth,
+      background: style.backgroundColor,
+    };
+  });
+  expect(blocks.detailsToLog).toBeGreaterThan(0);
+  expect(blocks.logToActions).toBeGreaterThan(0);
+  expect(blocks.border).toBe('0px');
+  expect(blocks.background).toBe('rgba(0, 0, 0, 0)');
+
   expect(browserProblems).toEqual([]);
 });
