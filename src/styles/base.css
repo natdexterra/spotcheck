@@ -38,7 +38,8 @@ textarea {
 
 /* The ring paints on the drawn box, never on a clipped input (WCAG 2.4.7). */
 :focus-visible,
-.inline-editor__segment:has(input:focus-visible) {
+.inline-editor__segment:has(input:focus-visible),
+.segmented__option:has(input:focus-visible) {
   outline: var(--ring-width) solid var(--accent);
   outline-offset: var(--ring-width);
 }
