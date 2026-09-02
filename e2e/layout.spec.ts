@@ -126,6 +126,7 @@ test('the orienting line leaves with the first tool call', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('.status-strip__intro')).toBeVisible();
   await seed(page);
+  expect(await page.locator('.field-row__value').first().evaluate(element => getComputedStyle(element).fontSize)).toBe('16.464px');
   await expect(page.locator('.status-strip')).toContainText('Live');
   await expect(page.locator('.status-strip__intro')).toHaveCount(0);
 });
