@@ -7,6 +7,9 @@ import { replaceState } from '../state/store';
 import type { Field, FieldId, ResolutionKind } from '../state/types';
 import { Button } from './Button';
 import { LogLine } from './ChangeLogDrawer';
+import { useReplay } from '../hooks/useReplay';
+import { leave } from '../replay/controller';
+import { ExportSessionButton } from './ExportSessionButton';
 
 export interface ConfirmSummaryProps {
   logContent?: ReactNode;
@@ -39,6 +42,7 @@ const fieldList = (fields: Field[]): string => fields.map(field => fieldLabel(fi
 
 export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
   const { confirmed, log, state, timer } = useReview();
+  const replay = useReplay();
   if (!confirmed) return null;
 
   const fieldsByResolution = (kind: ResolutionKind) =>
@@ -63,9 +67,11 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
             ? `Confirmed with ${openQuestions.length} open ${openQuestions.length === 1 ? 'question' : 'questions'}`
             : 'Confirmed'}
         </h2>
-        {timer !== null ? (
+        {replay.active || timer !== null ? (
           <p className="confirm-summary__timer">
-            Reviewed in {duration(timer)} — from the agent’s first write to confirm
+            {replay.active
+              ? `Recorded review ${duration(replay.recordedMs)}${replay.finishedByViewer ? ` · this run ${duration(timer ?? 0)}` : ''}`
+              : `Reviewed in ${duration(timer!)} — from the agent’s first write to confirm`}
           </p>
         ) : null}
       </header>
@@ -154,7 +160,8 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
       </section>
 
       <div className="confirm-summary__actions">
-        <Button variant="text" onClick={() => replaceState(createInitialState())}>Start over</Button>
+        <ExportSessionButton />
+        <Button variant="text" onClick={() => { if (replay.active) void leave(); else replaceState(createInitialState()); }}>Start over</Button>
       </div>
     </section>
   );
