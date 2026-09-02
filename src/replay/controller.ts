@@ -1,3 +1,4 @@
+import { getPackage, samplePackage, setPackage, type RfqPackage } from '../data/package';
 import { createInitialState } from '../state/session';
 import { getState, replaceState } from '../state/store';
 import { readSavedSession, saveNow } from './persistence';
@@ -25,7 +26,7 @@ const idle: Omit<ReplaySnapshot, 'focusRequest'> = { active: false, label: '', r
   playing: false, busy: false, ended: false, finishedByViewer: false, recordedMs: 0 };
 let focusRequest = 0;
 let snapshot: ReplaySnapshot = { ...idle, focusRequest };
-let owner: { replay: ReturnType<typeof createReplay>; saved: string | null; before: ReturnType<typeof getState>; label: string; recordedAt: string; unsubscribe: () => void } | undefined;
+let owner: { replay: ReturnType<typeof createReplay>; saved: string | null; before: ReturnType<typeof getState>; pkg: RfqPackage; label: string; recordedAt: string; unsubscribe: () => void } | undefined;
 const listeners = new Set<() => void>();
 export const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 export const getSnapshot = () => snapshot;
@@ -63,6 +64,10 @@ async function detach() {
   });
   let restored = false;
   let recordedAt: string | undefined;
+  // The package goes back before the session does: importing a saved session
+  // replays its tool calls, and their source refs resolve against whichever
+  // package is current. Restoring the other way round would reject every ref.
+  setPackage(previous.pkg);
   try {
     if (previous.saved) {
       recordedAt = parseFixture(previous.saved).recorded_at;
@@ -81,20 +86,25 @@ async function detach() {
 }
 
 export const leave = () => enqueue(detach);
-export const startImported = (fixture: Fixture, label = 'Imported session') => {
+const start = (fixture: Fixture, label: string, over?: RfqPackage) => {
   // Reject malformed input before touching the attached replay or its saved session.
   const validated = parseFixture(JSON.stringify(fixture));
   return enqueue(async () => {
     await detach();
     const saved = readSavedSession();
     const before = getState();
+    const pkg = getPackage();
+    // The sample recording cites the sample's own regions, so the sample
+    // package goes under it; leaving hands the person's package back.
+    if (over && over !== pkg) setPackage(over);
     const replay = createReplay(validated);
-    owner = { replay, saved, before, label, recordedAt: validated.recorded_at, unsubscribe: replay.subscribe(publish) };
+    owner = { replay, saved, before, pkg, label, recordedAt: validated.recorded_at, unsubscribe: replay.subscribe(publish) };
     replay.play();
     publish();
   });
 };
-export const startSample = () => startImported(sampleSession, 'Sample session');
+export const startImported = (fixture: Fixture, label = 'Imported session') => start(fixture, label);
+export const startSample = () => start(sampleSession, 'Sample session', samplePackage);
 export const play = () => owner?.replay.play();
 export const pause = () => owner?.replay.pause();
 export const next = async () => await owner?.replay.next() ?? false;
