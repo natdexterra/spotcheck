@@ -1,10 +1,10 @@
 export interface Region { id: string; text: string; injection?: boolean; private?: boolean }
 export interface Section { id: string; title?: string; regions?: Region[]; strings?: string[] }
 export interface DocumentData {
-  id: string; type: string; title?: string; sections: Section[];
+  id: string; type: string; title?: string; sections: Section[]; image?: string;
   sheet?: number | string | null; units_note?: string | null; material_note?: string | null;
 }
-export interface RfqPackage { documents: DocumentData[] }
+export interface RfqPackage { reference?: string; customer?: string; documents: DocumentData[] }
 
 const fixtures = import.meta.glob<RfqPackage>('../../data/package*.json', { eager: true, import: 'default' });
 export const packageData = fixtures['../../data/package.json'] ?? fixtures['../../data/package.stub.json']!;
