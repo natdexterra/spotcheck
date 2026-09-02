@@ -17,6 +17,7 @@
 .field-list__header h2,
 .field-list__group-heading,
 .clarification__label,
+.drawing-sheet__zoom-label,
 .inline-editor__label,
 .not-required-picker__legend {
   font-size: var(--text-md);
@@ -141,6 +142,7 @@
 .suggestion-card__value,
 .inline-editor__input,
 .inline-editor__segment,
+.segmented__option,
 .confirm-summary__line,
 .drawing-sheet__caption {
   font-family: var(--font-mono);
@@ -572,6 +574,12 @@
   overflow-y: auto;
 }
 
+/* The drawing scrolls sideways inside the panel, never across the page
+   (WCAG 1.4.10); the scrollbars sit at the panel's own edge. */
+.source-pane__panel--drawing {
+  overflow: auto;
+}
+
 .source-pane__tabs {
   flex: none;
   display: flex;
@@ -633,7 +641,46 @@
 
 .drawing-sheet {
   margin: 0;
-  padding: var(--space-6) var(--document-gutter);
+  /* The toolbar is the first row: 12px under the tab row, 24px above the sheet. */
+  padding: var(--space-3) var(--document-gutter) var(--space-6);
+}
+
+.drawing-sheet__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-block-end: var(--space-6);
+}
+
+.drawing-sheet__name {
+  margin: 0;
+  color: var(--ink-secondary);
+  font-size: var(--text-md);
+  line-height: var(--leading-md);
+  white-space: nowrap;
+}
+
+.drawing-sheet__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* At 2x the sheet is twice the panel's content width and the panel scrolls
+   both ways; the toolbar and the caption keep the document lane, the sheet
+   itself runs to the panel edges so 200% is exactly two panel widths. */
+.drawing-sheet--zoom-2 {
+  padding-inline: 0;
+}
+
+.drawing-sheet--zoom-2 .drawing-sheet__toolbar,
+.drawing-sheet--zoom-2 .drawing-sheet__caption {
+  padding-inline: var(--document-gutter);
+}
+
+.drawing-sheet--zoom-2 .drawing-sheet__image-wrap {
+  width: 200%;
 }
 
 .drawing-sheet__image-wrap {
@@ -822,6 +869,7 @@
 .change-log__empty,
 .clarification__label,
 .clarification__sent-line,
+.drawing-sheet__zoom-label,
 .inline-editor__label,
 .not-required-picker__legend {
   color: var(--ink-secondary);
@@ -842,14 +890,16 @@
 
 /* Segmented control (DESIGN.md § Choice controls): one box around the group,
    hairline separators inside, each segment the height of the input beside it. */
-.inline-editor__segments {
+.inline-editor__segments,
+.segmented {
   display: flex;
   overflow: hidden;
   border: var(--rule-width) solid var(--border-input);
   border-radius: var(--radius-2);
 }
 
-.inline-editor__segment {
+.inline-editor__segment,
+.segmented__option {
   min-height: var(--control-input);
   display: grid;
   place-items: center;
@@ -859,11 +909,13 @@
   cursor: pointer;
 }
 
-.inline-editor__segment + .inline-editor__segment {
+.inline-editor__segment + .inline-editor__segment,
+.segmented__option + .segmented__option {
   border-inline-start: var(--rule-width) solid var(--hairline-strong);
 }
 
-.inline-editor__segment:has(input:checked) {
+.inline-editor__segment:has(input:checked),
+.segmented__option:has(input:checked) {
   color: var(--ink);
   background-color: var(--bg-subtle);
   font-weight: 500;
@@ -1198,6 +1250,17 @@
   .drawing-sheet {
     padding-inline: var(--space-8);
   }
+
+  /* The stepped lane follows the toolbar and caption when the sheet itself
+     goes full-bleed at 2x. */
+  .drawing-sheet--zoom-2 {
+    padding-inline: 0;
+  }
+
+  .drawing-sheet--zoom-2 .drawing-sheet__toolbar,
+  .drawing-sheet--zoom-2 .drawing-sheet__caption {
+    padding-inline: var(--space-8);
+  }
 }
 
 @media (width < 64rem) {
@@ -1295,6 +1358,12 @@
 
   .inline-editor__segment {
     flex: 1;
+  }
+
+  /* The zoom segments are a bar of their own: they keep their width and
+     reach the narrow target through height. */
+  .segmented__option {
+    min-height: var(--control-large);
   }
 
   /* Choice rows reach the narrow target through padding, not bigger boxes. */

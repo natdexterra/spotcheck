@@ -301,12 +301,17 @@ export function SourcePane({
           readingSectionId={readingSectionFor('spec')}
         />
       </div>
+      {/* The drawing panel is its own scroll region in both axes, so at 2× the
+          sheet scrolls here and never across the page. A scroll container needs
+          a tab stop of its own to be reachable from the keyboard, and its own
+          name says what scrolling it moves. */}
       <div
-        aria-labelledby="source-tab-drawing"
-        className="source-pane__panel"
+        aria-label="Drawing sheet, scrollable"
+        className="source-pane__panel source-pane__panel--drawing"
         hidden={activeTab !== 'drawing'}
         id="source-panel-drawing"
         role="tabpanel"
+        tabIndex={0}
       >
         <DrawingSheet
           highlightedRef={highlightedRef}
