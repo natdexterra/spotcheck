@@ -1763,9 +1763,16 @@
   font-weight: 600;
 }
 
+/* Hierarchy by distance: a label and its hint sit at the smallest step, the
+   control a step above that, and one field stands a whole step further from
+   the next than any of its own parts do (DESIGN.md § Spacing, layout, the
+   dialog field role). */
 .dialog__field {
   display: grid;
-  gap: var(--space-2);
+}
+
+.dialog__field + .dialog__field {
+  margin-block-start: var(--space-6);
 }
 
 .dialog__textarea {
@@ -1809,21 +1816,17 @@
   color: var(--state-conflict);
 }
 
-/* A hint and its field sit closer than two fields do. */
-.dialog__field {
-  gap: var(--space-1);
-}
-
 .dialog__field .dialog__input,
 .dialog__field .dialog__textarea,
 .dialog__field .dialog__file,
 .dialog__field .dialog__error {
-  margin-block-start: var(--space-1);
+  margin-block-start: var(--space-2);
 }
 
 /* A hint is a line of its own, never text inside the field (§ Interaction states). */
 .dialog__hint {
   margin: 0;
+  margin-block-start: var(--space-1);
   color: var(--ink-secondary);
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
