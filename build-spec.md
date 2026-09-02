@@ -160,7 +160,7 @@ Keyboard (B9): `j`/`k` flagged-field navigation, `Enter` primary action, `e` edi
 
 ## Size and performance budgets
 
-- JS ≤ 180 KB gzip total (React included); CSS ≤ 26 KB (24 KB through P2; raised for the replay, export/import and zoom controls); no inline scripts (`default-src 'self'` holds).
+- JS ≤ 180 KB gzip total (React included); CSS ≤ 28 KB (24 KB through P2, 26 KB through P3; raised for the zoom toolbar and the package dialog); no inline scripts (`default-src 'self'` holds).
 - `data/drawing-sheet1.webp` ≤ 300 KB; fonts self-hosted woff2, preloaded, `Geist Fallback` metric-matched.
 - Every tool result < 1,500 chars serialized — fixture-driven unit test.
 - INP ≤ 200 ms during live extraction (the ADR's review trigger).
