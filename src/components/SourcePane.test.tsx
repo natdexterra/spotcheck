@@ -1,4 +1,5 @@
 // @vitest-environment jsdom
+import { readFileSync } from 'node:fs';
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
@@ -134,6 +135,36 @@ describe('source documents', () => {
     expect(document.getElementById('email:note')).toBeNull();
   });
 
+  test('a panel with a display of its own still disappears when it is hidden', () => {
+    render(<SourcePane onFocusField={vi.fn()} />);
+
+    // The pane opens on the letter; every other panel is out of the flow, so
+    // the sheet's toolbar never renders under the document on show.
+    const drawing = document.getElementById('source-panel-drawing')!;
+    expect(drawing).toHaveAttribute('hidden');
+    expect(drawing).not.toBeVisible();
+    expect(screen.queryByText('Zoom')).not.toBeVisible();
+    expect(within(document.getElementById('source-panel-email')!).queryByText('Zoom')).toBeNull();
+
+    // jsdom loads no stylesheet, and the browser's own [hidden] rule loses to
+    // any author rule that gives the panel a display — so the guard is that the
+    // stylesheet carries a [hidden] rule of its own.
+    expect(readFileSync('src/styles/base.css', 'utf8'))
+      .toMatch(/\[hidden\]\s*\{[^}]*display:\s*none\s*!important/);
+  });
+
+  test('the Drawing tab panel is a column, not a scroll container with a tab stop', () => {
+    render(<SourcePane onFocusField={vi.fn()} />);
+    fireEvent.click(screen.getByRole('tab', { name: 'Drawing' }));
+
+    // The sheet's own region is the scroll container and the only tab stop
+    // around the drawing; a second one on the panel would trap the keyboard in
+    // a box that never scrolls.
+    const panel = document.getElementById('source-panel-drawing')!;
+    expect(panel).not.toHaveAttribute('tabindex');
+    expect(panel.querySelector('.drawing-sheet__scroll')).toHaveAttribute('tabindex', '0');
+  });
+
   test('positions normalized drawing boxes as percentages and activates them', () => {
     const onActivateRegion = vi.fn();
     render(<DrawingSheet onActivateRegion={onActivateRegion} highlightedRef="drawing:width" />);
@@ -149,6 +180,8 @@ describe('source documents', () => {
     fireEvent.click(widthBox);
     expect(onActivateRegion).toHaveBeenCalledWith('drawing:width');
     expect(screen.getByText('a revision letter would live here; there is none')).toBeInTheDocument();
-    expect(screen.getByText('Sheet 1 of 4 · regions are clickable')).toBeInTheDocument();
+    // The caption keeps the note; nothing in the sheet counts sheets.
+    expect(screen.getByText('regions are clickable')).toBeInTheDocument();
+    expect(screen.queryByText(/Sheet \d/)).toBeNull();
   });
 });

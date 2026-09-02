@@ -141,6 +141,7 @@
 .suggestion-card__value,
 .inline-editor__input,
 .inline-editor__segment,
+.segmented__option,
 .replay-controls .numeric,
 .confirm-summary__timer .numeric,
 .confirm-summary__line {
@@ -573,6 +574,15 @@
   overflow-y: auto;
 }
 
+/* The drawing tab panel is not a scroll container: the sheet scrolls in a
+   wrapper of its own, so the panel is only the column that hands that wrapper
+   the height the toolbar and the caption leave. */
+.source-pane__panel--drawing {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .source-pane__tabs {
   flex: none;
   display: flex;
@@ -634,7 +644,55 @@
 
 .drawing-sheet {
   margin: 0;
-  padding: var(--space-6) var(--document-gutter);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The toolbar is the first row: 12px under the tab row, 24px at the foot. */
+  padding-block: var(--space-3) var(--space-6);
+}
+
+/* The document lane belongs to the rows and to the scroll region, not to the
+   figure: that is what lets the region alone go full-bleed at 2x. */
+.drawing-sheet__toolbar,
+.drawing-sheet__scroll,
+.drawing-sheet__caption {
+  padding-inline: var(--document-gutter);
+}
+
+/* The toolbar holds the zoom control alone, at the lane's right edge. */
+.drawing-sheet__toolbar {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-block-end: var(--space-6);
+}
+
+.drawing-sheet__zoom {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* The sheet's own scroll region: it takes the height the toolbar and the
+   caption leave and scrolls in both axes, so the page never scrolls sideways
+   (WCAG 1.4.10) and neither row ever pans with the drawing. */
+.drawing-sheet__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* At 2x the drawing is twice the scroll region's content width; the region
+   itself runs to the panel edges, where its scrollbars sit, while the toolbar
+   and the caption stay on the document lane. */
+.drawing-sheet--zoom-2 .drawing-sheet__scroll {
+  padding-inline: 0;
+}
+
+.drawing-sheet--zoom-2 .drawing-sheet__image-wrap {
+  width: 200%;
 }
 
 .drawing-sheet__image-wrap {
@@ -676,6 +734,7 @@
 }
 
 .drawing-sheet__caption {
+  flex: none;
   display: grid;
   font-size: var(--text-md);
   gap: var(--space-2);
@@ -824,6 +883,7 @@
 .change-log__empty,
 .clarification__label,
 .clarification__sent-line,
+.drawing-sheet__zoom-label,
 .inline-editor__label,
 .not-required-picker__legend {
   color: var(--ink-secondary);
@@ -844,14 +904,16 @@
 
 /* Segmented control (DESIGN.md § Choice controls): one box around the group,
    hairline separators inside, each segment the height of the input beside it. */
-.inline-editor__segments {
+.inline-editor__segments,
+.segmented {
   display: flex;
   overflow: hidden;
   border: var(--rule-width) solid var(--border-input);
   border-radius: var(--radius-2);
 }
 
-.inline-editor__segment {
+.inline-editor__segment,
+.segmented__option {
   min-height: var(--control-input);
   display: grid;
   place-items: center;
@@ -861,11 +923,13 @@
   cursor: pointer;
 }
 
-.inline-editor__segment + .inline-editor__segment {
+.inline-editor__segment + .inline-editor__segment,
+.segmented__option + .segmented__option {
   border-inline-start: var(--rule-width) solid var(--hairline-strong);
 }
 
-.inline-editor__segment:has(input:checked) {
+.inline-editor__segment:has(input:checked),
+.segmented__option:has(input:checked) {
   color: var(--ink);
   background-color: var(--bg-subtle);
   font-weight: 500;
@@ -1193,10 +1257,13 @@
     gap: var(--space-4);
   }
 
-  /* Ladder step 2: the document lane steps 48 to 32 below 1280. */
+  /* Ladder step 2: the document lane steps 48 to 32 below 1280. The zoom-2
+     rule outranks this one, so the scroll region still goes full-bleed. */
   .source-pane__tabs,
   .document-text,
-  .drawing-sheet {
+  .drawing-sheet__toolbar,
+  .drawing-sheet__scroll,
+  .drawing-sheet__caption {
     padding-inline: var(--space-8);
   }
 }
@@ -1285,7 +1352,12 @@
     padding: var(--space-6) var(--space-4);
   }
 
-  .source-pane__panel--clarification {
+  /* Narrow, the sheet's rows share the sheet lane with the tabs above them;
+     the zoom-2 rule still outranks this one, so the region goes full-bleed. */
+  .source-pane__panel--clarification,
+  .drawing-sheet__toolbar,
+  .drawing-sheet__scroll,
+  .drawing-sheet__caption {
     padding-inline: var(--space-4);
   }
 
@@ -1296,6 +1368,12 @@
 
   .inline-editor__segment {
     flex: 1;
+  }
+
+  /* The zoom segments are a bar of their own: they keep their width and
+     reach the narrow target through height. */
+  .segmented__option {
+    min-height: var(--control-large);
   }
 
   /* Choice rows reach the narrow target through padding, not bigger boxes. */
@@ -1342,11 +1420,17 @@
   font-size: var(--text-lg-mono);
 }
 
+.drawing-sheet__zoom-label,
 .field-row__revision,
 .field-row__agent-original,
 .confirm-summary__line {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
+}
+
+/* The micro-label keeps the label weight at the smaller step (export 17). */
+.drawing-sheet__zoom-label {
+  font-weight: 500;
 }
 
 .replay-controls,

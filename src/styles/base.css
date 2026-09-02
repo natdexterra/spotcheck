@@ -37,10 +37,25 @@ textarea {
 }
 
 /* The ring paints on the drawn box, never on a clipped input (WCAG 2.4.7). */
-:focus-visible,
-.inline-editor__segment:has(input:focus-visible) {
+:focus-visible {
   outline: var(--ring-width) solid var(--accent);
   outline-offset: var(--ring-width);
+}
+
+/* A box its container clips — a segment in the group's rounded box, the sheet's
+   scroll region in the tab panel — loses an outward ring, so the same 2px
+   accent ring is drawn inside the box instead. */
+.inline-editor__segment:has(input:focus-visible),
+.segmented__option:has(input:focus-visible),
+.drawing-sheet__scroll:focus-visible {
+  outline: var(--ring-width) solid var(--accent);
+  outline-offset: calc(var(--ring-width) * -1);
+}
+
+/* A panel with a display of its own outranks the browser's own [hidden] rule
+   (the drawing tab panel is a flex column), so the attribute is enforced here. */
+[hidden] {
+  display: none !important;
 }
 
 .visually-hidden {
