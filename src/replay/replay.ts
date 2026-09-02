@@ -52,9 +52,11 @@ export function createReplay(source: Fixture = sampleSession) {
   const unsubscribe = subscribe(() => {
     const state = getState();
     const log = reviewSession(state).log;
+    // A viewer who confirms by hand ends the replay where it stands: the
+    // counter keeps the position the run reached (12 / 26), and `ended` comes
+    // from the lifecycle rule below rather than from a faked position.
     if (!applyingFixture && state.confirmed && !finishedByViewer) {
       finishedByViewer = true;
-      position = fixture.steps.length;
       pause();
     }
     if (!applyingFixture) for (const entry of log.slice(seen)) {
@@ -129,14 +131,14 @@ export function createReplay(source: Fixture = sampleSession) {
     get playing() { return playing; },
     get busy() { return busy; },
     get total() { return fixture.steps.length; },
-    get ended() { return position === fixture.steps.length; },
+    get ended() { return position === fixture.steps.length || finishedByViewer; },
     get error() { return error; },
     get finishedByViewer() { return finishedByViewer; },
     get recordedMs() { return recordedMs; },
     get nextStep() { return fixture.steps[position]; },
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     next, pause,
-    play() { if (!disposed && !error && position < fixture.steps.length) { playing = true; schedule(); notify(); } },
+    play() { if (!disposed && !error && !finishedByViewer && position < fixture.steps.length) { playing = true; schedule(); notify(); } },
     restart() { if (disposed || busy) return; pause(); generation++; position = 0; error = undefined; finishedByViewer = false; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); notify(); },
     dispose() { pause(); if (!disposed) { disposed = true; unsubscribe(); resumePersistence(); } },
   };
