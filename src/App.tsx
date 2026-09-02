@@ -11,7 +11,7 @@ import { StatusStrip } from './components/StatusStrip';
 import { useKeyboardMap } from './hooks/useKeyboardMap';
 import { useNarrowLayout } from './hooks/useNarrowLayout';
 import { useReview } from './hooks/useReview';
-import { createReplay } from './replay/replay';
+import { leave } from './replay/controller';
 import type { FocusRequest } from './components/FieldList';
 import type { FieldId } from './state/types';
 
@@ -22,16 +22,9 @@ export function App() {
   const [sourceTarget, setSourceTarget] = useState<SourceTarget>();
   const [focusRequest, setFocusRequest] = useState<FocusRequest>();
   const sourceReturnRef = useRef<HTMLElement | null>(null);
-  const replayRef = useRef<ReturnType<typeof createReplay>>();
   useKeyboardMap();
 
-  useEffect(() => () => replayRef.current?.dispose(), []);
-
-  const playSample = () => {
-    replayRef.current?.dispose();
-    replayRef.current = createReplay();
-    replayRef.current.play();
-  };
+  useEffect(() => () => { void leave(); }, []);
   const openSource = (ref: string, fieldId: FieldId) => {
     sourceReturnRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     setSourceTarget({ ref, fieldId });
@@ -48,7 +41,7 @@ export function App() {
   return (
     <div className="app-shell">
       <Header />
-      <StatusStrip onPlaySample={playSample} />
+      <StatusStrip />
       {confirmed ? (
         <main className="summary-main">
           <ConfirmSummary />

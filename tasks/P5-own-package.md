@@ -19,15 +19,19 @@ A person can bring their own quote request instead of the bundled sample: paste 
 
 | Path | Responsibility |
 |---|---|
-| `src/data/package.ts` (modify) | the package becomes a small store: `getPackage()`, `setPackage(pkg)`, `subscribePackage()`; the bundled sample is the initial value; `findDocument`, `sectionRegions` read the current package |
+| `src/data/package.ts` (modify) | the package becomes a small store: `getPackage()`, `setPackage(pkg)`, `subscribePackage()`; the bundled sample is the initial value; every helper (`documentIndex`, `findDocument`, `findSection`, `sectionRegions`, `resolvesSource`, `resolvesSearch`) reads the current package, so their callers (`src/state/read-results.ts`, `src/state/agent-validation.ts`) stay unchanged; `RfqPackage` gains `reference` and `customer` |
+| `data/package.json` (modify) | `title` splits into `reference: "RFQ 26-0812"` and `customer: "Tarrowline Console Systems"` (data change, no content change) |
 | `src/data/user-package.ts` (create) | `buildPackage({ reference, customer, email, spec, drawing })` → a package object in the same shape as `data/package.json` (§ Splitting); pure, tested without DOM |
 | `src/data/package-storage.ts` (create) | saves the current user package to `localStorage` (`spotcheck.package.v1`) and restores it on load before the session restore; the drawing image as a data URL; a package hash in the session storage key so a saved session belongs to its package |
-| `src/webmcp-tools.ts` (unchanged) | reads through `getPackage()` already via `findDocument` — verify; if a direct import of the JSON exists there, replace it with the store accessor (this is a read path only, not a contract change) |
+| `src/webmcp-tools.ts` (unchanged) | it does not touch the package: tool schemas are static and the read path is `read-results.ts` / `agent-validation.ts` through the `package.ts` helpers |
+| `src/replay/persistence.ts` (modify) | the storage key comes from `sessionKey()` = `spotcheck.session.v1.{hash}` of the current package; `readSavedSession`, `saveNow` and `startPersistence` use it; `controller.ts` stays unchanged (it only calls those functions) |
+| `src/main.tsx` (modify) | restore the user package (synchronous, from storage) before `startPersistence()`; tool registration at import time is fine because registration does not read the package |
 | `src/components/OpenPackageDialog.tsx` (create) | native `<dialog>` with the form (§ Dialog) |
 | `src/components/StatusStrip.tsx` (modify) | pre-live states gain the text button `Open your own package` next to `Play sample session` |
 | `src/components/Header.tsx` (modify) | reference and customer from the current package |
-| `src/components/DrawingSheet.tsx` (modify) | renders a user drawing with no overlay boxes and the caption "No machine-readable text on this sheet · the agent reports drawing values as missing" |
-| `src/App.tsx` (modify) | opens the dialog; on `Open`: `setPackage`, session reset (`replaceState(createInitialState())`, persistence cleared for the old key), announce "Package opened: {reference}"; `?quiet=1` applies to the sample only |
+| `src/components/DrawingSheet.tsx` (modify) | the title-area caption line renders only when the document has a `drawing:title_area` region (the sample); a user drawing has no boxes and the caption "No machine-readable text on this sheet · the agent reports drawing values as missing" |
+| `src/App.tsx` (modify) | opens the dialog; on `Open`: `await controller.leave()` when a replay is attached (one replay owner, P3), then clear the old session key, `setPackage`, `replaceState(createInitialState())`, announce "Package opened: {reference}"; `?quiet=1` applies to the sample only |
+| `DESIGN.md` § Interaction states (modify) | one line: a modal dialog owns a local primary (large) while it is open, like an inline editor owns a compact one |
 | `src/styles/components.css` (modify) | dialog, form, drop zone |
 | tests beside each module; `e2e/own-package.spec.ts` (create) | § Tests |
 
@@ -37,7 +41,7 @@ No new dependency. `reducer.ts`, the action unions, the tool descriptions and sc
 
 ### Entry point
 
-- In `no-api` and `waiting`, the strip's action line gains a text button `Open your own package` after `Play sample session` (same row, `--space-2` apart; on narrow it takes the next line, full width, 44px). In `live` and `confirmed` it lives in the expanded change-log header beside `Play sample session` (opening a package during a live session is allowed; it is the same reset as `Start over` plus a package change, and the strip shows the confirmation dialog's answer, § Dialog).
+- In `no-api` and `waiting`, the strip's action line gains a text button `Open your own package` after `Play sample session` (same row, `--space-2` apart; on narrow it takes the next line, full width, 44px). In `live` and `confirmed` it lives in the expanded change-log header beside `Play sample session` (opening a package during a live session is allowed; the dialog warns that the current review is discarded, § Dialog).
 - After a user package is open, the same button reads `Open another package`, and the dialog offers `Use the sample package` as a text button.
 
 ### Dialog
@@ -50,7 +54,7 @@ A native `<dialog>` (modal; `Esc` closes; focus trapped by the element; focus re
 4. `Specification` — `<textarea>`, required, hint "Paste the text. Numbered or capitalised lines become section titles".
 5. `Drawing` — `<input type="file" accept="image/png,image/jpeg,image/webp">` fronted by a secondary compact button `Choose image` and the chosen file's name; optional; hint "PNG, JPEG or WebP, up to 4 MB. The agent cannot read text from the image; it will report drawing values as missing".
 6. A line in `--ink-secondary` with the lock icon: "Everything stays in this browser. Your agent reads these documents through the page's tools, one section at a time, and every read is logged" — the honest version of T2/T3 for user content.
-7. Actions: `Open package` (primary large) · `Cancel` (text) · `Use the sample package` (text, only while a user package is open).
+7. Actions: `Open package` (the dialog's local primary, large, per the DESIGN.md line this task adds) · `Cancel` (text) · `Use the sample package` (text, only while a user package is open).
 
 Validation on `Open package`: reference empty → "Enter a reference"; email or spec empty → "Paste the {document}"; email or spec over 40,000 characters → "The {document} is longer than 40,000 characters; paste the relevant part"; image over 4 MB or wrong type → "Choose a PNG, JPEG or WebP under 4 MB". Errors per field in `--state-conflict` with the conflict icon and `aria-describedby`; the first invalid field takes focus.
 
@@ -76,12 +80,12 @@ Deterministic, no model:
 ### Persistence
 
 - The user package persists in `localStorage` under `spotcheck.package.v1` (JSON, image as data URL); the session key becomes `spotcheck.session.v1.{hash}` where `{hash}` is a stable hash of the package's region texts, so a saved sample session and a saved user session do not mix. Opening a package clears the previous session key.
-- On load: package first, then session, then tools (`registerTools` reads the current package on every call, not at import time).
+- On load: the user package is restored before the session (`main.tsx`); tools register at import time as today, which is safe because registration reads no package data and every call resolves documents through the store.
 - `Use the sample package` restores the bundled package, clears the user package and its session.
 
 ### After opening
 
-- Header shows the reference and the customer (or the reference alone).
+- Header shows `reference · customer` (or the reference alone) from the current package; the sample shows what it shows today.
 - The strip returns to its pre-live state (`waiting` or `no-api`) with the orientation line; the field pane shows eleven empty rows; the source pane shows the Email tab with the pasted text; the Drawing tab shows the image (with P4's zoom) and the caption from § Scope, or is absent when no image was given.
 - The live region announces "Package opened: {reference}".
 

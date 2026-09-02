@@ -30,6 +30,13 @@ export function createReplay(source: Fixture = sampleSession) {
   let playing = false;
   let busy = false;
   let disposed = false;
+  let error: string | undefined;
+  let finishedByViewer = false;
+  const listeners = new Set<() => void>();
+  const notify = () => listeners.forEach(listener => listener());
+  const firstWrite = fixture.steps.find(step => step.actor === 'agent' && ['propose_field', 'report_conflict', 'report_missing'].includes(step.call.tool));
+  const last = fixture.steps.find(step => step.actor === 'estimator' && step.action.type === 'confirm') ?? fixture.steps.at(-1);
+  const recordedMs = firstWrite && last ? Math.max(0, last.at - firstWrite.at) : 0;
   let generation = 0;
   let timer: ReturnType<typeof setTimeout> | undefined;
   suspendPersistence();
@@ -37,18 +44,21 @@ export function createReplay(source: Fixture = sampleSession) {
   const viewerHandled = new Set<FieldId>();
   // The fixture's `at` is a recording offset, not a time. Steps are stamped
   // with wall-clock times so badges, log clocks and "Reviewed in" read as the
-  // run the viewer is watching; the offsets still drive the cadence.
-  let startedAt: number | undefined;
-  const stamped = (step: Step): Step => {
-    startedAt ??= Date.now();
-    return { ...step, at: startedAt + step.at };
-  };
+  // run the viewer is watching. Recorded duration is computed separately.
+  const stamped = (step: Step): Step => ({ ...step, at: Date.now() });
   let applyingFixture = false;
   let seen = 0;
   let lastFields = getState().fields;
   const unsubscribe = subscribe(() => {
     const state = getState();
     const log = reviewSession(state).log;
+    // A viewer who confirms by hand ends the replay where it stands: the
+    // counter keeps the position the run reached (12 / 26), and `ended` comes
+    // from the lifecycle rule below rather than from a faked position.
+    if (!applyingFixture && state.confirmed && !finishedByViewer) {
+      finishedByViewer = true;
+      pause();
+    }
     if (!applyingFixture) for (const entry of log.slice(seen)) {
       if (entry.event.actor !== 'human') continue;
       const action = entry.event.action;
@@ -64,7 +74,7 @@ export function createReplay(source: Fixture = sampleSession) {
     seen = log.length;
     lastFields = state.fields;
   });
-  const pause = () => { playing = false; clearTimeout(timer); timer = undefined; };
+  const pause = () => { playing = false; clearTimeout(timer); timer = undefined; notify(); };
   const schedule = () => {
     if (!playing || disposed || busy || timer !== undefined) return;
     const step = fixture.steps[position];
@@ -72,12 +82,13 @@ export function createReplay(source: Fixture = sampleSession) {
     timer = setTimeout(() => { timer = undefined; void next(); }, step.actor === 'agent' ? 900 : 1500);
   };
   const next = async (): Promise<boolean> => {
-    if (busy || disposed) return false;
+    if (busy || disposed || error || finishedByViewer) return false;
     clearTimeout(timer); timer = undefined;
     const recorded = fixture.steps[position];
     if (!recorded) { pause(); return false; }
     const step = stamped(recorded);
     busy = true;
+    notify();
     const startedGeneration = generation;
     try {
       let nextStep = step;
@@ -102,15 +113,33 @@ export function createReplay(source: Fixture = sampleSession) {
       applyingFixture = false;
       await pending;
       if (generation === startedGeneration) position++;
-    } finally { applyingFixture = false; busy = false; schedule(); }
+    } catch (cause) {
+      if (generation === startedGeneration) {
+        error = cause instanceof Error ? cause.message : String(cause);
+        pause();
+      }
+      return false;
+    } finally {
+      applyingFixture = false; busy = false;
+      if (position === fixture.steps.length) pause();
+      schedule(); notify();
+    }
     return true;
   };
   return {
     get position() { return position; },
     get playing() { return playing; },
+    get busy() { return busy; },
+    get total() { return fixture.steps.length; },
+    get ended() { return position === fixture.steps.length || finishedByViewer; },
+    get error() { return error; },
+    get finishedByViewer() { return finishedByViewer; },
+    get recordedMs() { return recordedMs; },
+    get nextStep() { return fixture.steps[position]; },
+    subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     next, pause,
-    play() { if (!disposed) { startedAt ??= Date.now(); playing = true; schedule(); } },
-    restart() { if (disposed) return; pause(); generation++; position = 0; startedAt = undefined; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); },
+    play() { if (!disposed && !error && !finishedByViewer && position < fixture.steps.length) { playing = true; schedule(); notify(); } },
+    restart() { if (disposed || busy) return; pause(); generation++; position = 0; error = undefined; finishedByViewer = false; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); notify(); },
     dispose() { pause(); if (!disposed) { disposed = true; unsubscribe(); resumePersistence(); } },
   };
 }

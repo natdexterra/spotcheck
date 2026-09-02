@@ -14,6 +14,7 @@ describe('tokens.css', () => {
   test.each([
     ['--bg-canvas', '#F5F7FA'],
     ['--text-lg', '1.122rem'],
+    ['--text-lg-mono', '1.029rem'],
     ['--leading-md', '1rem'],
     ['--radius-2', '4px'],
     ['--space-3', '0.75rem'],
