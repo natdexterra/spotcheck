@@ -85,7 +85,7 @@ export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
 export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry; fields: Field[]; collapsed?: boolean }) => (
   <div className={`change-log__entry${collapsed ? ' change-log__entry--collapsed' : ''}`}>
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
-    <span className="change-log__sentence">{collapsed ? <span className="change-log__clip">{formatLogEntry(entry, fields)}</span> : formatLogEntry(entry, fields)}</span>
+    <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
     {!collapsed && entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
       <span className="change-log__agent-note" key={note}>
         {agentAuthored(note) ? `Agent: ${note}` : note}
@@ -136,9 +136,12 @@ export const ChangeLogDrawer = () => {
     >
       {!expanded ? (
         <div className="change-log__collapsed">
+          {/* Exports 01, 02, 16: the bar is named at the left and counted at
+              the right, and the last entry fills whatever is left between. */}
+          <span className="change-log__label">Change log</span>
           {latest ? <LogLine collapsed entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
           <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
-            Show change log
+            {log.length} entries
             <ChevronDownIcon />
           </Button>
         </div>
@@ -152,6 +155,7 @@ export const ChangeLogDrawer = () => {
         >
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
+            <p className="change-log__meta">{log.length} entries · agent and you</p>
             <div className="change-log__file-actions">
               {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
               <ExportSessionButton />

@@ -192,7 +192,7 @@ test('the change log expands in place on desktop, not as a full-screen sheet', a
   await page.goto('/');
   await seed(page);
 
-  await page.getByRole('button', { name: /Show change log/ }).click();
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
   const sheet = page.locator('.change-log__sheet');
   await expect(sheet).toBeVisible();
   expect(await sheet.evaluate(element => getComputedStyle(element).position)).toBe('static');

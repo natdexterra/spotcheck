@@ -35,7 +35,7 @@ test.each([['list', 'Agent listed the documents'], ['review', 'Agent checked the
 
 test('empty export is disabled and import is one tab stop on the native file input', () => {
   render(<ChangeLogDrawer />);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   expect(screen.getByRole('button', { name: 'Export session' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Export session' })).toHaveClass('button--secondary', 'button--compact');
   const input = screen.getByLabelText('Import session');
@@ -59,21 +59,21 @@ test('a live session can start the sample from the expanded log without losing i
     event: { actor: 'agent', action: { type: 'read', operation: 'list' } } }] } as ReviewSession);
   const start = vi.spyOn(controller, 'startSample').mockResolvedValue();
   render(<ChangeLogDrawer />);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Play sample session' })); });
   expect(start).toHaveBeenCalledOnce();
-  expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /entr(y|ies)$/ })).toBeInTheDocument();
 });
 
 test('successful import passes parsed fixture to controller and closes drawer', async () => {
   const start = vi.spyOn(controller, 'startImported').mockResolvedValue();
   render(<ChangeLogDrawer />);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   const fixture = { recorded_at: '2026-09-01', steps: [] };
   const file = { text: async () => JSON.stringify(fixture) };
   await act(async () => { fireEvent.change(screen.getByLabelText('Import session'), { target: { files: [file] } }); });
   expect(start).toHaveBeenCalledWith(fixture, 'Imported session');
-  expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /entr(y|ies)$/ })).toBeInTheDocument();
 });
 
 test('Export session announces "Session exported" through the live region', () => {
@@ -90,14 +90,14 @@ test('Export session announces "Session exported" through the live region', () =
 
 test('a successful import hands focus to Pause on the replay row', async () => {
   render(<><ChangeLogDrawer /><ReplayControls /></>);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   await importFile(JSON.stringify({ recorded_at: '2026-09-01', steps: [{ actor: 'agent', at: 0, call: { tool: 'list_rfq_documents', input: {} } }] }));
   expect(screen.getByRole('button', { name: 'Pause' })).toHaveFocus();
 });
 
 test('an imported fixture that ends at once hands focus to Restart, the row it has', async () => {
   render(<><ChangeLogDrawer /><ReplayControls /></>);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   await importFile('{"recorded_at":"2026-09-01","steps":[]}');
   expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Restart' })).toHaveFocus();
@@ -105,7 +105,7 @@ test('an imported fixture that ends at once hands focus to Restart, the row it h
 
 test('failed import is visible and announced; next attempt clears error', async () => {
   render(<><ChangeLogDrawer /><LiveRegion /></>);
-  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
   const before = document.querySelector('.change-log__entries');
   await act(async () => { fireEvent.change(screen.getByLabelText('Import session'), { target: { files: [{ text: async () => '{}' }] } }); });
   await waitFor(() => expect(document.querySelector('.session-error')).toHaveTextContent('Could not import:'));
