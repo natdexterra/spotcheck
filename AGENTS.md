@@ -52,6 +52,8 @@ Gates on every pull request:
 2. **QA** — run by a different agent than the builder: Playwright checks against `build-spec.md` and `docs/scenarios.md` (tool contract via `getTools()`/`executeTool()`, fixture replay, console clean), accessibility audit, code review. The QA record goes into the pull request description.
 3. **Owner review** — the repository owner reviews the preview and the diff. Approval is required; no pull request merges on QA alone.
 
+Evidence screenshots under `docs/qa/` are opt-in: `EVIDENCE=1 pnpm e2e` writes them, and a plain `pnpm e2e` leaves everything under `docs/` untouched.
+
 A builder's own report never closes a task.
 
 ## Conventions

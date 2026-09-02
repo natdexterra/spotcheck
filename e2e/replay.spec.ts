@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir, readFile } from 'node:fs/promises';
+import { readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import type { Fixture } from '../src/replay/replay';
-import { executeTool, installModelContext, removeModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext, saveEvidence } from './helpers';
 
 const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 const total = fixture.steps.length;
@@ -176,9 +176,7 @@ for (const width of [1920, 820, 390]) {
       // The row is P5's: the leave button replaced Restart here, so the states
       // it shows belong under P5's own folder, not under the merged task's.
       const path = `docs/qa/p5/replay-${state}-${width}.png`;
-      await mkdir('docs/qa/p5', { recursive: true });
-      await page.screenshot({ path, animations: 'disabled' });
-      await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
+      if (await saveEvidence(page, path)) await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
       // A stopped row carries a message instead of a count.
       if (await counter(page).count()) {

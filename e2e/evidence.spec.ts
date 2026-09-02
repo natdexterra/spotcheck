@@ -1,20 +1,22 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, saveEvidence } from './helpers';
 
 /**
  * Human-speed evidence for the states the static screens cannot show: the
  * editor open on each kind of field, a checked choice control, the verified
  * header with and without company, the log bar collapsed and as a sheet, and
  * the one-column lane. Every shot is taken against the production build.
+ *
+ * The shots are written into `docs/`, so they are opt-in: run `EVIDENCE=1 pnpm
+ * e2e` to regenerate them, and a plain run leaves the folder untouched. This
+ * folder is the record of a task that has already merged, so regenerate it only
+ * when the change under review is that task's.
  */
 const DIR = 'docs/qa/p3-1';
 
 const shot = async (page: Page, name: string, selector?: string) => {
   await page.evaluate(() => document.fonts.ready);
-  await mkdir(DIR, { recursive: true });
-  const target = selector ? page.locator(selector) : page;
-  await target.screenshot({ path: `${DIR}/${name}.png`, animations: 'disabled' });
+  await saveEvidence(selector ? page.locator(selector) : page, `${DIR}/${name}.png`);
 };
 
 const propose = (page: Page, field_id: string, value: string, source_refs: string[], rationale?: string) =>

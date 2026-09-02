@@ -1,5 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, saveEvidence } from './helpers';
 
 /** Every test declares the agent API state it runs under before it navigates,
     so the strip, the replay controls and the screenshots are never left to the
@@ -117,7 +117,7 @@ test.describe('drawing zoom', () => {
     expect(['auto', 'scroll']).not.toContain(one.panelOverflowX);
     expect(['auto', 'scroll']).not.toContain(one.panelOverflowY);
     expect(one.panelScrollWidth).toBe(one.panelClientWidth);
-    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-1920.png' });
+    await saveEvidence(page, 'docs/qa/p4/drawing-zoom-1x-1920.png');
 
     const atRest = await rowRects(page);
     await zoomTo(page, '2×');
@@ -199,7 +199,7 @@ test.describe('drawing zoom', () => {
     expect(inView.left && inView.right && inView.top && inView.bottom).toBe(true);
     expect(inView.scrolled).toBeGreaterThan(0);
 
-    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-2x-1920.png' });
+    await saveEvidence(page, 'docs/qa/p4/drawing-zoom-2x-1920.png');
     expect(problems).toEqual([]);
   });
 
@@ -359,7 +359,7 @@ test.describe('drawing zoom on the narrow sheet', () => {
     expect(lane.toolbar).toBe(lane.tab);
     expect(lane.caption).toBe(lane.tab);
 
-    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-390.png' });
+    await saveEvidence(page, 'docs/qa/p4/drawing-zoom-1x-390.png');
     await zoomTo(page, '2×');
 
     const metrics = await geometry(page);
@@ -376,7 +376,7 @@ test.describe('drawing zoom on the narrow sheet', () => {
     expect(Math.min(...segments)).toBeGreaterThanOrEqual(44);
 
     await expect(page.locator('.drawing-overlay--active')).toBeVisible();
-    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-2x-390.png' });
+    await saveEvidence(page, 'docs/qa/p4/drawing-zoom-2x-390.png');
     expect(problems).toEqual([]);
   });
 });
