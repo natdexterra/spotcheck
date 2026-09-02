@@ -1114,7 +1114,6 @@
   flex: 1;
 }
 
-
 .conflict-panel__candidates {
   display: grid;
   gap: var(--space-2);
@@ -1124,8 +1123,15 @@
 }
 
 .candidate-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.candidate-option__body {
+  min-width: 0;
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-2);
 }
 
@@ -1141,16 +1147,6 @@
 .suggestion-card__value {
   line-height: var(--leading-lg);
   font-weight: 500;
-}
-
-.candidate-option__sources,
-.candidate-option__note {
-  grid-column: 1;
-}
-
-.candidate-option > .button {
-  grid-column: 2;
-  align-self: start;
 }
 
 .suggestion-card {

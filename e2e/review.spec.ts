@@ -65,9 +65,9 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   for (const id of ['general_tolerance', 'drawing_number', 'drawing_revision']) {
     const row = page.locator(`[data-field-id="${id}"]`);
     await expect(row.locator('.field-row__badge')).toContainText('Awaiting customer');
-    const value = await row.locator('.field-row__value').innerText();
-    expect(value).not.toContain('Awaiting customer');
-    expect(value === '—' || value.length > 0).toBe(true);
+    // All three went to the customer with no value of their own, so all three
+    // read as the dash. A row that had one keeps it: FieldList covers that.
+    await expect(row.locator('.field-row__value')).toHaveText('—');
   }
 
   // Every field settled: the verified header drops the word "more".
