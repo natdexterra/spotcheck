@@ -1,6 +1,5 @@
 import { expect, test, type Page } from '@playwright/test';
-import { mkdir } from 'node:fs/promises';
-import { executeTool, installModelContext, removeModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext, saveEvidence } from './helpers';
 
 /**
  * A package a person brings, reviewed with the same seven tools, the same states
@@ -435,12 +434,10 @@ for (const width of [1920, 390]) {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1080 });
     await installModelContext(page);
     await page.goto('/');
-    await mkdir('docs/qa/p5', { recursive: true });
     const shot = async (name: string) => {
       await page.evaluate(() => document.fonts.ready);
       const path = `docs/qa/p5/${name}-${width}.png`;
-      await page.screenshot({ path, animations: 'disabled' });
-      await testInfo.attach(`${name}-${width}`, { path, contentType: 'image/png' });
+      if (await saveEvidence(page, path)) await testInfo.attach(`${name}-${width}`, { path, contentType: 'image/png' });
     };
 
     await shot('first-load-no-heading');
