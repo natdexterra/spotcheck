@@ -1,7 +1,7 @@
 # P5 — Open your own package
 
-**Status:** queued
-**PR:** —
+**Status:** in review — 2026-09-02
+**PR:** [#8](https://github.com/natdexterra/spotcheck/pull/8)
 **Depends on:** P3 (merged), P4 and P3.1 — branch from `main` only after both have merged: P4 for the zoom on user drawings, P3.1 because both tasks touch `StatusStrip.tsx` and the editor-height line in DESIGN.md § Interaction states
 **Amended:** 2026-09-02 after the design review of the first draft: the strip names both paths, the user drawing gets one whole-sheet region, the image is re-encoded before storage, the specification becomes optional, every end-to-end test declares the API state explicitly. Second amendment the same day after the contradiction pass: the sample replay switches the package itself (`controller.ts` in scope), `SourcePane.tsx` in scope for the tab set, the native-controls line goes into DESIGN.md, corrected citations. Third amendment 2026-09-02 (owner's rulings at the P5 hand-over): the group heading is hidden while the field list holds one group, settled rows keep the agent's rationale and the searched chips, and the DESIGN.md row carries the three documentation sections due before the code is final (component inventory, absent states, string sources).
 
@@ -147,20 +147,22 @@ Playwright `e2e/own-package.spec.ts` (production build, API state declared per t
 
 ## Acceptance criteria
 
-- [ ] A person can open their own email + spec (+ drawing image) and review it with the same tools, states and rules; the sample stays one click away
-- [ ] Splitting rules per § Splitting, every tool result under 1,500 characters for a 40,000-character document
-- [ ] Dialog per § Dialog at 1920 and 390 (screenshots in the pull request); native controls; validation and focus rules
-- [ ] Image pipeline per § Image; a storage failure never reaches the person as an error
-- [ ] Persistence per § Persistence: package and session survive a reload; sample and user sessions never mix
-- [ ] Every end-to-end test declares the API state through the helpers, including the existing `no-api` tests
-- [ ] The two orientation strings and the privacy line passed `ai-text-detector`
-- [ ] T2 and T4 green for user content; the T3 statement visible in the dialog
-- [ ] § Leaving a session: `Leave sample` / `Leave session` in every replay state, `Restart` gone, the live `Start over` behind the dialog; the named unit and e2e tests green; screenshots in the pull request
-- [ ] § First load and settled rows: no heading over a single group (unit and e2e); settled rows unchanged
-- [ ] DESIGN.md carries the dialog line, the `--scrim` token, the native-controls line and items (a)–(e) of the § Scope row; `docs/design/README.md` notes row 11
-- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS size reported (no byte gate); no new dependency
-- [ ] `webmcp-tools.ts` (descriptions, schemas, execute), `reducer.ts` and the action unions unchanged
-- [ ] Task file boxes ticked with evidence in the pull request description
+- [x] A person can open their own email + spec (+ drawing image) and review it with the same tools, states and rules; the sample stays one click away — `own-package.spec.ts` › `a package a person pastes opens into the same review` and `the tools read the package a person opened, section by section`; `Use the sample package` in `the package and its review come back after a reload, and the sample can take the page back`; `docs/qa/p5/package-open-all-three-{1920,390}.png`
+- [x] Splitting rules per § Splitting, every tool result under 1,500 characters for a 40,000-character document — `src/data/user-package.test.ts` (22 cases, the 40,000-character specification among them: every section's read result under the cap, no region over 1,200 characters); `own-package.spec.ts` asserts the index under the cap in the browser
+- [x] Dialog per § Dialog at 1920 and 390 (screenshots in the pull request); native controls; validation and focus rules — `OpenPackageDialog.test.tsx` (17 cases); `own-package.spec.ts` › `the dialog names every reason it will not open, and gives the first one the focus` (first invalid field focused, `Esc` closes and returns focus, the `::backdrop` scrim at 32%); `docs/qa/p5/dialog-{empty,filled,validation}-{1920,390}.png`
+- [x] Image pipeline per § Image; a storage failure never reaches the person as an error — `src/data/prepare-drawing.test.ts` (9 cases; the cap is read from the bundled sheet's own bytes, never a literal); `own-package.spec.ts` › `a big image is re-encoded small enough to keep, and a file of another type is refused` (an 8.4 MB PNG stored under 2 MB) and `a browser with no room keeps the package for the visit and says so`
+- [x] Persistence per § Persistence: package and session survive a reload; sample and user sessions never mix — `src/data/package-storage.test.ts` (8 cases; the session key carries a hash of the package's region texts); `persistence.test.ts` › `the session key belongs to the package under it, and can be cleared`; `own-package.spec.ts` › `the package and its review come back after a reload`
+- [x] Every end-to-end test declares the API state through the helpers, including the existing `no-api` tests — every test in `own-package.spec.ts` installs or removes `document.modelContext`; the existing `no-api` tests in `layout.spec.ts` and `narrow.spec.ts` already carry `removeModelContext`
+- [x] The two orientation strings and the privacy line passed `ai-text-detector` — low AI probability on all three, no rewrite; the verdict is in the pull request
+- [x] T2 and T4 green for user content; the T3 statement visible in the dialog — `own-package.spec.ts` › `pasted markup reaches the screen as text, never as HTML` (T4), with a clean console throughout and the image held as a data URL in the page (T2); `OpenPackageDialog.test.tsx` › `it says where the pasted text goes, without promising the data stays here` (T3)
+- [x] § Leaving a session: `Leave sample` / `Leave session` in every replay state, `Restart` gone, the live `Start over` behind the dialog; the named unit and e2e tests green; screenshots in the pull request — `ReplayControls.test.tsx` (10 cases) and `ChangeLogDrawer.test.tsx` › `the log header during a live session`; `own-package.spec.ts` › `1920px/390px: leaving the sample gives back the page it started from` and `Start over during a live session asks first, and clears the page on the second word`; `docs/qa/p3-1/replay-{playing,paused,ended,error}-{1920,820,390}.png` regenerated, and `docs/qa/p5/start-over-dialog-{1920,390}.png`
+- [x] § First load and settled rows: no heading over a single group (unit and e2e); settled rows unchanged — `FieldList.test.tsx` › `P5: one group carries no heading`; `own-package.spec.ts` › `the first load carries no group heading, and the first proposal brings two`; `docs/qa/p5/first-load-no-heading-{1920,390}.png`; no row code changed, and the rule is written into DESIGN.md
+- [x] DESIGN.md carries the dialog line, the `--scrim` token, the native-controls line and items (a)–(e) of the § Scope row; `docs/design/README.md` notes row 11 — § Interaction states (the dialog as a screen of its own, and the Absent states table), § Choice controls (the native elements), § Color (`--scrim`), § Spacing, layout (the one-group rule), § State iconography (settled rows keep their evidence; String sources), and the new § Components table; `AGENTS.md` now points at that table
+- [x] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS size reported (no byte gate); no new dependency — 480 unit tests, 89 Playwright checks; JavaScript 79.02 KB gzip; CSS 30.62 KB raw and 6.12 KB gzip; `package.json` unchanged
+- [x] `webmcp-tools.ts` (descriptions, schemas, execute), `reducer.ts` and the action unions unchanged — `git diff main -- src/webmcp-tools.ts src/state/reducer.ts` is empty, and so is the diff over the whole of `src/state/`
+- [x] Task file boxes ticked with evidence in the pull request description
+
+Builder evidence: 480 unit tests, 89 Playwright checks, production build and inline-script check pass. JavaScript 79.02 KB gzip (budget 180 KB); CSS 30.62 KB raw, 6.12 KB gzip (reported, not gated). Screenshots at 1920 and 390 are in `docs/qa/p5/`, the replay row's four states in `docs/qa/p3-1/`. An independent review has not run yet; owner review is pending.
 
 ## Out of scope
 

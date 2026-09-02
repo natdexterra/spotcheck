@@ -12,4 +12,4 @@ The work queue for this repo. One file per task; this table mirrors the `Status:
 | P3 | Replay controls, session export and import, replay summary | done — 2026-09-02 | [#5](https://github.com/natdexterra/spotcheck/pull/5) |
 | P3.1 | Interface copy and editor fidelity | done — 2026-09-02 | [#7](https://github.com/natdexterra/spotcheck/pull/7) |
 | P4 | Drawing zoom | done — 2026-09-02 | [#6](https://github.com/natdexterra/spotcheck/pull/6) |
-| P5 | Open your own package | queued | — |
+| P5 | Open your own package | in review | [#8](https://github.com/natdexterra/spotcheck/pull/8) |
