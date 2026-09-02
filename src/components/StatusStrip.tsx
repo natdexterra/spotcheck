@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { samplePackage } from '../data/package';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
-import { usePackage } from '../hooks/usePackage';
+import { useOpenPackageLabel, usePackage } from '../hooks/usePackage';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
 import { plural } from '../lib/format';
@@ -72,6 +72,7 @@ export function StatusStrip({
 }: StatusStripProps) {
   const { confirmed, gaps, log } = useReview();
   const pkg = usePackage();
+  const openPackageLabel = useOpenPackageLabel();
   const replay = useReplay();
   const narrow = useNarrowLayout();
   const [toolsOpen, setToolsOpen] = useState(false);
@@ -170,9 +171,7 @@ export function StatusStrip({
           <div className="status-strip__actions">
             <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
             {stripOpenButton && (
-              <Button variant="text" onClick={onOpenPackage}>
-                {bundled ? 'Open your own package' : 'Open another package'}
-              </Button>
+              <Button variant="text" onClick={onOpenPackage}>{openPackageLabel}</Button>
             )}
           </div>
         )}

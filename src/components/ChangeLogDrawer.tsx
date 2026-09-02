@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
+import { useOpenPackageLabel } from '../hooks/usePackage';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
@@ -111,6 +112,7 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
   const disclosureRef = useRef<HTMLButtonElement>(null);
   const sheetRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowLayout();
+  const openPackageLabel = useOpenPackageLabel();
   const latest = log.at(-1);
 
   const importFile = async (file: File | undefined) => {
@@ -175,7 +177,7 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
               {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
               {onOpenPackage && (
                 <Button variant="text" onClick={() => { setExpanded(false); onOpenPackage(); }}>
-                  Open your own package
+                  {openPackageLabel}
                 </Button>
               )}
               {/* The one control on the page that throws a person's own work
