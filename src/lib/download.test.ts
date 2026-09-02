@@ -1,0 +1,17 @@
+// @vitest-environment jsdom
+import { expect, test, vi } from 'vitest';
+import { downloadJson } from './download';
+
+test('downloads JSON through a temporary anchor and revokes its object URL', () => {
+  const create = vi.fn(() => 'blob:session'); const revoke = vi.fn();
+  vi.stubGlobal('URL', { createObjectURL: create, revokeObjectURL: revoke });
+  const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function () {
+    expect(this.download).toBe('session.json'); expect(this.href).toBe('blob:session');
+  });
+  downloadJson('session.json', '{"steps":[]}');
+  expect(create.mock.calls[0]?.[0]).toBeInstanceOf(Blob);
+  expect(click).toHaveBeenCalledOnce();
+  expect(revoke).toHaveBeenCalledWith('blob:session');
+  expect(document.querySelector('a')).toBeNull();
+  vi.restoreAllMocks(); vi.unstubAllGlobals();
+});
