@@ -58,6 +58,21 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await expect(page.getByText(/Sent · 3 fields asked/)).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
 
+  // The value slot never carries the badge's wording: an asked field with no
+  // value reads as a dash, and one that had a value keeps it (export 11).
+  const reveal = page.locator('.field-list__verified-summary').getByRole('button', { name: 'Show' });
+  if (await reveal.count()) await reveal.click();
+  for (const id of ['general_tolerance', 'drawing_number', 'drawing_revision']) {
+    const row = page.locator(`[data-field-id="${id}"]`);
+    await expect(row.locator('.field-row__badge')).toContainText('Awaiting customer');
+    const value = await row.locator('.field-row__value').innerText();
+    expect(value).not.toContain('Awaiting customer');
+    expect(value === '—' || value.length > 0).toBe(true);
+  }
+
+  // Every field settled: the verified header drops the word "more".
+  await expect(page.locator('.field-list__verified-count')).toHaveText('11 verified');
+
   await page.clock.runFor(3_500);
   await expect(page.getByRole('heading', { name: /Confirmed/ })).toBeVisible();
   await expect(page.getByText(/Recorded review/)).toBeVisible();
