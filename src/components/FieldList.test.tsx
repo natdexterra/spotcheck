@@ -191,3 +191,51 @@ describe('FieldList', () => {
     expect(screen.getByRole('button', { name: 'Apply' })).toBeInTheDocument();
   });
 });
+
+describe('FieldRow with an open editor', () => {
+  const editing = field('overall_dimensions', 'needs_review', {
+    value: '20 × 14.5',
+    unit: null,
+    locked: true,
+    proposal: {
+      value: '20 × 14.5',
+      source_refs: ['drawing:width'],
+      rationale: 'The drawing names no unit.',
+    },
+    revised: { was: '20 × 15', at: 1_000 },
+  });
+
+  test('the editor replaces the value line and the row keeps its label and badge', async () => {
+    render(<FieldRow field={editing} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Add unit' }));
+
+    expect(screen.getByText('Overall dimensions')).toBeInTheDocument();
+    expect(screen.getByText('Unit missing')).toBeInTheDocument();
+    expect(document.querySelector('.icon--lock')).toBeInTheDocument();
+
+    expect(document.querySelector('.field-row__value')).toBeNull();
+    expect(document.querySelector('.field-row__sources')).toBeNull();
+    expect(document.querySelector('.field-row__revision')).toBeNull();
+    expect(document.querySelector('.field-row__agent-original')).toBeNull();
+    expect(screen.queryByText(/The drawing names no unit/)).not.toBeInTheDocument();
+    expect(document.querySelector('.field-row__actions')).toBeNull();
+  });
+
+  test('closing the editor gives focus back to the button that opened it', async () => {
+    render(<FieldRow field={editing} />);
+    await userEvent.click(screen.getByRole('button', { name: 'Add unit' }));
+    await userEvent.keyboard('{Escape}');
+
+    expect(screen.getByRole('button', { name: 'Add unit' })).toHaveFocus();
+  });
+
+  test('the reason picker leaves the row actions in place and gives focus back on Cancel', async () => {
+    render(<FieldRow field={field('delivery', 'empty')} />);
+    await userEvent.click(screen.getAllByRole('button', { name: 'Mark not required' })[0]!);
+
+    expect(document.querySelector('.field-row__actions')).not.toBeNull();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('button', { name: 'Mark not required' })).toHaveFocus();
+  });
+});

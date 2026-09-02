@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
 import { fieldLabel, NO_VALUE, searchedSentence, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
@@ -28,12 +28,19 @@ const fieldSources = (field: Field): string[] => {
 export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [closes, setCloses] = useState(0);
   const rowRef = useRef<HTMLElement>(null);
   const editorButtonRef = useRef<HTMLButtonElement>(null);
   const pickerButtonRef = useRef<HTMLButtonElement>(null);
-  // Where focus goes when the editor or picker closes. Not every state has a
-  // trigger button of its own, so the row itself is the fallback (WCAG 2.4.3).
-  const returnFocusRef = useRef<HTMLElement | null>(null);
+  // The trigger unmounts while the editor or the picker holds the row, so
+  // focus can only go back once React has put a fresh one in place. Not every
+  // state has a trigger of its own; the row is the fallback (WCAG 2.4.3).
+  const closedPicker = useRef(false);
+  useLayoutEffect(() => {
+    if (closes === 0) return;
+    const trigger = closedPicker.current ? pickerButtonRef.current : editorButtonRef.current;
+    (trigger ?? rowRef.current)?.focus();
+  }, [closes]);
   const sources = fieldSources(field);
   const searched = field.searched ? searchedSentence(field.searched.searched) : '';
   const note = [field.proposal?.rationale ?? field.searched?.note, searched]
@@ -59,14 +66,17 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
     }
     : undefined;
   const openEditor = () => {
-    returnFocusRef.current = editorButtonRef.current ?? rowRef.current;
     setPickerOpen(false);
     setEditorOpen(true);
   };
   const openPicker = () => {
-    returnFocusRef.current = pickerButtonRef.current ?? rowRef.current;
     setEditorOpen(false);
     setPickerOpen(true);
+  };
+  const close = (picker: boolean) => () => {
+    closedPicker.current = picker;
+    if (picker) setPickerOpen(false); else setEditorOpen(false);
+    setCloses(count => count + 1);
   };
 
   return (
@@ -82,10 +92,10 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         {field.locked ? <LockIcon /> : null}
       </div>
 
-      <div className="field-row__value">{value}</div>
+      {editorOpen ? null : <div className="field-row__value">{value}</div>}
       <Badge field={field} now={now} />
 
-      {sources.length > 0 && !showAgentOriginal ? (
+      {!editorOpen && sources.length > 0 && !showAgentOriginal ? (
         <div className="field-row__sources">
           {sources.map(ref => (
             <ProvenanceLink href={sourceHref(ref)} key={ref} onClick={openSource?.(ref)}>
@@ -95,14 +105,14 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         </div>
       ) : null}
 
-      {note ? <p className="field-row__agent-note">Agent: {note}</p> : null}
-      {lockedReport ? (
+      {note && !editorOpen ? <p className="field-row__agent-note">Agent: {note}</p> : null}
+      {lockedReport && !editorOpen ? (
         <p className="field-row__agent-note">
           Agent: {lockedReport} <JumpLink href="#change-log">see log</JumpLink>
         </p>
       ) : null}
-      {field.revised ? <p className="field-row__revision">was: {field.revised.was ?? NO_VALUE}</p> : null}
-      {showAgentOriginal ? (
+      {field.revised && !editorOpen ? <p className="field-row__revision">was: {field.revised.was ?? NO_VALUE}</p> : null}
+      {showAgentOriginal && !editorOpen ? (
         <p className="field-row__agent-original">
           agent {showAgentOriginal.value}
           {showAgentOriginal.source_refs.map(ref => (
@@ -114,7 +124,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         </p>
       ) : null}
 
-      {field.state === 'needs_review' ? (
+      {field.state === 'needs_review' && !editorOpen ? (
         <div className="field-row__actions">
           {field.id === 'overall_dimensions' && field.unit == null ? (
             <Button ref={editorButtonRef} variant="secondary" onClick={openEditor}>Add unit</Button>
@@ -139,7 +149,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         </div>
       ) : null}
 
-      {field.state === 'conflict' ? (
+      {field.state === 'conflict' && !editorOpen ? (
         <ConflictPanel
           editorButtonRef={editorButtonRef}
           field={field}
@@ -148,14 +158,14 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
         />
       ) : null}
 
-      {field.state === 'missing' || field.state === 'empty' ? (
+      {(field.state === 'missing' || field.state === 'empty') && !editorOpen ? (
         <div className="field-row__actions">
           <Button ref={editorButtonRef} variant="secondary" onClick={openEditor}>Enter value</Button>
           <Button ref={pickerButtonRef} variant="text" onClick={openPicker}>Mark not required</Button>
         </div>
       ) : null}
 
-      {field.state === 'verified' ? (
+      {field.state === 'verified' && !editorOpen ? (
         <div className="field-row__actions">
           <Button
             variant="text"
@@ -167,10 +177,10 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
       ) : null}
 
       {editorOpen ? (
-        <InlineEditor field={field} onClose={() => setEditorOpen(false)} returnFocusRef={returnFocusRef} />
+        <InlineEditor field={field} onClose={close(false)} onSource={openSource} />
       ) : null}
       {pickerOpen ? (
-        <NotRequiredPicker field={field} onClose={() => setPickerOpen(false)} returnFocusRef={returnFocusRef} />
+        <NotRequiredPicker field={field} onClose={close(true)} />
       ) : null}
       {field.suggestion ? <SuggestionCard field={field} onSource={openSource} /> : null}
     </article>
