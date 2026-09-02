@@ -406,6 +406,19 @@ test('390px: with an agent the strip carries the button full width, and the dial
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
+test('1920px: the log header names the package the page is holding', async ({ page }) => {
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await installModelContext(page);
+  await page.goto('/');
+  await openPackage(page, { reference: 'RFQ 91-2204', email: EMAIL, spec: SPEC });
+  await executeTool(page, 'propose_field', { field_id: 'part_name', value: 'Bay cover', source_refs: ['spec:s1.1'] });
+
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  const header = page.locator('.change-log__header');
+  await expect(header.getByRole('button', { name: 'Open another package' })).toBeVisible();
+  await expect(header.getByRole('button', { name: 'Open your own package' })).toHaveCount(0);
+});
+
 // Human-speed evidence: every state the review asks for, at both widths, and the
 // states where a component the change touched must be absent.
 for (const width of [1920, 390]) {

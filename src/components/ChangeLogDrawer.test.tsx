@@ -6,6 +6,8 @@ import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { createInitialState, type ReviewSession } from '../state/session';
 import { getState, replaceState } from '../state/store';
 import { ChangeLogDrawer } from './ChangeLogDrawer';
+import { samplePackage, setPackage } from '../data/package';
+import { buildPackage } from '../data/user-package';
 
 /* jsdom carries no top layer; the element's own behaviour is proved in the browser. */
 beforeAll(() => {
@@ -18,6 +20,7 @@ beforeAll(() => {
 afterEach(() => {
   cleanup();
   act(() => replaceState(createInitialState()));
+  act(() => setPackage(samplePackage));
 });
 
 describe('ChangeLogDrawer', () => {
@@ -157,6 +160,17 @@ describe('P5: the log header during a live session', () => {
     expect(screen.getByRole('button', { name: 'Play sample session' })).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Open your own package' }));
     expect(onOpenPackage).toHaveBeenCalledOnce();
+  });
+
+  test('the label reads Open another package once a package of your own is open', async () => {
+    const user = userEvent.setup();
+    act(() => setPackage(buildPackage({ reference: 'RFQ 91-2201', email: 'Subject\n\nBody.' })));
+    act(() => replaceState(liveSession()));
+    render(<ChangeLogDrawer onOpenPackage={vi.fn()} />);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+
+    expect(screen.getByRole('button', { name: 'Open another package' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Open your own package' })).toBeNull();
   });
 
   test('Start over asks first, and Cancel changes nothing', async () => {
