@@ -1,6 +1,6 @@
 # P5 — Open your own package
 
-**Status:** in review — 2026-09-02
+**Status:** done — 2026-09-02
 **PR:** [#8](https://github.com/natdexterra/spotcheck/pull/8)
 **Depends on:** P3 (merged), P4 and P3.1 — branch from `main` only after both have merged: P4 for the zoom on user drawings, P3.1 because both tasks touch `StatusStrip.tsx` and the editor-height line in DESIGN.md § Interaction states
 **Amended:** 2026-09-02 after the design review of the first draft: the strip names both paths, the user drawing gets one whole-sheet region, the image is re-encoded before storage, the specification becomes optional, every end-to-end test declares the API state explicitly. Second amendment the same day after the contradiction pass: the sample replay switches the package itself (`controller.ts` in scope), `SourcePane.tsx` in scope for the tab set, the native-controls line goes into DESIGN.md, corrected citations. Third amendment 2026-09-02 (owner's rulings at the P5 hand-over): the group heading is hidden while the field list holds one group, settled rows keep the agent's rationale and the searched chips, and the DESIGN.md row carries the three documentation sections due before the code is final (component inventory, absent states, string sources).
