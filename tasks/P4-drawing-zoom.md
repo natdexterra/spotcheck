@@ -1,7 +1,7 @@
 # P4 — Drawing zoom
 
-**Status:** queued
-**PR:** —
+**Status:** in review
+**PR:** [#6](https://github.com/natdexterra/spotcheck/pull/6)
 **Depends on:** P2 (branches from `main`; independent of P3 — may run in parallel on its own branch)
 
 ## Goal
@@ -58,13 +58,19 @@ Playwright `e2e/zoom.spec.ts` (production build):
 
 ## Acceptance criteria
 
-- [ ] Toolbar per § UI rules at 1920 and 390 (screenshots in the pull request); `×` is U+00D7; default `1×`
-- [ ] `2×` doubles the sheet inside a self-scrolling panel; page never scrolls horizontally; overlay boxes and the reading outline follow the image
-- [ ] Provenance and region activation keep the box in view at either zoom; no smooth scrolling, no transitions
-- [ ] No wheel or pinch handling; radio-group keyboard behaviour; the panel is keyboard-scrollable
-- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; CSS within budget; no new dependency
-- [ ] `webmcp-tools.ts`, `reducer.ts` and the action unions unchanged
-- [ ] Task file boxes ticked with evidence in the pull request description
+- [x] Toolbar per § UI rules at 1920 and 390 (screenshots in the pull request); `×` is U+00D7; default `1×` — `DrawingSheet.test.tsx` "the toolbar carries the sheet name and a Zoom radio group that opens on 1×"; screenshots `docs/qa/p4/drawing-zoom-1x-1920.png` and `-1x-390.png` (at rest) and `-2x-…` (mid-pan)
+- [x] `2×` doubles the sheet inside a self-scrolling panel; page never scrolls horizontally; overlay boxes and the reading outline follow the image — `zoom.spec.ts` "2× doubles the sheet inside the panel and never widens the page" (wrap `scrollWidth` 2,180 against a 1,090px panel; page `scrollWidth` equals `clientWidth`; the box holds 4.5% of the wrap and its dashed edge stays 1px) and the 390 case; `DrawingSheet.test.tsx` "the boxes stay in percentages of the wrap"
+- [x] Provenance and region activation keep the box in view at either zoom; no smooth scrolling, no transitions — `zoom.spec.ts` "a provenance link brings its box into the panel at 2×" (the active box's rect lies inside the panel's, `scrollLeft` > 0); `DrawingSheet.test.tsx` "a zoom change and a new highlight both bring the active box into view, centered"; `scroll-behavior` and the wrap's `transition-duration` are `auto` / `0s` with and without `prefers-reduced-motion`
+- [x] No wheel or pinch handling; radio-group keyboard behaviour; the panel is keyboard-scrollable — `zoom.spec.ts` "the control is the only way to zoom" and "arrow keys move between the segments and the panel scrolls from the keyboard"
+- [x] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; CSS within budget; no new dependency — 279 unit tests, 44 Playwright checks; CSS 27,035 bytes raw (budget 28,000), JS 73.45 KB gzip (budget 180 KB); `package.json` unchanged
+- [x] `webmcp-tools.ts`, `reducer.ts` and the action unions unchanged — `git diff origin/main HEAD -- src/state src/webmcp-tools.ts` is empty
+- [x] Task file boxes ticked with evidence in the pull request description
+
+Builder evidence: 279 unit tests, 44 Playwright checks, production build and inline-script check pass. CSS 27,035 bytes raw; JavaScript 73.45 KB gzip. Screenshots at 1920 and 390, at rest and at `2×` with a highlighted box, are in `docs/qa/p4/` and in the pull request. Independent QA and owner review are pending.
+
+## Open question for review
+
+Export 17 draws the toolbar and the caption outside the scrolling area: they stay put on the document lane while only the sheet pans. § UI rules make the panel itself the scroll region (`overflow: auto` on the panel, `tabindex="0"` on the panel, and the § Tests line "the panel is the scrolling element"), which means the toolbar and the caption pan with the sheet — visible in the `2×` screenshots, where the sheet name has slid out of view. The rule was followed. Pinning them would need the scroll region to move inside the sheet, or the figure to span the scroll width so a sticky toolbar has room to stay — either is a change to the rule, not to the implementation.
 
 ## Out of scope
 
