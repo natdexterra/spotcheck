@@ -1333,3 +1333,128 @@
     align-items: center;
   }
 }
+
+.field-row__value,
+.candidate-option__value,
+.suggestion-card__value,
+.field-row__revision,
+.field-row__agent-original,
+.drawing-sheet__caption,
+.confirm-summary__line {
+  font-size: var(--text-lg-mono);
+}
+
+.replay-controls,
+.replay-controls__text,
+.replay-controls__actions,
+.change-log__file-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.replay-controls {
+  justify-content: space-between;
+  padding-block-end: var(--space-2);
+  font-size: var(--text-md);
+  line-height: var(--leading-md-loose);
+}
+
+.replay-controls__text {
+  flex-wrap: wrap;
+  min-width: 0;
+}
+
+.replay-controls__actions {
+  flex: none;
+}
+
+.replay-controls__next {
+  color: var(--ink-secondary);
+}
+
+.session-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--state-conflict);
+  overflow-wrap: anywhere;
+}
+
+.session-error .icon {
+  flex: none;
+}
+
+.change-log__entry--collapsed {
+  flex: 1;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  line-height: var(--leading-md);
+}
+
+.change-log__entry--collapsed .change-log__sentence {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.change-log__entry--collapsed .change-log__time,
+.change-log__collapsed > .button {
+  flex: none;
+}
+
+.change-log__header {
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
+}
+
+.change-log__file-actions {
+  flex-wrap: wrap;
+  margin-inline-start: auto;
+}
+
+.change-log__error {
+  padding-inline: var(--page-margin);
+  font-size: var(--text-md);
+}
+
+.session-import {
+  position: relative;
+}
+
+.session-import:has(input:focus-visible) {
+  outline: var(--ring-width) solid var(--accent);
+  outline-offset: var(--ring-width);
+}
+
+@media (max-width: 1023px) {
+  .replay-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .replay-controls__actions {
+    flex-wrap: wrap;
+  }
+
+  .replay-controls .button--secondary {
+    width: auto;
+  }
+
+  .change-log__entry--collapsed {
+    width: 100%;
+    flex: none;
+  }
+
+  .change-log__header {
+    display: flex;
+  }
+
+  .change-log__file-actions {
+    order: 1;
+    width: 100%;
+    margin-inline-start: 0;
+  }
+}
