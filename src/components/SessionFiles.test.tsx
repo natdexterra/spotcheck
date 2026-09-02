@@ -33,11 +33,16 @@ test.each([['list', 'Agent listed the documents'], ['review', 'Agent checked the
   expect(screen.getByText(sentence)).toBeInTheDocument();
 });
 
-test('empty export is disabled and import is one tab stop on the native file input', () => {
+test('Export session is disabled while there is nothing to export', () => {
+  render(<ExportSessionButton />);
+  const button = screen.getByRole('button', { name: 'Export session' });
+  expect(button).toBeDisabled();
+  expect(button).toHaveClass('button--secondary', 'button--compact');
+});
+
+test('an empty log offers import as one tab stop on the native file input', () => {
   render(<ChangeLogDrawer />);
   fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
-  expect(screen.getByRole('button', { name: 'Export session' })).toBeDisabled();
-  expect(screen.getByRole('button', { name: 'Export session' })).toHaveClass('button--secondary', 'button--compact');
   const input = screen.getByLabelText('Import session');
   expect(input).toHaveAttribute('type', 'file');
   expect(input).not.toHaveAttribute('tabindex', '-1');
@@ -51,18 +56,7 @@ test('empty export is disabled and import is one tab stop on the native file inp
   const tabStops = [...document.querySelectorAll<HTMLElement>('.change-log__header button, .change-log__header input')]
     .filter(element => element.tabIndex >= 0 && element.getAttribute('aria-hidden') !== 'true');
   expect(tabStops.map(element => element === input ? 'Import session' : element.textContent))
-    .toEqual(['Export session', 'Import session', 'Close']);
-});
-
-test('a live session can start the sample from the expanded log without losing its fields', async () => {
-  replaceState({ ...createInitialState(), log: [{ actor: 'agent', at: 1,
-    event: { actor: 'agent', action: { type: 'read', operation: 'list' } } }] } as ReviewSession);
-  const start = vi.spyOn(controller, 'startSample').mockResolvedValue();
-  render(<ChangeLogDrawer />);
-  fireEvent.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
-  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Play sample session' })); });
-  expect(start).toHaveBeenCalledOnce();
-  expect(screen.getByRole('button', { name: /entr(y|ies)$/ })).toBeInTheDocument();
+    .toEqual(['Import session', 'Close']);
 });
 
 test('successful import passes parsed fixture to controller and closes drawer', async () => {

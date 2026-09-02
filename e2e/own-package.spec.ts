@@ -40,10 +40,9 @@ const field = (page: Page, name: string) => dialog(page).getByLabel(name, { exac
 interface Fields { reference?: string; customer?: string; email?: string; spec?: string; drawing?: boolean }
 
 async function openPackage(page: Page, fields: Fields = {}): Promise<void> {
-  // Once a session is under way the way in moves from the strip to the log.
-  const opener = page.getByRole('button', { name: /Open (your own|another) package/ });
-  if (await opener.count() === 0) await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-  await opener.click();
+  // The way in stands in the strip before a session starts and on the confirm
+  // screen after one is over; the change log carries neither.
+  await page.getByRole('button', { name: /Open (your own|another) package/ }).click();
   await expect(dialog(page)).toBeVisible();
   if (fields.reference !== undefined) await field(page, 'Reference').fill(fields.reference);
   if (fields.customer !== undefined) await field(page, 'Customer').fill(fields.customer);
@@ -279,7 +278,10 @@ test('the package and its review come back after a reload, and the sample can ta
   await expect(page.locator('[data-field-id="part_name"]')).toContainText('Bay cover');
   await expect(page.locator('[data-field-id="material"]')).toContainText('Aluminium 5052-H32');
 
+  // The way in stands in the strip, so the review is cleared before it appears.
   await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  await page.locator('.change-log__header').getByRole('button', { name: 'Start over' }).click();
+  await page.locator('dialog.dialog--confirm').getByRole('button', { name: 'Start over' }).click();
   await page.getByRole('button', { name: /Open (your own|another) package/ }).click();
   await expect(dialog(page)).toBeVisible();
   await page.getByRole('button', { name: 'Use the sample package' }).click();
@@ -294,10 +296,9 @@ test('the sample recording runs over its own package and gives the person’s ba
   await installModelContext(page);
   await page.goto('/');
   await openPackage(page, { reference: 'RFQ 91-2201', email: EMAIL, spec: SPEC });
-  await executeTool(page, 'propose_field', { field_id: 'part_name', value: 'Bay cover', source_refs: ['spec:s1.1'] });
-  await executeTool(page, 'propose_field', { field_id: 'material', value: 'Aluminium 5052-H32', source_refs: ['spec:s2.1'] });
 
-  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+  // The sample starts from the strip, which stands over a page with no review
+  // on it, so the recording never runs over work of the person's own.
   await page.getByRole('button', { name: 'Play sample session', exact: true }).click();
   await expect(page.locator('.header__package')).toHaveText('RFQ 26-0812 · Tarrowline Console Systems');
   await expect(page.getByRole('group', { name: 'Replay controls' })).toContainText('finished', { timeout: 90_000 });
@@ -306,10 +307,10 @@ test('the sample recording runs over its own package and gives the person’s ba
   const log = await page.locator('.confirm-summary__log').innerText();
   expect(log).not.toMatch(/INVALID_SOURCE_REF|UNKNOWN_DOCUMENT|UNKNOWN_SECTION/);
 
-  await page.getByRole('button', { name: 'Start over' }).click();
+  await page.locator('.confirm-summary__actions').getByRole('button', { name: 'Start over' }).click();
   await expect(page.locator('.header__package')).toHaveText('RFQ 91-2201');
-  await expect(page.locator('[data-field-id="part_name"]')).toContainText('Bay cover');
-  await expect(page.locator('[data-field-id="material"]')).toContainText('Aluminium 5052-H32');
+  await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
+  await expect(page.locator('#source-panel-email')).toContainText('Please quote 240 bay covers to the attached sheet.');
 });
 
 for (const width of [1920, 390]) {
@@ -381,7 +382,7 @@ test('the first load carries no group heading, and the first proposal brings two
   await expect(page.locator('.field-list__group-heading')).toHaveCount(2);
 });
 
-test('390px: no agent, no own-package button in the strip; the log sheet carries it', async ({ page }) => {
+test('390px: no agent, and no way into a package of your own on either side', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await removeModelContext(page);
   await page.goto('/');
@@ -390,9 +391,7 @@ test('390px: no agent, no own-package button in the strip; the log sheet carries
   await expect(page.getByRole('button', { name: 'Play sample session', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-  const open = page.locator('.change-log__sheet').getByRole('button', { name: 'Open your own package' });
-  await expect(open).toBeVisible();
-  expect((await open.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  await expect(page.locator('.change-log__sheet').getByRole('button', { name: /package/ })).toHaveCount(0);
 });
 
 test('390px: with an agent the strip carries the button full width, and the dialog is a sheet', async ({ page }) => {
@@ -416,18 +415,126 @@ test('390px: with an agent the strip carries the button full width, and the dial
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
 });
 
-test('1920px: the log header names the package the page is holding', async ({ page }) => {
-  await page.setViewportSize({ width: 1920, height: 1080 });
-  await installModelContext(page);
-  await page.goto('/');
-  await openPackage(page, { reference: 'RFQ 91-2204', email: EMAIL, spec: SPEC });
-  await executeTool(page, 'propose_field', { field_id: 'part_name', value: 'Bay cover', source_refs: ['spec:s1.1'] });
+const FIELD_IDS = [
+  'customer_rfq_ref', 'part_name', 'quantity', 'material', 'stock_thickness', 'overall_dimensions',
+  'general_tolerance', 'surface_finish', 'drawing_number', 'drawing_revision', 'delivery',
+] as const;
 
-  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
-  const header = page.locator('.change-log__header');
-  await expect(header.getByRole('button', { name: 'Open another package' })).toBeVisible();
-  await expect(header.getByRole('button', { name: 'Open your own package' })).toHaveCount(0);
+/** Every control the log header offers, in the order a person meets them. */
+const headerControls = (page: Page) => page.evaluate(() => {
+  const header = document.querySelector('.change-log__header');
+  if (!header) return [];
+  return [...header.querySelectorAll('button, input')]
+    .filter(element => element.getAttribute('aria-hidden') !== 'true')
+    .map(element => element instanceof HTMLInputElement
+      ? header.querySelector('label[for="' + element.id + '"]')?.textContent ?? ''
+      : element.textContent ?? '');
 });
+
+async function confirmEverything(page: Page): Promise<void> {
+  for (const id of FIELD_IDS) {
+    await executeTool(page, 'propose_field', {
+      field_id: id,
+      // Quantity takes a number; every other field takes the sentence.
+      value: id === 'quantity' ? '240' : 'Stated on the sheet',
+      source_refs: ['spec:s1.1'],
+      ...(id === 'overall_dimensions' ? { unit: 'mm' } : {}),
+    });
+  }
+  for (const id of FIELD_IDS) {
+    await page.locator('[data-field-id="' + id + '"]').getByRole('button', { name: 'Verify' }).click();
+  }
+  await page.getByRole('button', { name: 'Confirm quote request' }).click();
+  await expect(page.locator('.confirm-summary')).toBeVisible();
+}
+
+// The change-log header carries the actions of the state it is in and no others
+// (DESIGN.md section Components, Change-log header by state).
+for (const width of [1920, 390]) {
+  test(width + 'px: the change-log header carries the actions of its state', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1080 });
+    await installModelContext(page);
+    await page.goto('/');
+    const open = () => page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+    const close = () => page.locator('.change-log__header').getByRole('button', { name: 'Close' }).click();
+    const shot = async (name: string) => {
+      await page.evaluate(() => document.fonts.ready);
+      const path = 'docs/qa/p5/' + name + '-' + width + '.png';
+      if (await saveEvidence(page.locator('.change-log__header'), path)) {
+        await testInfo.attach(name + '-' + width, { path, contentType: 'image/png' });
+      }
+    };
+
+    await open();
+    expect(await headerControls(page)).toEqual(['Import session', 'Close']);
+    await shot('log-header-empty');
+    await close();
+
+    await executeTool(page, 'propose_field', { field_id: 'part_name', value: 'KVM mount bracket', source_refs: ['spec:s1.1'] });
+    await open();
+    expect(await headerControls(page)).toEqual(['Export session', 'Start over', 'Close']);
+    await shot('log-header-live');
+    // The two stand at least --space-4 apart, so the control that discards a
+    // review is not the neighbour of the one that saves it.
+    const gap = await page.evaluate(() => {
+      const header = document.querySelector('.change-log__header')!;
+      const buttons = [...header.querySelectorAll('.button')];
+      const startOver = buttons.find(button => button.textContent === 'Start over')!.getBoundingClientRect();
+      const exported = buttons.find(button => button.textContent === 'Export session')!.getBoundingClientRect();
+      return startOver.top >= exported.bottom ? Infinity : startOver.left - exported.right;
+    });
+    expect(gap).toBeGreaterThanOrEqual(16);
+    await page.locator('.change-log__header').getByRole('button', { name: 'Start over' }).click();
+    await page.locator('dialog.dialog--confirm').getByRole('button', { name: 'Start over' }).click();
+
+    await page.getByRole('button', { name: 'Play sample session', exact: true }).click();
+    await expect(page.getByRole('group', { name: 'Replay controls' })).toBeVisible();
+    await open();
+    expect(await headerControls(page)).toEqual(['Close']);
+    await shot('log-header-replay');
+    await close();
+    await page.getByRole('button', { name: /Leave (sample|session)/ }).click();
+
+    await confirmEverything(page);
+    await open();
+    expect(await headerControls(page)).toEqual(['Export session', 'Close']);
+    await shot('log-header-confirmed');
+  });
+
+  test(width + 'px: the confirmed review opens another package, and hands focus back', async ({ page }, testInfo) => {
+    await page.setViewportSize({ width, height: width === 390 ? 844 : 1080 });
+    await installModelContext(page);
+    await page.goto('/');
+    await confirmEverything(page);
+
+    const opener = page.locator('.confirm-summary__actions').getByRole('button', { name: 'Open another package' });
+    await expect(opener).toBeVisible();
+    const path = 'docs/qa/p5/confirm-screen-actions-' + width + '.png';
+    if (await saveEvidence(page.locator('.confirm-summary__actions'), path)) {
+      await testInfo.attach('confirm-screen-actions-' + width, { path, contentType: 'image/png' });
+    }
+
+    await opener.click();
+    await expect(dialog(page)).toBeVisible();
+    // Nothing is at risk once the review is over, so no line warns about one.
+    await expect(dialog(page).locator('.dialog__warning')).toHaveCount(0);
+    await field(page, 'Reference').press('Escape');
+    await expect(dialog(page)).toBeHidden();
+    await expect(opener).toBeFocused();
+
+    await opener.click();
+    await field(page, 'Reference').fill('RFQ 91-2205');
+    await field(page, 'Customer email').fill(EMAIL);
+    await field(page, 'Specification').fill(SPEC);
+    await page.getByRole('button', { name: 'Open package' }).click();
+    await expect(dialog(page)).toBeHidden();
+    await expect(page.locator('.header__package')).toHaveText('RFQ 91-2205');
+    await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
+    // The announcement itself is timed out of a queue eleven verifications long;
+    // the tests that open a package from the strip assert it on a quiet page.
+    await expect(page.locator('.confirm-summary')).toHaveCount(0);
+  });
+}
 
 // Human-speed evidence: every state the review asks for, at both widths, and the
 // states where a component the change touched must be absent.

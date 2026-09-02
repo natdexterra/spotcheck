@@ -2,7 +2,7 @@
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { afterEach, describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test, vi } from 'vitest';
 import { createInitialState, type LogEntry, type ReviewSession } from '../state/session';
 import { getState, replaceState } from '../state/store';
 import type { Field, ResolutionKind } from '../state/types';
@@ -119,6 +119,25 @@ describe('ConfirmSummary', () => {
     expect(getState().fields).toHaveLength(11);
     expect(getState().fields.every(field => field.state === 'empty')).toBe(true);
     expect(screen.queryByRole('heading', { name: /Confirmed/ })).not.toBeInTheDocument();
+  });
+
+  test('P5: the confirmed review offers the way into another package, beside starting over', async () => {
+    const onOpenPackage = vi.fn();
+    act(() => replaceState(confirmedFixture()));
+    render(<ConfirmSummary onOpenPackage={onOpenPackage} />);
+
+    const actions = document.querySelector('.confirm-summary__actions') as HTMLElement;
+    expect(within(actions).getAllByRole('button').map(button => button.textContent))
+      .toEqual(['Export session', 'Start over', 'Open another package']);
+    await userEvent.click(within(actions).getByRole('button', { name: 'Open another package' }));
+    expect(onOpenPackage).toHaveBeenCalledOnce();
+  });
+
+  test('a summary given no way into a package shows none', () => {
+    act(() => replaceState(confirmedFixture()));
+    render(<ConfirmSummary />);
+
+    expect(screen.queryByRole('button', { name: 'Open another package' })).toBeNull();
   });
 
   test('uses the plain Confirmed title when no customer questions remain', () => {

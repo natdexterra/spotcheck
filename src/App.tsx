@@ -26,7 +26,7 @@ import type { FieldId } from './state/types';
 const VISIT_ONLY = 'Package opened for this visit only: the browser has no room to keep it';
 
 export function App() {
-  const { confirmed, draft, gaps, log } = useReview();
+  const { confirmed, draft, gaps } = useReview();
   const pkg = usePackage();
   const replay = useReplay();
   const narrow = useNarrowLayout();
@@ -53,12 +53,9 @@ export function App() {
   // The injection line belongs to the sample, so the flag that hides it does too.
   const bundled = pkg === samplePackage;
   const quiet = bundled && typeof location !== 'undefined' && new URLSearchParams(location.search).get('quiet') === '1';
-  const apiAvailable = typeof document.modelContext?.registerTool === 'function';
-  const live = log.length > 0 || replay.active;
-  // The way into a package of your own stands in one place at a time: the strip
-  // before a session starts, the expanded log once it has, and the log alone on
-  // a one-column browser with no agent, whose first load stays light.
-  const inStrip = !live && !confirmed && !(narrow && !apiAvailable);
+  // The way into a package of your own stands in the strip before a session
+  // starts, and on the confirm screen once one is over. The change log carries
+  // the actions of its own state and nothing else.
   const openDialog = () => setPackageDialogOpen(true);
 
   const openPackage = async (fields: OpenPackageFields) => {
@@ -93,7 +90,7 @@ export function App() {
       <StatusStrip notice={notice} onOpenPackage={openDialog} />
       {confirmed ? (
         <main className="summary-main">
-          <ConfirmSummary />
+          <ConfirmSummary onOpenPackage={openDialog} />
         </main>
       ) : (
         <main className="workspace">
@@ -121,14 +118,13 @@ export function App() {
           ) : null}
         </main>
       )}
-      <ChangeLogDrawer onOpenPackage={inStrip ? undefined : openDialog} />
+      <ChangeLogDrawer />
       <OpenPackageDialog
         onCancel={() => setPackageDialogOpen(false)}
         onOpenPackage={fields => void openPackage(fields)}
         onUseSample={bundled ? undefined : () => void openSample()}
         open={packageDialogOpen}
         sampleReference={samplePackage.reference ?? ''}
-        sessionInProgress={log.length > 0}
       />
       <LiveRegion />
     </div>

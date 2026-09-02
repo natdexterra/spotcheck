@@ -232,7 +232,6 @@
 .clarification__hint,
 .dialog__file-name,
 .dialog__privacy,
-.dialog__warning,
 .dialog__error,
 .not-required-picker__hint {
   color: var(--ink-secondary);
@@ -1663,6 +1662,12 @@
   margin-inline-start: auto;
 }
 
+/* The control that discards the review stands apart from the one beside it, so
+   the pointer does not find it by accident (DESIGN.md § Components). */
+.change-log__start-over {
+  margin-inline-start: calc(var(--space-4) - var(--space-2));
+}
+
 .change-log__error {
   padding-inline: var(--page-margin);
   font-size: var(--text-md);
@@ -1769,7 +1774,6 @@
 }
 
 .dialog__privacy,
-.dialog__warning,
 .dialog__error {
   display: flex;
   align-items: start;
@@ -1792,13 +1796,6 @@
 .dialog__field .dialog__file,
 .dialog__field .dialog__error {
   margin-block-start: var(--space-1);
-}
-
-/* The one line that says what opening costs: ink, not a state colour, because
-   nothing has gone wrong yet. */
-.dialog__warning {
-  color: var(--ink);
-  font-weight: 500;
 }
 
 /* A hint is a line of its own, never text inside the field (§ Interaction states). */
