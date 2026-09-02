@@ -37,6 +37,17 @@ test('empty export is disabled and import retains a labelled native file input',
   expect(screen.getByLabelText('Import session')).not.toHaveAttribute('tabindex', '-1');
 });
 
+test('a live session can start the sample from the expanded log without losing its fields', async () => {
+  replaceState({ ...createInitialState(), log: [{ actor: 'agent', at: 1,
+    event: { actor: 'agent', action: { type: 'read', operation: 'list' } } }] } as ReviewSession);
+  const start = vi.spyOn(controller, 'startSample').mockResolvedValue();
+  render(<ChangeLogDrawer />);
+  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Play sample session' })); });
+  expect(start).toHaveBeenCalledOnce();
+  expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+});
+
 test('successful import passes parsed fixture to controller and closes drawer', async () => {
   const start = vi.spyOn(controller, 'startImported').mockResolvedValue();
   render(<ChangeLogDrawer />);

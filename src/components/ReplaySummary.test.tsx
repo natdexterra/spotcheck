@@ -13,7 +13,7 @@ test('fixture completion shows recorded duration and Start over leaves replay', 
   await controller.startSample(); controller.pause();
   while (await controller.next()) { /* confirm by fixture */ }
   render(<ConfirmSummary />);
-  expect(screen.getByText(/^Recorded review /)).toBeInTheDocument();
+  expect(document.querySelector('.confirm-summary__timer')).toHaveTextContent(/^Recorded review /);
   expect(screen.queryByText(/this run/)).not.toBeInTheDocument();
   expect(screen.getByRole('button', { name: 'Export session' })).toHaveClass('button--secondary');
   const leave = vi.spyOn(controller, 'leave');
@@ -27,5 +27,5 @@ test('viewer completion shows recorded and this-run durations', async () => {
   while (controller.getSnapshot().position < confirmIndex) await controller.next();
   dispatchHuman({ type: 'confirm' });
   render(<ConfirmSummary />);
-  expect(screen.getByText(/^Recorded review .* · this run /)).toBeInTheDocument();
+  expect(document.querySelector('.confirm-summary__timer')).toHaveTextContent(/^Recorded review .* · this run /);
 });

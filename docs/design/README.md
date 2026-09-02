@@ -15,3 +15,6 @@ Exports of the approved screens and state sheets, at 1x. `DESIGN.md` is the sour
 | 12 | Inline editor and the not-required picker |
 | 13 | Narrow: source sheet over the field list |
 | 14 | Narrow: change log sheet |
+| 15 | Replay row: playing, paused, ended, error, and the 390 stack |
+| 16 | Change log: export and import, the expanded header and the collapsed one-line bar |
+| 17 | Drawing zoom: the toolbar, 1× and 2×, and 2× at 390 |

@@ -8,7 +8,8 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { describeRead } from '../replay/describe';
-import { startImported } from '../replay/controller';
+import { startImported, startSample } from '../replay/controller';
+import { useReplay } from '../hooks/useReplay';
 import { parseFixture } from '../replay/serialization';
 import { ExportSessionButton } from './ExportSessionButton';
 import { announce } from './LiveRegion';
@@ -84,7 +85,7 @@ export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
 export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry; fields: Field[]; collapsed?: boolean }) => (
   <div className={`change-log__entry${collapsed ? ' change-log__entry--collapsed' : ''}`}>
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
-    <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
+    <span className="change-log__sentence">{collapsed ? <span className="change-log__clip">{formatLogEntry(entry, fields)}</span> : formatLogEntry(entry, fields)}</span>
     {!collapsed && entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
       <span className="change-log__agent-note" key={note}>
         {agentAuthored(note) ? `Agent: ${note}` : note}
@@ -95,6 +96,7 @@ export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry;
 
 export const ChangeLogDrawer = () => {
   const { log, state } = useReview();
+  const replay = useReplay();
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
@@ -151,6 +153,7 @@ export const ChangeLogDrawer = () => {
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
             <div className="change-log__file-actions">
+              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); requestAnimationFrame(() => document.querySelector<HTMLButtonElement>('.replay-controls__actions button')?.focus()); }}>Play sample session</Button>}
               <ExportSessionButton />
               <div className="session-import">
                 <label className="visually-hidden" htmlFor="session-file">Import session</label>
