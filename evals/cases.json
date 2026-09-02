@@ -1,0 +1,87 @@
+[
+  {
+    "name": "Extraction starts by listing the package before any read",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Extract this RFQ into a quote request." }
+    ],
+    "expectedCall": [
+      {
+        "ordered": [
+          { "functionName": "list_rfq_documents", "arguments": {} },
+          { "functionName": "read_document", "arguments": { "doc_id": "spec", "section_id": "s1" } }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "A direct request records the part name with provenance",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Record the part name from this package." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "propose_field",
+        "arguments": {
+          "field_id": "part_name",
+          "value": { "$contains": "KVM" },
+          "source_refs": { "$any": true }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Disagreeing sources become a conflict, not a proposal",
+    "messages": [
+      { "role": "user", "type": "message", "content": "The customer email asks for 750 units and the specification says 800. Record the quantity." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "report_conflict",
+        "arguments": {
+          "field_id": "quantity",
+          "candidates": { "$any": true }
+        }
+      }
+    ]
+  },
+  {
+    "name": "An absent tolerance is reported missing, not guessed",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Find the general tolerance for these parts and record it." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "report_missing",
+        "arguments": {
+          "field_id": "general_tolerance",
+          "searched": { "$any": true }
+        }
+      }
+    ]
+  },
+  {
+    "name": "Overall dimensions come from the drawing with their sources",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Record the overall dimensions of the bracket from the drawing." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "propose_field",
+        "arguments": {
+          "field_id": "overall_dimensions",
+          "value": { "$contains": "20" },
+          "source_refs": { "$any": true }
+        }
+      }
+    ]
+  },
+  {
+    "name": "A question about progress reads the review state",
+    "messages": [
+      { "role": "user", "type": "message", "content": "What is left to review?" }
+    ],
+    "expectedCall": [
+      { "functionName": "get_review_state", "arguments": {} }
+    ]
+  }
+]
