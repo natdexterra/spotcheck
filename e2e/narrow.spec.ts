@@ -123,24 +123,62 @@ for (const width of [390, 320]) {
       field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'], rationale: 'The specification names the alloy.',
     });
 
+    const label = page.locator('.change-log__label');
     const sentence = page.locator('.change-log__entry').first();
     const button = page.getByRole('button', { name: /entr(y|ies)$/ });
     // The header's content sits on the same gutter lane the bar must match.
     const laneX = (await page.locator('.header__identity').boundingBox())!.x;
 
+    const labelBox = (await label.boundingBox())!;
     const sentenceBox = (await sentence.boundingBox())!;
     const buttonBox = (await button.boundingBox())!;
 
-    // Sentence above, the disclosure button on its own line below it, one
-    // line tall (no wrapped label), left-aligned on the gutter lane.
+    // Export 16 at 390: the name and the last entry share the first line, the
+    // disclosure takes its own line under them, and both start on the lane.
     expect(buttonBox.height).toBeLessThanOrEqual(44);
+    expect(Math.abs(labelBox.y - sentenceBox.y)).toBeLessThanOrEqual(4);
     expect(buttonBox.y).toBeGreaterThanOrEqual(sentenceBox.y + sentenceBox.height);
-    expect(Math.abs(sentenceBox.x - laneX)).toBeLessThanOrEqual(1);
+    expect(Math.abs(labelBox.x - laneX)).toBeLessThanOrEqual(1);
     // The label, not the pill, sits on the lane; the bar keeps 12px above the sentence.
     const buttonPad = Number.parseFloat(await button.evaluate(element => getComputedStyle(element).paddingLeft));
     expect(Math.abs(buttonBox.x + buttonPad - laneX)).toBeLessThanOrEqual(1);
     const barTop = (await page.locator('.change-log').boundingBox())!.y;
-    expect(sentenceBox.y - barTop).toBeGreaterThanOrEqual(12);
+    expect(labelBox.y - barTop).toBeGreaterThanOrEqual(12);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
   });
 }
+
+test('390px: the log sheet header holds the title, Close and the meta line', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 900 });
+  await installModelContext(page);
+  await page.goto('/');
+  await executeTool(page, 'propose_field', {
+    field_id: 'delivery',
+    value: 'All units within two weeks of PO; FOB destination to the receiving dock, packing list with every pallet',
+    source_refs: ['email:p5'],
+  });
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
+
+  const header = page.locator('.change-log__header');
+  await expect(header).toBeVisible();
+  const title = (await header.locator('h2').boundingBox())!;
+  const close = (await header.getByRole('button', { name: 'Close' }).boundingBox())!;
+  const meta = (await page.locator('.change-log__meta').boundingBox())!;
+
+  // Export 14: nothing is clipped off the top, the title and Close share the
+  // first row, and the meta line sits under the title.
+  expect(Math.round(Number.parseFloat(
+    await header.evaluate(element => getComputedStyle(element).paddingTop),
+  ))).toBe(16);
+  expect(title.y).toBeGreaterThanOrEqual((await page.locator('.change-log__sheet').boundingBox())!.y + 15);
+  expect(Math.abs((title.y + title.height / 2) - (close.y + close.height / 2))).toBeLessThanOrEqual(6);
+  expect(meta.y).toBeGreaterThanOrEqual(title.y + title.height - 2);
+  expect(meta.x).toBeCloseTo(title.x, 0);
+
+  // A long entry keeps its time column: the sentence wraps beside the clock.
+  const entry = page.locator('.change-log__entries .change-log__entry').first();
+  const time = (await entry.locator('.change-log__time').boundingBox())!;
+  const sentence = (await entry.locator('.change-log__sentence').boundingBox())!;
+  expect(sentence.height).toBeGreaterThan(time.height);
+  expect(sentence.x).toBeGreaterThan(time.x + time.width - 1);
+});

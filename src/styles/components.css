@@ -375,7 +375,17 @@
 
 .change-log__entry {
   min-width: 0;
+  align-items: flex-start;
   flex-wrap: wrap;
+}
+
+.change-log__sentence {
+  min-width: 0;
+  flex: 1;
+}
+
+.change-log__agent-note {
+  width: 100%;
 }
 
 .change-log__time {
@@ -1314,15 +1324,36 @@
   /* Collapsed bar: sentence above, the disclosure button on its own line below,
      left-aligned on the gutter lane. */
   .change-log__collapsed {
-    align-items: flex-start;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--space-2);
     padding-block: var(--space-3);
   }
 
-  /* The disclosure's label, not its pill, sits on the lane. */
+  /* The disclosure takes its own line, and its label, not its pill, sits on
+     the lane (export 16 at 390). */
   .change-log__collapsed > .button--text {
+    width: 100%;
+    justify-content: flex-start;
     margin-inline-start: calc(-1 * var(--space-3));
+  }
+
+  /* Export 14: the title and Close share the sheet header's first row, the
+     meta line follows under the title, the file actions under that. */
+  .change-log__header {
+    padding-block-start: var(--space-4);
+  }
+
+  .change-log__header h2 {
+    order: -1;
+  }
+
+  .change-log__header > .button--text {
+    margin-inline-start: auto;
+  }
+
+  .change-log__meta {
+    order: 1;
+    width: 100%;
   }
 
   .confirm-footer {
@@ -1467,7 +1498,7 @@
   text-overflow: ellipsis;
 }
 
-.change-log__entry--collapsed .change-log__time,
+.change-log__time,
 .change-log__collapsed > .button,
 .change-log__label,
 .field-list__verified-count,
@@ -1516,17 +1547,12 @@
     width: auto;
   }
 
-  .change-log__entry--collapsed {
-    width: 100%;
-    flex: none;
-  }
-
   .change-log__header {
     display: flex;
   }
 
   .change-log__file-actions {
-    order: 1;
+    order: 2;
     width: 100%;
     margin-inline-start: 0;
   }
