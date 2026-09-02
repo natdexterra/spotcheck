@@ -29,10 +29,17 @@ export const setPackage = (next: RfqPackage): void => {
 // App-authored fallbacks for datasets without titles (the stub); never derived from document body content.
 const titles: Record<string, string> = { email: 'Customer email', spec: 'Specification', drawing: 'Drawing sheet 1' };
 const sections: Record<string, string> = { request: 'Request', s1: 'Requirements', overall: 'Overall dimensions', detail: 'Detail' };
-export const documentIndex = () => ({ documents: current.documents.map(doc => ({
+// A section the app has no name for is listed by its id alone, under the global
+// result rule in `build-spec.md` that absent members are omitted: a long package
+// a person opened drops the invented titles to keep this index under its cap.
+export const packageIndex = (pkg: RfqPackage) => ({ documents: pkg.documents.map(doc => ({
   id: doc.id, type: doc.type, title: doc.title ?? titles[doc.id] ?? 'Document',
-  sections: doc.sections.map(section => ({ id: section.id, title: section.title ?? sections[section.id] ?? 'Section' })),
+  sections: doc.sections.map(section => {
+    const title = section.title ?? sections[section.id];
+    return title === undefined ? { id: section.id } : { id: section.id, title };
+  }),
 })) });
+export const documentIndex = () => packageIndex(current);
 export const findDocument = (id: string) => current.documents.find(doc => doc.id === id);
 export const findSection = (doc: string, id: string) => findDocument(doc)?.sections.find(section => section.id === id);
 export const sectionRegions = (doc: string, section: Section): Region[] => section.regions ??
