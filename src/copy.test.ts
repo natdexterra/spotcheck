@@ -20,7 +20,7 @@ const SOURCE_ROOT = fileURLToPath(new URL('.', import.meta.url));
 const EXEMPT = ['webmcp-tools.ts'];
 
 const DASHES = /[–—]/;
-const SANCTIONED = /^export const NO_VALUE = '.';$/;
+const SANCTIONED = /^export const NO_VALUE = '—';$/;
 
 /** Comments are not rendered; only what ships to the screen is swept. */
 const withoutComments = (source: string): string =>

@@ -362,8 +362,11 @@ test('a candidate is a raised card and Pick keeps the compact button height', as
   const pick = candidate.getByRole('button', { name: 'Pick' });
   const box = (await pick.boundingBox())!;
   expect(Math.round(box.height)).toBe(30);
-  // It sits beside the value, not stretched down the side of the card.
-  expect(box.height).toBeLessThan((await candidate.boundingBox())!.height);
+  // It sits beside the value, not stretched down the side of the card and not
+  // dropped onto a row of its own under the note (export 02).
+  const card_ = (await candidate.boundingBox())!;
+  expect(box.height).toBeLessThan(card_.height);
+  expect(Math.abs((box.y + box.height / 2) - (card_.y + card_.height / 2))).toBeLessThanOrEqual(1);
 });
 
 test('first load fits eleven one-line rows, and the line arrives with the agent', async ({ page }) => {
