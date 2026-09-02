@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ACCEPTED_IMAGE_TYPES, prepareDrawing as prepare_, type DrawingErrorCode } from '../data/prepare-drawing';
-import { CrossIcon, LockIcon } from '../icons';
+import { CrossIcon } from '../icons';
 import { Button } from './Button';
 
 /**
@@ -248,8 +248,10 @@ export function OpenPackageDialog({
         </div>
 
         <footer className="dialog__footer">
+          {/* Text alone: a padlock in front of this would decorate a claim about
+              where data goes, and that is the one claim on the page that has to
+              stand on its words. */}
           <p className="dialog__privacy">
-            <LockIcon />
             Nothing leaves this page on its own. Your agent receives what it reads through the page’s tools,
             one section at a time, and every read is logged
           </p>
