@@ -46,6 +46,7 @@ test.describe('drawing zoom', () => {
     const one = await geometry(page);
     // 1×: the sheet fits the panel, so nothing scrolls sideways.
     expect(one.panelScrollWidth).toBe(one.panelClientWidth);
+    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-1920.png' });
 
     await zoomTo(page, '2×');
     const two = await geometry(page);
@@ -196,6 +197,7 @@ test.describe('drawing zoom on the narrow sheet', () => {
     await page.locator('[data-field-id="overall_dimensions"]')
       .getByRole('link', { name: 'drawing width' }).click();
     await expect(page.locator('.source-pane--sheet')).toBeVisible();
+    await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-390.png' });
     await zoomTo(page, '2×');
 
     const metrics = await geometry(page);
