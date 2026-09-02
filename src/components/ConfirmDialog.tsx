@@ -1,4 +1,5 @@
 import { useEffect, useId, useRef } from 'react';
+import { CrossIcon } from '../icons';
 import { Button } from './Button';
 
 /**
@@ -29,13 +30,24 @@ export function ConfirmDialog({ confirmLabel, message, onCancel, onConfirm, open
 
   return (
     <dialog aria-labelledby={`${id}-title`} className="dialog dialog--confirm" onClose={onCancel} ref={dialogRef}>
+      {/* The same three parts as the package dialog, so one question looks like
+          a short version of the form and not like another kind of window. */}
       <div className="dialog__form">
-        <h2 className="dialog__title" id={`${id}-title`}>{title}</h2>
-        <p className="dialog__message">{message}</p>
-        <div className="dialog__actions">
-          <Button onClick={onConfirm} size="large" variant="primary">{confirmLabel}</Button>
-          <Button onClick={onCancel} variant="text">Cancel</Button>
+        <header className="dialog__header">
+          <h2 className="dialog__title" id={`${id}-title`}>{title}</h2>
+          <Button aria-label="Close" className="dialog__close" onClick={onCancel} variant="text">
+            <CrossIcon />
+          </Button>
+        </header>
+        <div className="dialog__body">
+          <p className="dialog__message">{message}</p>
         </div>
+        <footer className="dialog__footer">
+          <div className="dialog__actions">
+            <Button onClick={onConfirm} size="large" variant="primary">{confirmLabel}</Button>
+            <Button onClick={onCancel} variant="text">Cancel</Button>
+          </div>
+        </footer>
       </div>
     </dialog>
   );

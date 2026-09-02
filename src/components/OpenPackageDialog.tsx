@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ACCEPTED_IMAGE_TYPES, prepareDrawing as prepare_, type DrawingErrorCode } from '../data/prepare-drawing';
-import { LockIcon, OpposingArrowsIcon } from '../icons';
+import { CrossIcon, LockIcon, OpposingArrowsIcon } from '../icons';
 import { Button } from './Button';
 
 /**
@@ -139,9 +139,18 @@ export function OpenPackageDialog({
 
   return (
     <dialog aria-labelledby={`${id}-title`} className="dialog" onClose={onCancel} ref={dialogRef}>
+      {/* Three parts: a header and a footer that stay, and the body between
+          them, which is the only thing that scrolls. A person filling the last
+          field can still see what the button under it will do. */}
       <form className="dialog__form" onSubmit={event => void submit(event)}>
-        <h2 className="dialog__title" id={`${id}-title`}>Your package</h2>
+        <header className="dialog__header">
+          <h2 className="dialog__title" id={`${id}-title`}>Your package</h2>
+          <Button aria-label="Close" className="dialog__close" onClick={onCancel} variant="text">
+            <CrossIcon />
+          </Button>
+        </header>
 
+        <div className="dialog__body">
         <div className="dialog__field">
           <label className="dialog__label" htmlFor={fieldId('reference')}>Reference</label>
           <p className="dialog__hint" id={hintId('reference')}>Shown in the header and used as the session name</p>
@@ -236,17 +245,21 @@ export function OpenPackageDialog({
           {error('drawing')}
         </div>
 
-        <p className="dialog__privacy">
-          <LockIcon />
-          Nothing leaves this page on its own. Your agent receives what it reads through the page’s tools,
-          one section at a time, and every read is logged
-        </p>
-
-        <div className="dialog__actions">
-          <Button size="large" type="submit" variant="primary">Open package</Button>
-          <Button onClick={onCancel} variant="text">Cancel</Button>
-          {onUseSample ? <Button onClick={onUseSample} variant="text">Use the sample package</Button> : null}
         </div>
+
+        <footer className="dialog__footer">
+          <p className="dialog__privacy">
+            <LockIcon />
+            Nothing leaves this page on its own. Your agent receives what it reads through the page’s tools,
+            one section at a time, and every read is logged
+          </p>
+
+          <div className="dialog__actions">
+            <Button size="large" type="submit" variant="primary">Open package</Button>
+            <Button onClick={onCancel} variant="text">Cancel</Button>
+            {onUseSample ? <Button onClick={onUseSample} variant="text">Use the sample package</Button> : null}
+          </div>
+        </footer>
       </form>
     </dialog>
   );

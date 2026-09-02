@@ -143,6 +143,49 @@ describe('what the dialog refuses to open', () => {
   });
 });
 
+describe('P5: the dialog is a header, a scrolling body and a footer', () => {
+  test('the header carries the title and a close that does what Cancel does', async () => {
+    const onCancel = vi.fn();
+    const { container, user } = setup({ onCancel });
+    const header = container.querySelector('.dialog__header')!;
+
+    expect(within(header as HTMLElement).getByRole('heading', { name: 'Your package' })).toBeInTheDocument();
+    await user.click(within(header as HTMLElement).getByRole('button', { name: 'Close' }));
+    expect(onCancel).toHaveBeenCalledOnce();
+  });
+
+  test('every field stands in the body, and nothing else does', () => {
+    const { container } = setup();
+    const body = container.querySelector('.dialog__body')!;
+
+    expect(body.querySelectorAll('.dialog__field')).toHaveLength(5);
+    expect(body.querySelector('.dialog__actions')).toBeNull();
+    expect(body.querySelector('.dialog__privacy')).toBeNull();
+  });
+
+  test('the footer keeps the privacy line over the actions, out of the scrolling body', () => {
+    const { container } = setup({ onUseSample: vi.fn() });
+    const footer = container.querySelector('.dialog__footer')!;
+
+    expect(footer.querySelector('.dialog__privacy')).not.toBeNull();
+    expect(within(footer as HTMLElement).getAllByRole('button').map(button => button.textContent))
+      .toEqual(['Open package', 'Cancel', 'Use the sample package']);
+  });
+
+  test('the body is the only part that scrolls', () => {
+    // Comments carry braces of their own in prose, so they go before the match.
+    const componentsCss = readFileSync('src/styles/components.css', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '');
+    const rule = (selector: string): string => {
+      const head = componentsCss.indexOf(selector + ' {');
+      return head < 0 ? '' : componentsCss.slice(head, componentsCss.indexOf('}', head));
+    };
+
+    expect(rule('.dialog__body')).toMatch(/overflow-y:\s*auto/);
+    expect(rule('.dialog')).toMatch(/overflow:\s*hidden/);
+    expect(rule('.dialog__form')).not.toMatch(/overflow-y:\s*auto/);
+  });
+});
+
 describe('the image a person attaches', () => {
   test('is named beside the button once it is chosen', async () => {
     const { container, user } = setup();

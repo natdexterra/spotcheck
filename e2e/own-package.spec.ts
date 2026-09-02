@@ -563,10 +563,27 @@ for (const width of [1920, 390]) {
     await field(page, 'Customer email').fill(EMAIL);
     await field(page, 'Specification').fill(SPEC);
     await field(page, 'Drawing').setInputFiles({ name: 'sheet.png', mimeType: 'image/png', buffer: PNG });
-    // Filling scrolled the form to the field last touched; the shot is of the
+    // Filling scrolled the body to the field last touched; the shot is of the
     // whole form, so it goes back to the top first.
-    await dialog(page).locator('.dialog__form').evaluate(form => { form.scrollTop = 0; });
+    await dialog(page).locator('.dialog__body').evaluate(body => { body.scrollTop = 0; });
     await shot('dialog-filled');
+
+    // Halfway down the body, the header and the footer are both still there.
+    const scrolled = await dialog(page).locator('.dialog__body').evaluate(body => {
+      body.scrollTop = Math.round((body.scrollHeight - body.clientHeight) / 2);
+      return body.scrollTop;
+    });
+    expect(scrolled).toBeGreaterThan(0);
+    const frame = (await dialog(page).boundingBox())!;
+    for (const part of ['.dialog__header', '.dialog__footer']) {
+      const box = (await dialog(page).locator(part).boundingBox())!;
+      expect(box.y).toBeGreaterThanOrEqual(frame.y - 1);
+      expect(box.y + box.height).toBeLessThanOrEqual(frame.y + frame.height + 1);
+    }
+    await expect(dialog(page).getByRole('heading', { name: 'Your package' })).toBeInViewport();
+    await expect(dialog(page).getByRole('button', { name: 'Open package' })).toBeInViewport();
+    await shot('dialog-scrolled');
+    await dialog(page).locator('.dialog__body').evaluate(body => { body.scrollTop = 0; });
     await page.getByRole('button', { name: 'Open package' }).click();
     await expect(dialog(page)).toBeHidden();
     await shot('package-open-all-three');
