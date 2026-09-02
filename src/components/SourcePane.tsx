@@ -134,7 +134,7 @@ export function SourcePane({
 
   // The marker belongs to one read entry: it lights when that entry arrives and
   // clears 2 s later, whatever the reviewer is looking at. Keying the effect on
-  // anything else — a provenance target, the clarification tab appearing — would
+  // anything else (a provenance target, the clarification tab appearing) would
   // cancel the timeout and relight a read the agent finished long ago, so the
   // rest is read from a ref that render keeps current.
   useEffect(() => {
@@ -168,7 +168,7 @@ export function SourcePane({
   }, [target?.fieldId, target?.ref]);
 
   // Scrolling waits for the tab switch to commit: until the panel is visible the
-  // region has no box, so scrollIntoView would be a no-op (B1 — scroll model).
+  // region has no box, so scrollIntoView would be a no-op (B1, scroll model).
   useEffect(() => {
     if (!target) return;
     document.getElementById(target.ref)?.scrollIntoView?.({ block: 'center' });
@@ -178,7 +178,7 @@ export function SourcePane({
     tabsRef.current[activeTab]?.scrollIntoView?.({ block: 'nearest', inline: 'nearest' });
   }, [activeTab]);
 
-  // Narrow: the pane is a modal sheet over the field list — focus moves in, Tab
+  // Narrow: the pane is a modal sheet over the field list: focus moves in, Tab
   // stays inside, body scroll is locked, Escape closes and returns focus.
   useSheetDialog({ active: narrow && open, onClose, returnFocusRef, sheetRef });
 

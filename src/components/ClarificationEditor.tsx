@@ -72,7 +72,7 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
       <header className="clarification__intro">
         <Title />
         <p className="clarification__subtitle">
-          Agent drafted it from the open gaps — edit anything before sending
+          Agent drafted it from the open gaps. Edit anything before sending
         </p>
       </header>
       <label className="clarification__field">
@@ -93,7 +93,7 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
         />
       </label>
       <fieldset className="clarification__covers">
-        <legend className="clarification__caption">Covers — resolved as “Asked customer” on send</legend>
+        <legend className="clarification__caption">Covers · resolved as “Asked customer” on send</legend>
         {availableCovers.map(fieldId => (
           <Choice
             checked={selectedCovers.includes(fieldId)}
@@ -107,7 +107,7 @@ export function ClarificationEditor({ draft, gaps, onFocusField, sent }: Clarifi
       </fieldset>
       <div className="clarification__actions">
         <Button disabled={!canSend} type="submit" variant="primary">Send</Button>
-        <p className="clarification__hint">mock send — your edits vs the agent’s draft go to the change log</p>
+        <p className="clarification__hint">mock send · your edits vs the agent’s draft go to the change log</p>
       </div>
     </form>
   );

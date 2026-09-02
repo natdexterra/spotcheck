@@ -38,6 +38,9 @@ const VERIFIED_BADGE_LABELS: Record<ResolutionKind, string> = {
   asked_customer: 'Awaiting customer',
 };
 
+/** The empty value in the interface: the one sanctioned dash character. */
+export const NO_VALUE = '—';
+
 export function duration(ms: number): string {
   const totalSeconds = Math.floor(Math.max(0, ms) / 1_000);
   const minutes = Math.floor(totalSeconds / 60);
