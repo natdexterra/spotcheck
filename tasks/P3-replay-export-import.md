@@ -1,7 +1,7 @@
 # P3 — Replay controls, session export and import, replay summary
 
-**Status:** in review
-**PR:** https://github.com/natdexterra/spotcheck/pull/5
+**Status:** done — 2026-09-02
+**PR:** [#5](https://github.com/natdexterra/spotcheck/pull/5)
 **Depends on:** P2 (branches from `main`)
 
 ## Goal
