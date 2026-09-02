@@ -149,6 +149,7 @@ for (const width of [1920, 1366, 390]) {
       await page.screenshot({ path, animations: 'disabled' });
       await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      expect(await counter(page).evaluate(element => element.getBoundingClientRect().height)).toBeLessThanOrEqual(20);
       for (const button of await replay(page).getByRole('button').all()) {
         const box = (await button.boundingBox())!;
         expect(box.height).toBeGreaterThanOrEqual(width < 1024 ? 44 : 24);

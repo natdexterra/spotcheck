@@ -1,7 +1,7 @@
 # P3 — Replay controls, session export and import, replay summary
 
-**Status:** queued
-**PR:** —
+**Status:** in review
+**PR:** https://github.com/natdexterra/spotcheck/pull/5
 **Depends on:** P2 (branches from `main`)
 
 ## Goal
@@ -139,15 +139,17 @@ Playwright `e2e/replay.spec.ts` (production build, `page.clock` installed):
 
 ## Acceptance criteria
 
-- [ ] Replay lifecycle per § UI rules: end, stop on error, take-over, leave — with the saved live session intact through a sample (the persistence e2e) and persistence resumed after `Start over`
-- [ ] Replay row in all four states at 1920 / 1366 / 390 (screenshots in the pull request); labels never wrap; controls stack on narrow
-- [ ] `Export session` in the strip, the drawer and the summary; export → import → identical final state end to end (B8)
-- [ ] Import control native, keyboard-reachable, error path announced
-- [ ] Summary review-time line in its three variants
-- [ ] Collapsed log bar one line with an ellipsis at every width; read entries name the document and section; the mono companion size applied to the listed classes with row heights unchanged
-- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 26 KB; no new dependency
-- [ ] `webmcp-tools.ts` unchanged except the `propose_field` description sentence; `reducer.ts` and the action unions unchanged; the dispatcher-split and description-budget tests still green
-- [ ] Task file boxes ticked with evidence in the pull request description
+- [x] Replay lifecycle per § UI rules: end, stop on error, take-over, leave — with the saved live session intact through a sample (the persistence e2e) and persistence resumed after `Start over`
+- [x] Replay row in all four states at 1920 / 1366 / 390 (screenshots in the pull request); labels never wrap; controls stack on narrow
+- [x] `Export session` in the strip, the drawer and the summary; export → import → identical final state end to end (B8)
+- [x] Import control native, keyboard-reachable, error path announced
+- [x] Summary review-time line in its three variants
+- [x] Collapsed log bar one line with an ellipsis at every width; read entries name the document and section; the mono companion size applied to the listed classes with row heights unchanged
+- [x] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 26 KB; no new dependency
+- [x] `webmcp-tools.ts` unchanged except the `propose_field` description sentence; `reducer.ts` and the action unions unchanged; the dispatcher-split and description-budget tests still green
+- [x] Task file boxes ticked with evidence in the pull request description
+
+Builder evidence: 268 unit tests, 37 Playwright checks, production build and inline-script check pass. JavaScript gzip: 72,339 bytes; CSS: 25,993 bytes. Acceptance evidence, independent QA and screenshots at 1920 / 1366 / 390 are in [PR #5](https://github.com/natdexterra/spotcheck/pull/5). Owner review is pending.
 
 ## Out of scope
 
