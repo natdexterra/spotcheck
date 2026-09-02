@@ -660,21 +660,13 @@
   padding-inline: var(--document-gutter);
 }
 
+/* The toolbar holds the zoom control alone, at the lane's right edge. */
 .drawing-sheet__toolbar {
   flex: none;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
+  justify-content: flex-end;
   margin-block-end: var(--space-6);
-}
-
-.drawing-sheet__name {
-  margin: 0;
-  color: var(--ink-secondary);
-  font-size: var(--text-md);
-  line-height: var(--leading-md);
-  white-space: nowrap;
 }
 
 .drawing-sheet__zoom {

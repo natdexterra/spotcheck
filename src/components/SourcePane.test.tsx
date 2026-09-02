@@ -143,8 +143,8 @@ describe('source documents', () => {
     const drawing = document.getElementById('source-panel-drawing')!;
     expect(drawing).toHaveAttribute('hidden');
     expect(drawing).not.toBeVisible();
-    expect(screen.queryByText('Sheet 1 of 4')).not.toBeVisible();
-    expect(within(document.getElementById('source-panel-email')!).queryByText('Sheet 1 of 4')).toBeNull();
+    expect(screen.queryByText('Zoom')).not.toBeVisible();
+    expect(within(document.getElementById('source-panel-email')!).queryByText('Zoom')).toBeNull();
 
     // jsdom loads no stylesheet, and the browser's own [hidden] rule loses to
     // any author rule that gives the panel a display — so the guard is that the
@@ -180,8 +180,8 @@ describe('source documents', () => {
     fireEvent.click(widthBox);
     expect(onActivateRegion).toHaveBeenCalledWith('drawing:width');
     expect(screen.getByText('a revision letter would live here; there is none')).toBeInTheDocument();
-    // The sheet name moved up to the zoom toolbar; the caption keeps the note.
-    expect(screen.getByText('Sheet 1 of 4')).toBeInTheDocument();
+    // The caption keeps the note; nothing in the sheet counts sheets.
     expect(screen.getByText('regions are clickable')).toBeInTheDocument();
+    expect(screen.queryByText(/Sheet \d/)).toBeNull();
   });
 });
