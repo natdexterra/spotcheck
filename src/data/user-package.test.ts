@@ -1,6 +1,6 @@
-import { describe, expect, test } from 'vitest';
+import { afterEach, describe, expect, test } from 'vitest';
 import { buildPackage, REGION_TEXT_CAP } from './user-package';
-import type { DocumentData, Region, Section } from './package';
+import { documentIndex, samplePackage, setPackage, type DocumentData, type Region, type RfqPackage, type Section } from './package';
 
 const sheetUrl = 'data:image/webp;base64,AAAA';
 
@@ -200,7 +200,12 @@ describe('buildPackage: tool output budgets', () => {
   });
 
   test('a section that outgrows the budget continues under a lettered id', () => {
-    const spec = doc(pkg, 'spec');
+    expect(doc(pkg, 'spec').sections.map(entry => entry.id)).toContain('s1b');
+  });
+
+  test('a package the index has room for names its sections', () => {
+    const small = buildPackage({ reference: 'R', email: 'Subject\n\nBody.', spec: `1. Purpose\n\n${sentences(40)}` });
+    const spec = doc(small, 'spec');
     expect(spec.sections.map(entry => entry.id)).toContain('s1b');
     expect(spec.sections.find(entry => entry.id === 's1b')?.title).toBe('Section 1 part 2');
   });
@@ -211,5 +216,77 @@ describe('buildPackage: tool output budgets', () => {
       .map(region => region.text)
       .join('\n');
     expect(rejoined.replaceAll(/\s+/g, ' ').trim()).toBe(spec.replaceAll(/\s+/g, ' ').trim());
+  });
+});
+
+describe('buildPackage: the section index', () => {
+  // build-spec.md § Tool contract: `list_rfq_documents` is a tool result like
+  // any other, so its serialized size is measured against the same cap as a
+  // section read. A package the dialog admits is two documents of 40,000
+  // characters and an image, and its index has to fit that.
+  const INDEX_CAP = 1_500;
+  const indexOf = (pkg: RfqPackage): string => { setPackage(pkg); return JSON.stringify(documentIndex()); };
+
+  /** Paragraphs of the length that packs worst: over half a section's room, so no two share one. */
+  const body = (total: number, size: number, word: string): string => {
+    const parts: string[] = [];
+    while (parts.join('\n\n').length < total) parts.push(sentences(Math.ceil(size / 52), `${word} carries a tapped hole on the long flange. `));
+    return parts.join('\n\n').slice(0, total);
+  };
+  const longSpec = (total: number): string => {
+    const parts: string[] = [];
+    let number = 0;
+    while (parts.join('\n\n').length < total) {
+      number += 1;
+      parts.push(`${number}. Heading ${number}`, body(760, 760, 'The bracket'));
+    }
+    return parts.join('\n\n').slice(0, total);
+  };
+
+  afterEach(() => { setPackage(samplePackage); });
+
+  test('a specification at the size the dialog admits indexes under the cap', () => {
+    const spec = longSpec(40_000);
+    expect(spec.length).toBe(40_000);
+    expect(indexOf(buildPackage({ reference: 'R', email: 'Subject\n\nBody.', spec })).length).toBeLessThan(INDEX_CAP);
+  });
+
+  test('a specification and an email at that size, with a drawing, index under the cap', () => {
+    const pkg = buildPackage({
+      reference: 'R', email: `Subject line\n\n${body(40_000, 700, 'The cover')}`, spec: longSpec(40_000), drawing: sheetUrl,
+    });
+    expect(indexOf(pkg).length).toBeLessThan(INDEX_CAP);
+  });
+
+  test('merging the index never pushes a section read over its own cap', () => {
+    const pkg = buildPackage({
+      reference: 'R', email: `Subject line\n\n${body(40_000, 700, 'The cover')}`, spec: longSpec(40_000), drawing: sheetUrl,
+    });
+    for (const document of pkg.documents) {
+      for (const entry of document.sections) {
+        expect(`${document.id}/${entry.id}: ${readSize(document, entry)}`)
+          .toBe(`${document.id}/${entry.id}: ${Math.min(readSize(document, entry), 1_499)}`);
+      }
+    }
+  });
+
+  test('region ids stay unique across the merged sections', () => {
+    const pkg = buildPackage({
+      reference: 'R', email: `Subject line\n\n${body(40_000, 700, 'The cover')}`, spec: longSpec(40_000), drawing: sheetUrl,
+    });
+    const ids = pkg.documents.flatMap(document => document.sections.flatMap(entry => (entry.regions ?? []).map(region => region.id)));
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  test('the whole specification survives the merge', () => {
+    const spec = longSpec(40_000);
+    const pkg = buildPackage({ reference: 'R', email: 'Subject\n\nBody.', spec, drawing: sheetUrl });
+    const rejoined = doc(pkg, 'spec').sections.flatMap(entry => entry.regions ?? []).map(region => region.text).join('\n');
+    expect(rejoined.replaceAll(/\s+/g, ' ').trim()).toBe(spec.replaceAll(/\s+/g, ' ').trim());
+  });
+
+  test('the bundled sample keeps the index it has always had', () => {
+    setPackage(samplePackage);
+    expect(JSON.stringify(documentIndex())).toBe('{"documents":[{"id":"email","type":"email","title":"Customer email","sections":[{"id":"body","title":"Email"}]},{"id":"spec","type":"specification","title":"Specification","sections":[{"id":"title","title":"Title"},{"id":"s1","title":"Project Objective"},{"id":"s2","title":"Scope of Work"},{"id":"s3","title":"Technical Specifications"},{"id":"s4","title":"Deliverables"},{"id":"s5","title":"Inspection and Acceptance"}]},{"id":"drawing","type":"drawing","title":"Drawing sheet 1","sections":[{"id":"overall","title":"Key callouts"},{"id":"detail","title":"All dimension callouts"}]}]}');
   });
 });
