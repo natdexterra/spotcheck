@@ -104,7 +104,10 @@ export function StatusStrip({
   const preLive = state === 'no-api' || state === 'waiting';
 
   return (
-    <section className={`status-strip status-strip--${state}`} aria-label="Session status">
+    <section
+      aria-label="Session status"
+      className={`status-strip status-strip--${state}${replay.active ? ' status-strip--replay' : ''}`}
+    >
       {preLive && <p className="status-strip__intro">{INTRO}</p>}
       <div className="status-strip__line">
         <div className="status-strip__summary">
