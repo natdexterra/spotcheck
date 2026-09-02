@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { fieldLabel, searchedSentence, sourceHref, sourceLabel } from '../lib/format';
+import { fieldLabel, NO_VALUE, searchedSentence, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -50,7 +50,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
       ? 'Not required'
       : nullResolution === 'asked_customer'
         ? 'Awaiting customer'
-        : '—'
+        : NO_VALUE
     : `${field.locked && field.state !== 'verified' ? 'your entry: ' : ''}${field.value}${field.unit ? ` ${field.unit}` : ''}`;
   const openSource = onSource
     ? (ref: string) => (event: { preventDefault: () => void }) => {
@@ -101,7 +101,7 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
           Agent: {lockedReport} <JumpLink href="#change-log">see log</JumpLink>
         </p>
       ) : null}
-      {field.revised ? <p className="field-row__revision">was: {field.revised.was ?? '—'}</p> : null}
+      {field.revised ? <p className="field-row__revision">was: {field.revised.was ?? NO_VALUE}</p> : null}
       {showAgentOriginal ? (
         <p className="field-row__agent-original">
           agent {showAgentOriginal.value}

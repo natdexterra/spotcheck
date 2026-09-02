@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 import { useReview } from '../hooks/useReview';
-import { duration, fieldLabel, groupLabel } from '../lib/format';
+import { duration, fieldLabel, groupLabel, NO_VALUE } from '../lib/format';
 import { createInitialState } from '../state/session';
 import type { LogEntry } from '../state/session';
 import { replaceState } from '../state/store';
@@ -26,7 +26,7 @@ const RESOLUTIONS: readonly ResolutionKind[] = [
 ];
 
 const displayValue = (value: string | null, unit?: string | null): string =>
-  `${value ?? '—'}${unit ? ` ${unit}` : ''}`;
+  `${value ?? NO_VALUE}${unit ? ` ${unit}` : ''}`;
 
 const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined => {
   const entry = [...log].reverse().find(item =>
@@ -71,7 +71,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
           <p className="confirm-summary__timer">
             {replay.active
               ? <>Recorded review <span className="numeric">{duration(replay.recordedMs)}</span>{replay.finishedByViewer ? <> · this run <span className="numeric">{duration(timer ?? 0)}</span></> : null}</>
-              : <>Reviewed in <span className="numeric">{duration(timer!)}</span> — from the agent’s first write to confirm</>}
+              : <>Reviewed in <span className="numeric">{duration(timer!)}</span> · from the agent’s first write to confirm</>}
           </p>
         ) : null}
       </header>

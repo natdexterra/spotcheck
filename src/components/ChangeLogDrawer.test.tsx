@@ -38,13 +38,13 @@ describe('ChangeLogDrawer', () => {
     act(() => replaceState(session));
     render(<ChangeLogDrawer />);
 
-    expect(screen.getByLabelText('Change log')).toHaveTextContent('You edited Material — agent 6061 → yours 7075');
+    expect(screen.getByLabelText('Change log')).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
     expect(screen.queryByText(/Agent proposed Material/)).not.toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'Show change log' }));
     const entries = screen.getAllByRole('listitem');
-    expect(entries[0]).toHaveTextContent('Agent proposed Material — 6061');
-    expect(entries[1]).toHaveTextContent('You edited Material — agent 6061 → yours 7075');
+    expect(entries[0]).toHaveTextContent('Agent proposed Material: 6061');
+    expect(entries[1]).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
     expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Export session' })).toBeEnabled();
   });

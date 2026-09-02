@@ -104,11 +104,11 @@ describe('clarification lifecycle', () => {
     render(<SourcePane onFocusField={vi.fn()} />);
 
     expect(screen.getByRole('heading', { name: 'Clarification email' })).toBeInTheDocument();
-    expect(screen.getByText('Agent drafted it from the open gaps — edit anything before sending')).toBeInTheDocument();
-    expect(screen.getByText('mock send — your edits vs the agent’s draft go to the change log')).toBeInTheDocument();
+    expect(screen.getByText('Agent drafted it from the open gaps. Edit anything before sending')).toBeInTheDocument();
+    expect(screen.getByText('mock send · your edits vs the agent’s draft go to the change log')).toBeInTheDocument();
 
     // The covers keep their group name; the caption replaces the form label.
-    const covers = screen.getByRole('group', { name: 'Covers — resolved as “Asked customer” on send' });
+    const covers = screen.getByRole('group', { name: 'Covers · resolved as “Asked customer” on send' });
     expect(within(covers).getAllByRole('checkbox')).toHaveLength(2);
     expect(screen.queryByText('Fields covered')).not.toBeInTheDocument();
   });

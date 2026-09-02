@@ -3,7 +3,7 @@ import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
-import { fieldLabel } from '../lib/format';
+import { fieldLabel, NO_VALUE } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -51,9 +51,9 @@ const agentSentence = (entry: LogEntry) => {
   const action = entry.event.action;
   if (action.type === 'read') return describeRead(action.operation ?? 'list', action.input, true);
   if (entry.result?.ok === false) {
-    return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected — ${String(entry.result.code ?? 'ERROR')}`;
+    return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected: ${String(entry.result.code ?? 'ERROR')}`;
   }
-  if (action.type === 'propose') return `Agent proposed ${fieldName(entry)} — ${String(actionInput(entry).value ?? '')}`;
+  if (action.type === 'propose') return `Agent proposed ${fieldName(entry)}: ${String(actionInput(entry).value ?? '')}`;
   if (action.type === 'report_conflict') return `Agent reported a conflict on ${fieldName(entry)}`;
   if (action.type === 'report_missing') return `Agent reported ${fieldName(entry)} missing`;
   return 'Agent opened the clarification draft';
@@ -66,11 +66,11 @@ const humanSentence = (entry: LogEntry, fields: Field[]) => {
   const name = fieldName(entry);
   const field = fields.find(item => item.id === entryFieldId(entry));
   if (action.type === 'verify') return `You verified ${name}`;
-  if (action.type === 'edit') return `You edited ${name} — agent ${field?.proposal?.value ?? '—'} → yours ${action.value ?? '—'}`;
+  if (action.type === 'edit') return `You edited ${name}: agent ${field?.proposal?.value ?? NO_VALUE} → yours ${action.value ?? NO_VALUE}`;
   if (action.type === 'edit_start') return `You started editing ${name}`;
-  if (action.type === 'enter') return `You entered ${name} — ${action.value ?? '—'}`;
-  if (action.type === 'pick') return `You picked ${name} — ${field?.value ?? '—'}`;
-  if (action.type === 'dismiss') return `You marked ${name} not required — ${action.reason ?? ''}`;
+  if (action.type === 'enter') return `You entered ${name}: ${action.value ?? NO_VALUE}`;
+  if (action.type === 'pick') return `You picked ${name}: ${field?.value ?? NO_VALUE}`;
+  if (action.type === 'dismiss') return `You marked ${name} not required: ${action.reason ?? ''}`;
   if (action.type === 'apply') return `You applied the agent suggestion to ${name}`;
   if (action.type === 'dismiss_suggestion') return `You dismissed the agent suggestion for ${name}`;
   if (action.type === 'ask_customer') return `You asked the customer about ${name}`;
@@ -162,7 +162,7 @@ export const ChangeLogDrawer = () => {
                     the focus ring (.session-import:has(input:focus-visible)).
                     The visible button only forwards a pointer click, so it
                     stays out of the tab order and out of the accessibility
-                    tree — otherwise "Import session" would name two controls. */}
+                    tree; otherwise "Import session" would name two controls. */}
                 <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
               </div>
             </div>

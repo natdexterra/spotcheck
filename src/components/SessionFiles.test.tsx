@@ -20,7 +20,7 @@ test('collapsed sentence has ellipsis class and omits notes without a title', ()
   replaceState({ ...createInitialState(), log: [{ actor: 'agent', at: 1,
     event: { actor: 'agent', action: { type: 'propose', input: { field_id: 'material', value: 'steel' } } }, notes: ['Long rationale'] }] } as ReviewSession);
   render(<ChangeLogDrawer />);
-  const sentence = screen.getByText('Agent proposed Material — steel');
+  const sentence = screen.getByText('Agent proposed Material: steel');
   expect(sentence.closest('.change-log__entry')).toHaveClass('change-log__entry--collapsed');
   expect(sentence).not.toHaveAttribute('title');
   expect(screen.queryByText(/Long rationale/)).not.toBeInTheDocument();
