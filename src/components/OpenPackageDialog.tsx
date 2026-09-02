@@ -1,6 +1,6 @@
 import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import { ACCEPTED_IMAGE_TYPES, prepareDrawing as prepare_, type DrawingErrorCode } from '../data/prepare-drawing';
-import { CrossIcon, LockIcon, OpposingArrowsIcon } from '../icons';
+import { CrossIcon, LockIcon } from '../icons';
 import { Button } from './Button';
 
 /**
@@ -130,11 +130,11 @@ export function OpenPackageDialog({
     onOpenPackage({ reference: reference.trim(), customer: customer.trim(), email, spec, drawing });
   };
 
+  // Text alone: the message says what to do, the field beside it carries the
+  // state through its colour and `aria-invalid`, and a glyph would only repeat
+  // that a third time.
   const error = (name: FieldName) => errors[name] === undefined ? null : (
-    <p className="dialog__error" id={errorId(name)}>
-      <OpposingArrowsIcon />
-      {errors[name]}
-    </p>
+    <p className="dialog__error" id={errorId(name)}>{errors[name]}</p>
   );
 
   return (

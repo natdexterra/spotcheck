@@ -131,12 +131,15 @@ describe('what the dialog refuses to open', () => {
       .toBeInTheDocument();
   });
 
-  test('an error is tied to its field, in the conflict colour, with the conflict icon', async () => {
+  test('an error is tied to its field, in the conflict colour, and is text alone', async () => {
     const { container, user } = setup();
     await user.click(screen.getByRole('button', { name: 'Open package' }));
     const error = container.querySelector('.dialog__error');
 
-    expect(error?.querySelector('svg')).toBeTruthy();
+    // The message names the fix in words; the field it belongs to carries the
+    // state, so the line needs no glyph to repeat it.
+    expect(error).toHaveTextContent('Enter a reference');
+    expect(error?.querySelector('svg')).toBeNull();
     expect(screen.getByLabelText('Reference'))
       .toHaveAttribute('aria-describedby', expect.stringContaining(error!.id));
     expect(screen.getByLabelText('Reference')).toHaveAttribute('aria-invalid', 'true');
