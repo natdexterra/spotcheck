@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { fieldLabel, NO_VALUE, searchedSentence, sourceHref, sourceLabel } from '../lib/format';
+import { fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -42,10 +42,9 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
     (trigger ?? rowRef.current)?.focus();
   }, [closes]);
   const sources = fieldSources(field);
-  const searched = field.searched ? searchedSentence(field.searched.searched) : '';
-  const note = [field.proposal?.rationale ?? field.searched?.note, searched]
-    .filter(Boolean)
-    .join(' ');
+  // Where the agent looked is evidence, not prose: one chip per place.
+  const searched = [...new Set(field.searched?.searched.map(searchedLabel) ?? [])];
+  const note = field.proposal?.rationale ?? field.searched?.note ?? '';
   const showAgentOriginal = field.proposal && (
     (field.state === 'verified' &&
       (field.resolution?.kind === 'edited' || field.resolution?.kind === 'picked' || field.resolution?.kind === 'applied')) ||
@@ -99,6 +98,12 @@ export function FieldRow({ field, lockedReport, now, onSource }: FieldRowProps) 
               {sourceLabel(ref)}
             </ProvenanceLink>
           ))}
+        </div>
+      ) : null}
+
+      {searched.length > 0 && !editorOpen ? (
+        <div className="field-row__chips">
+          {searched.map(place => <span className="field-row__chip" key={place}>{place}</span>)}
         </div>
       ) : null}
 

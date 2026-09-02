@@ -131,6 +131,7 @@
 
 /* Mono is for data: values, units, ids, source refs, counts, clock times. */
 .status-strip code,
+.field-row__chip,
 .inline-link--provenance,
 .change-log__time,
 .field-row__value,
@@ -1190,6 +1191,7 @@
   background-color: currentColor;
 }
 
+.field-row__chips,
 .field-row__sources,
 .field-row__actions,
 .inline-editor__actions,
@@ -1388,11 +1390,21 @@
   font-size: var(--text-lg-mono);
 }
 
+.field-row__chip,
 .field-row__revision,
 .field-row__agent-original,
 .confirm-summary__line {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
+}
+
+/* A searched place is a quiet chip: it names where the agent looked and,
+   unlike a source ref, it goes nowhere. */
+.field-row__chip {
+  padding-inline: var(--space-1);
+  color: var(--ink-secondary);
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-1);
 }
 
 .replay-controls,
