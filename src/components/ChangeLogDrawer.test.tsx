@@ -38,10 +38,16 @@ describe('ChangeLogDrawer', () => {
     act(() => replaceState(session));
     render(<ChangeLogDrawer />);
 
+    // Exports 01, 02, 16: a fixed label at the left, the last entry between,
+    // the entry count as the disclosure at the right.
+    expect(document.querySelector('.change-log__label')).toHaveTextContent('Change log');
     expect(screen.getByLabelText('Change log')).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
     expect(screen.queryByText(/Agent proposed Material/)).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Show change log' }));
+    const disclosure = screen.getByRole('button', { name: '2 entries' });
+    expect(disclosure.querySelector('svg')).not.toBeNull();
+    await user.click(disclosure);
+    expect(document.querySelector('.change-log__meta')).toHaveTextContent('2 entries · agent and you');
     const entries = screen.getAllByRole('listitem');
     expect(entries[0]).toHaveTextContent('Agent proposed Material: 6061');
     expect(entries[1]).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
@@ -71,7 +77,7 @@ describe('ChangeLogDrawer', () => {
     };
     act(() => replaceState(session));
     render(<ChangeLogDrawer />);
-    await user.click(screen.getByRole('button', { name: 'Show change log' }));
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
 
     expect(screen.getByText(/FIELD_LOCKED/)).toBeInTheDocument();
     // App notes read plain; only the agent's own text is reported speech.
@@ -84,9 +90,9 @@ describe('ChangeLogDrawer', () => {
     const user = userEvent.setup();
     render(<ChangeLogDrawer />);
     expect(screen.getByText('No activity yet')).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Show change log' }));
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
     expect(document.querySelector('.change-log__sheet')).toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'Close' }));
-    expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /entr(y|ies)$/ })).toBeInTheDocument();
   });
 });

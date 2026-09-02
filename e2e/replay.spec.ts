@@ -34,7 +34,7 @@ const download = async (page: Page, area: string) => {
 };
 const importText = async (page: Page, text: string) => {
   await page.evaluate(() => document.fonts.ready);
-  await page.getByRole('button', { name: 'Show change log' }).click();
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
   await page.getByLabel('Import session', { exact: true }).setInputFiles({ name: 'session.json', mimeType: 'application/json', buffer: Buffer.from(text) });
 };
 
@@ -117,7 +117,7 @@ test('import failure leaves the session intact and announces the error', async (
 test('the drawer header is three tab stops: Export, the native file input, Close', async ({ page }) => {
   await installModelContext(page); await page.goto('/');
   await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });
-  await page.getByRole('button', { name: 'Show change log' }).click();
+  await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
   await page.locator('.change-log__header').getByRole('button', { name: 'Export session' }).focus();
   const focused = () => page.evaluate(() => {
     const element = document.activeElement as HTMLElement | null;
@@ -137,7 +137,7 @@ test('saved live proposals survive sample reload and Start over restores them wi
   await executeTool(page, 'propose_field', { field_id: 'quantity', value: '27', source_refs: ['email:p2'] });
   const saved = await page.evaluate(() => localStorage.getItem('spotcheck.session.v1'));
   const startFromLive = async () => {
-    await page.getByRole('button', { name: 'Show change log' }).click();
+    await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
     await start(page);
   };
   await startFromLive(); await page.clock.runFor(3000); await page.reload();
@@ -184,7 +184,11 @@ for (const width of [1920, 1366, 390]) {
     await executeTool(page, 'propose_field', { field_id: 'delivery', value: 'A long delivery request for the complete powder-coated bracket assembly with all mounting hardware and packing documentation', source_refs: ['email:p5'] });
     const line = page.locator('.change-log__entry--collapsed .change-log__sentence');
     await page.evaluate(() => document.fonts.ready);
-    expect(await line.evaluate(element => ({ height: element.scrollHeight, leading: parseFloat(getComputedStyle(element).lineHeight) }))).toEqual({ height: 16, leading: 16 });
+    // One line, whatever the sentence is: the bar never grows with its content.
+    expect(await line.evaluate(element => {
+      const leading = parseFloat(getComputedStyle(element).lineHeight);
+      return { leading, lines: Math.round(element.scrollHeight / leading) };
+    })).toEqual({ leading: 16, lines: 1 });
     await page.evaluate(() => { document.modelContext!.registerTool = () => { throw new Error('Tool unavailable'); }; });
     await importText(page, JSON.stringify({ recorded_at: '2026-09-01', steps: [{ actor: 'agent', at: 0, call: { tool: 'report_missing', input: { field_id: 'drawing_number', searched: ['drawing'] } } }] }));
     await page.clock.runFor(1000);

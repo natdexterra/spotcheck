@@ -124,7 +124,7 @@ for (const width of [390, 320]) {
     });
 
     const sentence = page.locator('.change-log__entry').first();
-    const button = page.getByRole('button', { name: /Show change log/ });
+    const button = page.getByRole('button', { name: /entr(y|ies)$/ });
     // The header's content sits on the same gutter lane the bar must match.
     const laneX = (await page.locator('.header__identity').boundingBox())!.x;
 
