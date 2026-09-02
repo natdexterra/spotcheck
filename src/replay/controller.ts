@@ -1,5 +1,5 @@
 import { createInitialState } from '../state/session';
-import { replaceState } from '../state/store';
+import { getState, replaceState } from '../state/store';
 import { readSavedSession, saveNow } from './persistence';
 import { createReplay, sampleSession, type Fixture, type Step } from './replay';
 import { importSession, parseFixture } from './serialization';
@@ -22,7 +22,7 @@ export interface ReplaySnapshot {
 const idle: ReplaySnapshot = { active: false, label: '', recordedAt: '', position: 0, total: 0,
   playing: false, busy: false, ended: false, finishedByViewer: false, recordedMs: 0 };
 let snapshot = idle;
-let owner: { replay: ReturnType<typeof createReplay>; saved: string | null; label: string; recordedAt: string; unsubscribe: () => void } | undefined;
+let owner: { replay: ReturnType<typeof createReplay>; saved: string | null; before: ReturnType<typeof getState>; label: string; recordedAt: string; unsubscribe: () => void } | undefined;
 const listeners = new Set<() => void>();
 export const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 export const getSnapshot = () => snapshot;
@@ -51,11 +51,21 @@ async function detach() {
   if (previous.replay.busy) await new Promise<void>(resolve => {
     const stop = previous.replay.subscribe(() => { if (!previous.replay.busy) { stop(); resolve(); } });
   });
-  if (previous.saved) await importSession(previous.saved);
-  else replaceState(createInitialState());
+  let restored = false;
+  let recordedAt: string | undefined;
+  try {
+    if (previous.saved) {
+      recordedAt = parseFixture(previous.saved).recorded_at;
+      await importSession(previous.saved);
+    } else replaceState(createInitialState());
+    restored = true;
+  } catch {
+    // Preserve recoverable storage and the pre-replay screen if restoration fails.
+    replaceState(previous.before);
+  }
   previous.unsubscribe();
   previous.replay.dispose();
-  saveNow(undefined, previous.saved ? parseFixture(previous.saved).recorded_at : undefined);
+  if (restored) saveNow(undefined, recordedAt);
   owner = undefined;
   publish();
 }
@@ -67,8 +77,9 @@ export const startImported = (fixture: Fixture, label = 'Imported session') => {
   return enqueue(async () => {
     await detach();
     const saved = readSavedSession();
+    const before = getState();
     const replay = createReplay(validated);
-    owner = { replay, saved, label, recordedAt: validated.recorded_at, unsubscribe: replay.subscribe(publish) };
+    owner = { replay, saved, before, label, recordedAt: validated.recorded_at, unsubscribe: replay.subscribe(publish) };
     replay.play();
     publish();
   });

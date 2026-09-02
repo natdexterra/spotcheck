@@ -1,14 +1,16 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useReplay } from '../hooks/useReplay';
 import { OpposingArrowsIcon } from '../icons';
 import { next, pause, play, restart } from '../replay/controller';
 import { describeStep } from '../replay/describe';
 import { Button } from './Button';
+import { announce } from './LiveRegion';
 
 export function ReplayControls() {
   const replay = useReplay();
   const toggle = useRef<HTMLButtonElement>(null);
   const [restartFocus, setRestartFocus] = useState(0);
+  useEffect(() => { if (replay.error) announce(`Replay stopped at step ${replay.position + 1}: ${replay.error}`); }, [replay.error, replay.position]);
   useLayoutEffect(() => { if (restartFocus) toggle.current?.focus(); }, [restartFocus]);
   if (!replay.active) return null;
   return (

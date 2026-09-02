@@ -3,6 +3,21 @@ import { afterEach, expect, test, vi } from 'vitest';
 
 afterEach(async () => { const controller = await import('./controller'); await controller.leave(); localStorage.clear(); vi.restoreAllMocks(); vi.resetModules(); });
 
+test('malformed saved data cannot wedge leave or be overwritten by the sample', async () => {
+  const { startSample, leave, next, getSnapshot } = await import('./controller');
+  const { startPersistence } = await import('./persistence');
+  const { getState } = await import('../state/store');
+  localStorage.setItem('spotcheck.session.v1', '{recoverable');
+  const persistence = await startPersistence();
+  const before = getState();
+  await startSample(); await next();
+  await expect(leave()).resolves.toBeUndefined();
+  expect(getSnapshot().active).toBe(false);
+  expect(getState()).toEqual(before);
+  expect(localStorage.getItem('spotcheck.session.v1')).toBe('{recoverable');
+  persistence.stop();
+});
+
 test('start snapshots live storage; leave restores state, saves once, and resumes persistence', async () => {
   const { startPersistence } = await import('./persistence');
   const { startSample, leave, getSnapshot, next } = await import('./controller');
