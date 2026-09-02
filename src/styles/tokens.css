@@ -48,6 +48,7 @@
   --bg-subtle: #ECEFF3;
   --ink-hover: #2A313A;
   --ink-active: #1A1F26;
+  --scrim: color-mix(in srgb, var(--ink) 32%, transparent);
   --highlight: #E7F0FE;
   --highlight-edge: #1F6FEB;
   --state-conflict: #C2293A;
