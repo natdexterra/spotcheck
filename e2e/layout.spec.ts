@@ -281,7 +281,12 @@ test('the document column stops at its measure and the tabs stand on its edge', 
   // The pane is far wider than the measure; the text does not follow it out.
   expect(pane.width).toBeGreaterThan(900);
   expect(column.width).toBeLessThanOrEqual(776);
-  expect(region.width).toBeLessThanOrEqual(680);
+  // The region box carries the highlight's 4px inset on each side, so the
+  // text inside it still measures the 680 column.
+  const inset = await page.locator(`${open}.document-region`).first()
+    .evaluate(element => Number.parseFloat(getComputedStyle(element).paddingLeft));
+  expect(inset).toBe(4);
+  expect(region.width - 2 * inset).toBeLessThanOrEqual(680);
   // Tabs and text share one left edge and one right edge (exports 02, 07).
   expect(tabs.x).toBeCloseTo(column.x, 0);
   expect(tabs.width).toBeCloseTo(column.width, 0);
@@ -347,4 +352,26 @@ test('first load fits eleven one-line rows, and the line arrives with the agent'
   const empty = page.locator('[data-field-id="drawing_number"]');
   await expect(empty).toContainText('The agent has proposed nothing here');
   await expect(empty.getByRole('button', { name: 'Enter value' })).toBeVisible();
+});
+
+test('the provenance highlight is inset from the text it marks', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const region = page.locator('.source-pane__panel:not([hidden]) .document-region').first();
+  const before = (await region.boundingBox())!;
+  const text = await region.evaluate(element => {
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect().x;
+  });
+  // Export 02: the tint runs 4px past the text on each side, and it is always
+  // reserved, so lighting a region up moves nothing.
+  expect(text - before.x).toBeCloseTo(4, 0);
+
+  await page.locator('[data-field-id="delivery"]').getByRole('link', { name: 'spec §2.6' }).click();
+  await expect(page.locator('.document-region--highlighted')).toBeVisible();
+  const after = (await region.boundingBox())!;
+  expect(after.x).toBeCloseTo(before.x, 0);
 });
