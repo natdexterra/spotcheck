@@ -4,6 +4,9 @@ import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
 import type { AgentAction } from '../state/types';
 import { Button } from './Button';
+import { useReplay } from '../hooks/useReplay';
+import { startSample } from '../replay/controller';
+import { ReplayControls } from './ReplayControls';
 
 const PROMPT = 'Extract this RFQ into a quote request';
 const MARKER_MS = 2_000;
@@ -49,9 +52,10 @@ export interface StatusStripProps {
 
 export function StatusStrip({
   apiAvailable = typeof document.modelContext?.registerTool === 'function',
-  onPlaySample,
+  onPlaySample = () => { void startSample(); },
 }: StatusStripProps) {
   const { confirmed, gaps, log } = useReview();
+  const replay = useReplay();
   const narrow = useNarrowLayout();
   const [toolsOpen, setToolsOpen] = useState(false);
   const agentEntries = useMemo(() => log.filter(entry => entry.actor === 'agent'), [log]);
@@ -68,7 +72,7 @@ export function StatusStrip({
   }, [agentEntries, dynamicAvailable]);
   const lastAgent = agentEntries.at(-1);
   const lastCalled = lastAgent ? toolForAction(lastAgent.event.action as AgentAction) : undefined;
-  const live = agentEntries.length > 0;
+  const live = agentEntries.length > 0 || replay.active;
 
   // The row last called stays lit for two seconds, and a roster that grows or
   // shrinks says so in the count for the same two seconds.
@@ -135,6 +139,7 @@ export function StatusStrip({
         )}
         {state === 'live' && <span aria-hidden="true" className="status-strip__export-slot" />}
       </div>
+      <ReplayControls />
       {toolsOpen && state === 'live' && (
         <ul className="status-strip__roster">
           {tools.map(tool => (
