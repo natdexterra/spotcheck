@@ -61,3 +61,24 @@ test('snapshot identity stays stable until a replay changes', async () => {
   expect(getSnapshot()).toBe(getSnapshot());
   unsubscribe();
 });
+
+test('P5: the sample replay switches to the sample package and hands the user package back on leave', async () => {
+  const { startSample, leave, getSnapshot, next } = await import('./controller');
+  const { getPackage, samplePackage, setPackage } = await import('../data/package');
+  const { buildPackage } = await import('../data/user-package');
+  const { getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const user = buildPackage({ reference: 'RFQ 91-2201', email: 'Subject\n\nOne paragraph.' });
+  setPackage(user);
+
+  await startSample();
+  expect(getPackage()).toBe(samplePackage);
+  // The recording cites the sample's own regions, so none of its steps may be
+  // rejected while it runs: the package under it is the one it was recorded on.
+  for (let step = 0; step < 8 && !getSnapshot().ended; step += 1) await next();
+  expect(reviewSession(getState()).log.filter(entry => entry.result?.ok === false)).toEqual([]);
+
+  await leave();
+  expect(getPackage()).toBe(user);
+  setPackage(samplePackage);
+});
