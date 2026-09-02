@@ -17,7 +17,6 @@
 .field-list__header h2,
 .field-list__group-heading,
 .clarification__label,
-.drawing-sheet__zoom-label,
 .inline-editor__label,
 .not-required-picker__legend {
   font-size: var(--text-md);
@@ -1424,11 +1423,17 @@
   font-size: var(--text-lg-mono);
 }
 
+.drawing-sheet__zoom-label,
 .field-row__revision,
 .field-row__agent-original,
 .confirm-summary__line {
   font-size: var(--text-sm);
   line-height: var(--leading-sm);
+}
+
+/* The micro-label keeps the label weight at the smaller step (export 17). */
+.drawing-sheet__zoom-label {
+  font-weight: 500;
 }
 
 .replay-controls,
