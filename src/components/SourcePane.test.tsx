@@ -149,6 +149,8 @@ describe('source documents', () => {
     fireEvent.click(widthBox);
     expect(onActivateRegion).toHaveBeenCalledWith('drawing:width');
     expect(screen.getByText('a revision letter would live here; there is none')).toBeInTheDocument();
-    expect(screen.getByText('Sheet 1 of 4 · regions are clickable')).toBeInTheDocument();
+    // The sheet name moved up to the zoom toolbar; the caption keeps the note.
+    expect(screen.getByText('Sheet 1 of 4')).toBeInTheDocument();
+    expect(screen.getByText('regions are clickable')).toBeInTheDocument();
   });
 });
