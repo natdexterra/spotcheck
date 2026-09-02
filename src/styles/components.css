@@ -111,7 +111,6 @@
 
 .button--text:disabled {
   color: var(--ink-faint);
-  background-color: transparent;
 }
 
 .button:disabled {
@@ -389,7 +388,10 @@
 }
 
 .change-log__header {
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
   padding-inline: var(--page-margin);
 }
 
@@ -457,7 +459,6 @@
 
 .field-pane__draft-entry {
   padding: var(--space-3) var(--space-4);
-  background-color: var(--bg-raised);
 }
 
 .confirm-footer {
@@ -1068,7 +1069,6 @@
 
 .candidate-option__value,
 .suggestion-card__value {
-  font-size: var(--text-lg);
   line-height: var(--leading-lg);
   font-weight: 500;
 }
@@ -1154,7 +1154,6 @@
 .field-row__value {
   grid-column: 1;
   overflow-wrap: anywhere;
-  line-height: var(--leading-lg);
   font-weight: 500;
 }
 
@@ -1473,12 +1472,6 @@
   flex: none;
 }
 
-.change-log__header {
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding-block: var(--space-2);
-}
-
 .change-log__file-actions {
   flex-wrap: wrap;
   margin-inline-start: auto;
@@ -1495,6 +1488,18 @@
 }
 
 @media (max-width: 1023px) {
+  .status-strip:has(.replay-controls) .status-strip__line {
+    display: contents;
+  }
+
+  .status-strip__export-slot {
+    order: 2;
+  }
+
+  .status-strip__export-slot .button {
+    width: auto;
+  }
+
   .replay-controls {
     align-items: flex-start;
     flex-direction: column;
@@ -1524,14 +1529,4 @@
   }
 }
 
-@media (max-width: 1023px) {
-  .status-strip:has(.replay-controls) .status-strip__line {
-    display: contents;
-  }
-  .status-strip__export-slot {
-    order: 2;
-  }
-  .status-strip__export-slot .button {
-    width: auto;
-  }
-}
+
