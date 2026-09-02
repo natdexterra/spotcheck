@@ -25,5 +25,5 @@ try {
 }
 
 mkdirSync('evals', { recursive: true });
-writeFileSync('evals/tools.json', `${JSON.stringify(tools, null, 2)}\n`);
+writeFileSync('evals/tools.json', `${JSON.stringify({ tools }, null, 2)}\n`);
 console.log(`${tools.length} tools written to evals/tools.json`);
