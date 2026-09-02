@@ -41,6 +41,11 @@ const VERIFIED_BADGE_LABELS: Record<ResolutionKind, string> = {
 /** The empty value in the interface: the one sanctioned dash character. */
 export const NO_VALUE = '—';
 
+/** A value as the interface prints it: the unit travels with it, or a dash stands in for it. */
+export function displayValue(value: string | null, unit?: string | null): string {
+  return `${value ?? NO_VALUE}${unit ? ` ${unit}` : ''}`;
+}
+
 /** Counts read as counts: one call, two calls, one entry, 23 entries. */
 export function plural(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`;

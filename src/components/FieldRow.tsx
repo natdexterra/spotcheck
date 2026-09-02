@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
+import { displayValue, fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -90,7 +90,14 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
   else if (field.proposal && kind === 'verified') {
     resolution = <>the agent’s value, kept as proposed{sourceRun(field.proposal.source_refs)}</>;
   } else if (field.proposal && (kind === 'edited' || kind === 'picked' || kind === 'applied')) {
-    resolution = <>agent {field.proposal.value} → yours {field.value}{sourceRun(field.proposal.source_refs)}</>;
+    resolution = (
+      <>
+        agent {displayValue(field.proposal.value, field.proposal.unit)}
+        {' → yours '}
+        {displayValue(field.value, field.unit)}
+        {sourceRun(field.proposal.source_refs)}
+      </>
+    );
   }
   // Export 11: when the row carries a resolution sentence the sentence holds
   // the provenance, so the row keeps no separate line of links.

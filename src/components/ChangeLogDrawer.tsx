@@ -3,7 +3,7 @@ import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
-import { fieldLabel, NO_VALUE, plural } from '../lib/format';
+import { displayValue, fieldLabel, NO_VALUE, plural } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -66,7 +66,10 @@ const humanSentence = (entry: LogEntry, fields: Field[]) => {
   const name = fieldName(entry);
   const field = fields.find(item => item.id === entryFieldId(entry));
   if (action.type === 'verify') return `You verified ${name}`;
-  if (action.type === 'edit') return `You edited ${name}: agent ${field?.proposal?.value ?? NO_VALUE} → yours ${action.value ?? NO_VALUE}`;
+  if (action.type === 'edit') {
+    const was = displayValue(field?.proposal?.value ?? null, field?.proposal?.unit);
+    return `You edited ${name}: agent ${was} → yours ${displayValue(action.value ?? null, action.unit)}`;
+  }
   if (action.type === 'edit_start') return `You started editing ${name}`;
   if (action.type === 'enter') return `You entered ${name}: ${action.value ?? NO_VALUE}`;
   if (action.type === 'pick') return `You picked ${name}: ${field?.value ?? NO_VALUE}`;
