@@ -507,7 +507,9 @@ for (const width of [1920, 390]) {
     await page.goto('/');
     await confirmEverything(page);
 
-    const opener = page.locator('.confirm-summary__actions').getByRole('button', { name: 'Open another package' });
+    // The label is the strip's, from one source: the sample is on the page here,
+    // so it reads as it does in the strip over the sample.
+    const opener = page.locator('.confirm-summary__actions').getByRole('button', { name: 'Open your own package' });
     await expect(opener).toBeVisible();
     const path = 'docs/qa/p5/confirm-screen-actions-' + width + '.png';
     if (await saveEvidence(page.locator('.confirm-summary__actions'), path)) {
@@ -530,6 +532,8 @@ for (const width of [1920, 390]) {
     await expect(dialog(page)).toBeHidden();
     await expect(page.locator('.header__package')).toHaveText('RFQ 91-2205');
     await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
+    // A package of the person's own is on the page now, so the strip says so.
+    await expect(page.locator('.status-strip').getByRole('button', { name: 'Open another package' })).toBeVisible();
     // The announcement itself is timed out of a queue eleven verifications long;
     // the tests that open a package from the strip assert it on a quiet page.
     await expect(page.locator('.confirm-summary')).toHaveCount(0);
