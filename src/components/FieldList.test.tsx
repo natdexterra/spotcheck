@@ -356,6 +356,23 @@ describe('the sentence under a verified value', () => {
     );
   });
 
+  test('a picked candidate names the reading it was taken over', () => {
+    render(<FieldRow field={field('quantity', 'verified', {
+      value: '750',
+      resolution: { kind: 'picked', at: 1_000 },
+      candidates: [
+        { value: '800', source_refs: ['spec:s1.1'], note: 'stated twice in the specification' },
+        { value: '750', source_refs: ['email:p2'], note: 'the email asks for 750' },
+      ],
+    })} />);
+
+    // A conflict row carries candidates, never a proposal, so the sentence has
+    // to be built from them.
+    expect(document.querySelector('.field-row__resolution')).toHaveTextContent(
+      'agent 800 → yours 750 · email ¶2',
+    );
+  });
+
   test('a settled row prints its provenance once, inside the sentence', () => {
     render(<FieldRow field={verified('verified', '800')} />);
 
