@@ -99,6 +99,12 @@ test('the verified header with other groups open and with nothing else left', as
   await dimensions.getByRole('button', { name: 'Save' }).click();
   await expect(page.locator('.field-list__verified-count')).toHaveText('11 verified');
   await shot(page, 'verified-header-all-1920', '.field-list__verified-summary');
+
+  // Export 08: the summary those eleven confirm into, with a gap between every
+  // block and the actions on the canvas rather than in a card.
+  await page.getByRole('button', { name: 'Confirm quote request' }).click();
+  await expect(page.locator('.confirm-summary')).toBeVisible();
+  await shot(page, 'confirm-summary-1920', '.confirm-summary');
 });
 
 test('the log bar collapsed, the log sheet at 390, and a candidate card', async ({ page }) => {
@@ -120,6 +126,61 @@ test('the log bar collapsed, the log sheet at 390, and a candidate card', async 
   await page.setViewportSize({ width: 390, height: 900 });
   await page.getByRole('button', { name: /entr(y|ies)$/ }).click();
   await shot(page, 'change-log-sheet-390', '.change-log__sheet');
+});
+
+test('the eleven rows at first load', async ({ page }) => {
+  await installModelContext(page);
+  await page.setViewportSize({ width: 1920, height: 1080 });
+  await page.goto('/');
+  await shot(page, 'first-load-rows-1920', '.field-list');
+});
+
+test('a settled row of every resolution kind', async ({ page }) => {
+  await installModelContext(page);
+  await page.setViewportSize({ width: 1920, height: 1400 });
+  await page.goto('/');
+  await propose(page, 'material', '6061-T6 aluminium', ['spec:s3.2'], 'The material callout names the alloy.');
+  await propose(page, 'surface_finish', 'Black powder coat', ['spec:s3.4'], 'no coating thickness, no standard named');
+  await propose(page, 'part_name', 'Hanging KVM mount bracket', ['spec:s1.1'], 'The title names the part.');
+  await executeTool(page, 'report_conflict', {
+    field_id: 'quantity',
+    candidates: [
+      { value: '800', source_refs: ['spec:s1.1', 'spec:s4.1'], note: 'stated twice in the specification' },
+      { value: '750', source_refs: ['email:p2'], note: 'the email asks for 750' },
+    ],
+    note: 'The specification and the email disagree.',
+  });
+  await executeTool(page, 'report_missing', {
+    field_id: 'general_tolerance', searched: ['spec:s3', 'drawing'], note: 'the spec keeps a placeholder.',
+  });
+
+  // Verified as proposed, edited, picked, not required: one row of each kind.
+  await page.locator('[data-field-id="part_name"]').getByRole('button', { name: 'Verify' }).click();
+  const material = page.locator('[data-field-id="material"]');
+  await material.getByRole('button', { name: 'Edit' }).click();
+  await material.locator('.inline-editor__input').fill('6061-T6, no substitution');
+  await material.getByRole('button', { name: 'Save' }).click();
+  await page.locator('[data-field-id="quantity"]').getByRole('button', { name: 'Pick' }).nth(1).click();
+  const tolerance = page.locator('[data-field-id="general_tolerance"]');
+  await tolerance.getByRole('button', { name: 'Mark not required' }).click();
+  await tolerance.getByRole('radio', { name: 'Covered by our shop standard' }).click();
+  await tolerance.locator('form').getByRole('button', { name: 'Mark not required' }).click();
+
+  const summary_ = page.locator('.field-list__verified-summary');
+  await summary_.locator('button').click();
+  await expect(summary_.locator('button')).toHaveAttribute('aria-expanded', 'true');
+
+  // Awaiting customer: the draft carries the last open field to the customer.
+  await page.locator('[data-field-id="surface_finish"]').getByRole('button', { name: 'Ask customer' }).click();
+  await executeTool(page, 'draft_clarification', {
+    subject: 'One question before we quote',
+    body: 'Please confirm the finish standard.',
+    covers: ['surface_finish'],
+  });
+  await page.getByRole('button', { name: 'Send' }).click();
+
+  await expect(page.locator('.field-list__group--verified .field-row')).toHaveCount(5);
+  await shot(page, 'settled-rows-1920', '.field-list__group--verified');
 });
 
 test('the one-column lane at 820', async ({ page }) => {
