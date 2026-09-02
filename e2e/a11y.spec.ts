@@ -73,7 +73,8 @@ test('reduced motion, announcements, keyboard map, and same-origin boundary hold
 });
 
 const ACCENT = 'rgb(31, 111, 235)';
-const INK = 'rgb(14, 17, 22)';
+const ACCENT_STRONG = 'rgb(20, 65, 143)';
+const WHITE = 'rgb(255, 255, 255)';
 
 test('choice controls are drawn by the app and take the focus ring on the drawn box', async ({ page }) => {
   await installModelContext(page);
@@ -103,16 +104,24 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
     };
   });
 
-  // Checkbox: 16px, appearance none, ink fill when checked.
+  // Checkbox: 16px, appearance none, filled with the accent when checked so
+  // the white check reads at a glance.
   const cover = page.getByRole('checkbox', { name: 'General tolerance' });
   const coverBox = await box(cover);
   expect(coverBox.appearance).toBe('none');
   expect(coverBox.width).toBe('16px');
   expect(coverBox.height).toBe('16px');
   expect(await cover.isChecked()).toBe(true);
-  expect(coverBox.background).toBe(INK);
+  expect(coverBox.background).toBe(ACCENT_STRONG);
+  expect(coverBox.borderColor).toBe(ACCENT_STRONG);
+  const check = await page.locator('.clarification__covers .choice__mark .icon').first().evaluate(element => {
+    const style = getComputedStyle(element);
+    return { color: style.color, width: style.width, visibility: getComputedStyle(element.parentElement!).visibility };
+  });
+  expect(check).toEqual({ color: WHITE, width: '12px', visibility: 'visible' });
 
-  // Radio: 16px, appearance none, accent ring and dot when chosen.
+  // Radio: 16px, appearance none, filled with the accent and a white dot when
+  // chosen — the same drawing as the checkbox.
   const tolerance = page.locator('[data-field-id="general_tolerance"]');
   await tolerance.getByRole('button', { name: 'Mark not required' }).click();
   await expect(tolerance.getByText('Why is this not required?')).toBeVisible();
@@ -123,8 +132,10 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
   expect(radioBox.height).toBe('16px');
 
   await radio.check();
-  expect((await box(radio)).borderColor).toBe(ACCENT);
-  expect(await radio.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(ACCENT);
+  const checkedRadio = await box(radio);
+  expect(checkedRadio.borderColor).toBe(ACCENT_STRONG);
+  expect(checkedRadio.background).toBe(ACCENT_STRONG);
+  expect(await radio.evaluate(element => getComputedStyle(element).backgroundImage)).toContain(WHITE);
 
   // The picker still dispatches dismiss with the chosen reason.
   await tolerance.getByRole('button', { name: 'Mark not required' }).last().click();

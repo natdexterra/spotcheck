@@ -912,19 +912,19 @@
   border-color: var(--ink-secondary);
 }
 
+/* Chosen reads at a glance: the box fills with the accent and the mark is
+   white on it — one drawing for the radio's dot and the checkbox's check. */
+.choice .choice__input:checked {
+  background-color: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
 .choice--radio .choice__input:checked {
   background-image: radial-gradient(
     circle at center,
-    var(--accent) 0 calc(var(--choice-dot) / 2),
-    transparent calc(var(--choice-dot) / 2)
+    var(--bg-raised) 0 var(--space-1),
+    transparent var(--space-1)
   );
-  border-width: var(--choice-ring);
-  border-color: var(--accent);
-}
-
-.choice--checkbox .choice__input:checked {
-  background-color: var(--ink);
-  border-color: var(--ink);
 }
 
 .choice__mark {
@@ -948,6 +948,9 @@
   width: var(--space-3);
   height: var(--space-3);
   color: var(--bg-raised);
+  /* The set is drawn on a 24 grid: 3 units render as the set's own 1.5px
+     stroke once the icon is scaled to 12. */
+  stroke-width: 3;
 }
 
 .choice__label {
