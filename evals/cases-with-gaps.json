@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Open questions go to the customer through the clarification draft",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Ask the customer about everything in this RFQ that is still unclear." }
+    ],
+    "expectedCall": [
+      {
+        "functionName": "draft_clarification",
+        "arguments": {
+          "subject": { "$type": "string" },
+          "body": { "$type": "string" },
+          "covers": { "$any": true }
+        }
+      }
+    ]
+  }
+]
