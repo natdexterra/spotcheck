@@ -1725,12 +1725,35 @@
   }
 }
 
+/* Header, body, footer: the two ends hold their place and the body carries the
+   scroll, so the actions and the title are in view at every scroll position.
+   `minmax(0, 1fr)` is what lets the middle row shrink and scroll at all. */
 .dialog__form {
   display: grid;
-  gap: var(--space-4);
+  grid-template-rows: auto minmax(0, 1fr) auto;
   max-block-size: inherit;
+  block-size: 100%;
+}
+
+.dialog__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-block-end: var(--rule-width) solid var(--hairline);
+}
+
+.dialog__body {
   padding: var(--space-6);
   overflow-y: auto;
+}
+
+.dialog__footer {
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  border-block-start: var(--rule-width) solid var(--hairline);
 }
 
 .dialog__title {
@@ -1822,6 +1845,14 @@
   gap: var(--space-2);
 }
 
+/* The close carries only its glyph, so it takes the compact height as a square
+   and reaches the narrow target through the rule below. */
+.dialog__close {
+  flex: none;
+  min-width: var(--control-compact);
+  padding-inline: 0;
+}
+
 .session-import:has(input:focus-visible) {
   outline: var(--ring-width) solid var(--accent);
   outline-offset: var(--ring-width);
@@ -1856,8 +1887,24 @@
     border-radius: 0;
   }
 
-  .dialog__form {
+  .dialog__header,
+  .dialog__footer {
     padding: var(--space-4);
+  }
+
+  .dialog__body {
+    padding: var(--space-4);
+  }
+
+  /* The sheet reaches the bottom of the viewport, so the footer keeps clear of
+     whatever the device draws over it. */
+  .dialog__footer {
+    padding-block-end: max(var(--space-4), env(safe-area-inset-bottom));
+  }
+
+  .dialog__close {
+    min-width: var(--control-large);
+    min-height: var(--control-large);
   }
 
   .dialog__actions .button {
