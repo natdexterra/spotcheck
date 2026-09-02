@@ -10,6 +10,10 @@
         {
           "key": "Permissions-Policy",
           "value": "tools=(self)"
+        },
+        {
+          "key": "Origin-Trial",
+          "value": "Aq2bBQWLtsSLgVb6FjUj+lfsHgTeyGdWrnBFCt23r5pZ5AP+t/TvgUoULP/fwx1KTcslgm+pXxCAUlGuDkh/1w0AAABYeyJvcmlnaW4iOiJodHRwczovL3Nwb3RjaGVjay1yZnEudmVyY2VsLmFwcDo0NDMiLCJmZWF0dXJlIjoiV2ViTUNQIiwiZXhwaXJ5IjoxNzk0ODczNjAwfQ=="
         }
       ]
     }
