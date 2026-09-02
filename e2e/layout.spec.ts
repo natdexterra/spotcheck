@@ -135,6 +135,33 @@ test('the orienting line leaves with the first tool call', async ({ page }) => {
   await expect(page.locator('.status-strip__intro')).toHaveCount(0);
 });
 
+// The strip's block padding belongs to the states that carry a second line:
+// the two pre-live ones and a replay. A live session without a replay row is a
+// single line and keeps the row height.
+test('a live strip with no replay row keeps the one-line height', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+  await expect(page.locator('.status-strip')).toContainText('Live');
+  await expect(page.locator('.replay-controls')).toHaveCount(0);
+
+  const strip = (await page.locator('.status-strip').boundingBox())!;
+  expect(Math.round(strip.height)).toBe(44);
+});
+
+test('the replay row stands off the strip’s closing hairline', async ({ page }) => {
+  await removeModelContext(page);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Play sample session' }).click();
+  await expect(page.locator('.replay-controls')).toBeVisible();
+
+  const strip = (await page.locator('.status-strip').boundingBox())!;
+  const row = (await page.locator('.replay-controls').boundingBox())!;
+  const rule = await page.locator('.status-strip')
+    .evaluate(element => Number.parseFloat(getComputedStyle(element).borderBottomWidth));
+  expect(strip.y + strip.height - rule - (row.y + row.height)).toBeGreaterThanOrEqual(12);
+});
+
 test('the desktop page does not scroll and each pane scrolls on its own', async ({ page }) => {
   await installModelContext(page);
   await page.goto('/');
