@@ -70,8 +70,8 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
         {replay.active || timer !== null ? (
           <p className="confirm-summary__timer">
             {replay.active
-              ? `Recorded review ${duration(replay.recordedMs)}${replay.finishedByViewer ? ` · this run ${duration(timer ?? 0)}` : ''}`
-              : `Reviewed in ${duration(timer!)} — from the agent’s first write to confirm`}
+              ? <>Recorded review <span className="numeric">{duration(replay.recordedMs)}</span>{replay.finishedByViewer ? <> · this run <span className="numeric">{duration(timer ?? 0)}</span></> : null}</>
+              : <>Reviewed in <span className="numeric">{duration(timer!)}</span> — from the agent’s first write to confirm</>}
           </p>
         ) : null}
       </header>

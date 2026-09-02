@@ -141,8 +141,9 @@
 .suggestion-card__value,
 .inline-editor__input,
 .inline-editor__segment,
-.confirm-summary__line,
-.drawing-sheet__caption {
+.replay-controls .numeric,
+.confirm-summary__timer .numeric,
+.confirm-summary__line {
   font-family: var(--font-mono);
   font-feature-settings: "zero" 1;
   font-variant-numeric: tabular-nums lining-nums;
@@ -676,6 +677,7 @@
 
 .drawing-sheet__caption {
   display: grid;
+  font-size: var(--text-md);
   gap: var(--space-2);
   margin-block-start: var(--space-3);
   color: var(--ink-secondary);
@@ -1115,7 +1117,6 @@
 .field-row__value {
   grid-column: 1;
   overflow-wrap: anywhere;
-  font-size: var(--text-lg);
   line-height: var(--leading-lg);
   font-weight: 500;
 }
@@ -1337,11 +1338,15 @@
 .field-row__value,
 .candidate-option__value,
 .suggestion-card__value,
+.inline-editor__input {
+  font-size: var(--text-lg-mono);
+}
+
 .field-row__revision,
 .field-row__agent-original,
-.drawing-sheet__caption,
 .confirm-summary__line {
-  font-size: var(--text-lg-mono);
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
 }
 
 .replay-controls,
@@ -1365,10 +1370,6 @@
   min-width: 0;
 }
 
-.replay-controls__actions {
-  flex: none;
-}
-
 .replay-controls__next {
   color: var(--ink-secondary);
 }
@@ -1381,20 +1382,22 @@
   overflow-wrap: anywhere;
 }
 
-.session-error .icon {
-  flex: none;
-}
-
 .change-log__entry--collapsed {
   flex: 1;
   flex-wrap: nowrap;
-  max-width: 100%;
   line-height: var(--leading-md);
 }
 
 .change-log__entry--collapsed .change-log__sentence {
   min-width: 0;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.change-log__clip {
+  display: block;
+  max-height: var(--leading-md);
   overflow: hidden;
   text-overflow: ellipsis;
 }
@@ -1418,10 +1421,6 @@
 .change-log__error {
   padding-inline: var(--page-margin);
   font-size: var(--text-md);
-}
-
-.session-import {
-  position: relative;
 }
 
 .session-import:has(input:focus-visible) {
@@ -1456,5 +1455,17 @@
     order: 1;
     width: 100%;
     margin-inline-start: 0;
+  }
+}
+
+@media (max-width: 1023px) {
+  .status-strip:has(.replay-controls) .status-strip__line {
+    display: contents;
+  }
+  .status-strip__export-slot {
+    order: 2;
+  }
+  .status-strip__export-slot .button {
+    width: auto;
   }
 }
