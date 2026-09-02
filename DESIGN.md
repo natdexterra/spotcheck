@@ -87,7 +87,8 @@ The rule behind the split: an underline means *this takes you somewhere*; its ab
 | Clarification tab | conditional rendering | while no draft exists and none was sent |
 | Open inline editor | conditional rendering inside the row | the row's value line, provenance links, rationale, "was:" line, agent-original line and action row are gone while it is open |
 | Status strip export slot | removed in P3.1 | every state; `Export session` lives in the expanded log and in the confirm summary |
-| Status strip own-package button | conditional rendering | in `live` and `confirmed`, and on one column in `no-api`, where it stands in the change-log sheet header instead |
+| Status strip own-package button | conditional rendering | in `live` and `confirmed`, and on one column in `no-api`, where no way into a package of your own is offered at all |
+| Change-log header actions | conditional rendering | per **Change-log header by state**: the import once a review exists, the export while the log is empty, both of those and `Start over` while a replay is attached, and `Start over` once the review is confirmed |
 | Group heading | conditional rendering | while one group is open |
 | Replay row | conditional rendering | while no replay is attached |
 | Sheets (source, change log) | conditional rendering | closed |
@@ -141,7 +142,18 @@ The shared primitives, one row each. A task adds a modifier to a row that is her
 | Disclosure | rendered by `FieldList` (the verified group) and `ChangeLogDrawer` (the collapsed bar and the sheet) | a text button carrying the chevron icon, with `aria-expanded` and `aria-controls` | collapsed, expanded | the text button's heights |
 | Inline editor | `InlineEditor` | `.inline-editor` with `__context`, `__label`, `__controls`, `__field`, `__input`, `__units`, `__error`, `__hint`, `__keys` | open on a proposal, on an empty field, on a unit-bearing field with no unit, and in validation | the input and the unit control both `--control-input`; below 1024px `--control-large` plus the group's two hairlines |
 | Sheet | rendered by `SourcePane` (the narrow source) and `ChangeLogDrawer` (the narrow log) | `.source-pane--sheet`, `.change-log__sheet` | closed, open (modal, body scroll locked, focus returned on close) | full height below 1024px; the log sheet 40vh above it |
-| Dialog | `OpenPackageDialog` and `ConfirmDialog` | `.dialog`, `.dialog--confirm`, with `__form`, `__title`, `__field`, `__label`, `__hint`, `__input`, `__textarea`, `__file`, `__file-name`, `__privacy`, `__warning`, `__message`, `__error`, `__actions` | closed, open, per-field validation | `min(720px, 100% - 2 * --page-margin)` wide and at most 85vh, `--confirm` `min(480px, …)`; a full-height sheet below 1024px; its one primary `--control-large` |
+| Dialog | `OpenPackageDialog` and `ConfirmDialog` | `.dialog`, `.dialog--confirm`, with `__form`, `__title`, `__field`, `__label`, `__hint`, `__input`, `__textarea`, `__file`, `__file-name`, `__privacy`, `__message`, `__error`, `__actions` | closed, open, per-field validation | `min(720px, 100% - 2 * --page-margin)` wide and at most 85vh, `--confirm` `min(480px, …)`; a full-height sheet below 1024px; its one primary `--control-large` |
+
+**Change-log header by state.** The expanded log carries the actions of the state it is in and no others. `Play sample session` and the way into a package of your own are the status strip's before a session starts, and the confirm summary's after one is over; the log offers neither at any width.
+
+| State | Actions, in order |
+|---|---|
+| Log empty | `Import session` · Close |
+| Live review: entries, not confirmed | `Export session` · `Start over` · Close |
+| Replay attached, sample or imported | Close — the replay row owns `Leave sample` / `Leave session` |
+| Confirmed | `Export session` · Close — `Start over` stays on the confirm summary |
+
+`Start over` discards a person's own work, so it stands at least `--space-4` clear of the button before it and asks through the confirm dialog before it acts.
 
 ## Typography — cap-height model, Geist + Geist Mono
 

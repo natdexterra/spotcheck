@@ -13,6 +13,8 @@ import { ExportSessionButton } from './ExportSessionButton';
 
 export interface ConfirmSummaryProps {
   logContent?: ReactNode;
+  /** Opens the package dialog. The review is confirmed, so nothing is at risk. */
+  onOpenPackage?: () => void;
 }
 
 const RESOLUTIONS: readonly ResolutionKind[] = [
@@ -27,7 +29,7 @@ const RESOLUTIONS: readonly ResolutionKind[] = [
 
 const fieldList = (fields: Field[]): string => fields.map(field => fieldLabel(field.id)).join(' · ');
 
-export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
+export function ConfirmSummary({ logContent, onOpenPackage }: ConfirmSummaryProps) {
   const { confirmed, log, state, timer } = useReview();
   const replay = useReplay();
   if (!confirmed) return null;
@@ -149,6 +151,9 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
       <div className="confirm-summary__actions">
         <ExportSessionButton />
         <Button variant="text" onClick={() => { if (replay.active) void leave(); else replaceState(createInitialState()); }}>Start over</Button>
+        {/* The review is over, so a package of your own costs nothing to open
+            from here and asks for no warning. */}
+        {onOpenPackage && <Button variant="text" onClick={onOpenPackage}>Open another package</Button>}
       </div>
     </section>
   );

@@ -87,17 +87,6 @@ describe('the dialog’s form', () => {
     expect(screen.getByRole('button', { name: 'Use the sample package' })).toBeInTheDocument();
   });
 
-  test('a review in progress is warned about once, with no second step', () => {
-    const { container } = setup({ sessionInProgress: true });
-
-    expect(container.querySelector('.dialog__warning'))
-      .toHaveTextContent('Opening a package starts a new review; the current one is discarded');
-  });
-
-  test('no warning stands over an empty page', () => {
-    const { container } = setup();
-    expect(container.querySelector('.dialog__warning')).toBeNull();
-  });
 });
 
 describe('what the dialog refuses to open', () => {

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
-import { useOpenPackageLabel } from '../hooks/usePackage';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
@@ -9,7 +8,7 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { describeRead } from '../replay/describe';
-import { clearReview, focusPause, startImported, startSample } from '../replay/controller';
+import { clearReview, focusPause, startImported } from '../replay/controller';
 import { useReplay } from '../hooks/useReplay';
 import { parseFixture } from '../replay/serialization';
 import { ConfirmDialog } from './ConfirmDialog';
@@ -97,12 +96,7 @@ export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry;
   </div>
 );
 
-export interface ChangeLogDrawerProps {
-  /** Given only where the strip is not carrying it, so the way in stands in one place. */
-  onOpenPackage?: () => void;
-}
-
-export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) => {
+export const ChangeLogDrawer = () => {
   const { confirmed, log, state } = useReview();
   const replay = useReplay();
   const [expanded, setExpanded] = useState(false);
@@ -113,7 +107,6 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
   const cleared = useRef(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowLayout();
-  const openPackageLabel = useOpenPackageLabel();
   const latest = log.at(-1);
 
   const importFile = async (file: File | undefined) => {
@@ -185,31 +178,36 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
             <p className="change-log__meta">{plural(log.length, 'entry', 'entries')} · agent and you</p>
-            <div className="change-log__file-actions">
-              {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
-              {onOpenPackage && (
-                <Button variant="text" onClick={() => { setExpanded(false); onOpenPackage(); }}>
-                  {openPackageLabel}
-                </Button>
-              )}
-              {/* The one control on the page that throws a person's own work
-                  away, so it asks before it does (the confirm screen keeps its
-                  own Start over). */}
-              {!replay.active && !confirmed && log.length > 0 && (
-                <Button variant="text" onClick={() => setStartOverOpen(true)}>Start over</Button>
-              )}
-              <ExportSessionButton />
-              <div className="session-import">
-                <label className="visually-hidden" htmlFor="session-file">Import session</label>
-                <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
-                {/* The native input is the control: it holds the tab stop and
-                    the focus ring (.session-import:has(input:focus-visible)).
-                    The visible button only forwards a pointer click, so it
-                    stays out of the tab order and out of the accessibility
-                    tree; otherwise "Import session" would name two controls. */}
-                <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+            {/* The header carries the actions of the state it is in and no
+                others (DESIGN.md § Components, Change-log header by state): a
+                replay owns its own way out, an empty log has nothing to send,
+                and a confirmed review leaves starting over to the summary. */}
+            {!replay.active && (
+              <div className="change-log__file-actions">
+                {log.length === 0 ? (
+                  <div className="session-import">
+                    <label className="visually-hidden" htmlFor="session-file">Import session</label>
+                    <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
+                    {/* The native input is the control: it holds the tab stop and
+                        the focus ring (.session-import:has(input:focus-visible)).
+                        The visible button only forwards a pointer click, so it
+                        stays out of the tab order and out of the accessibility
+                        tree; otherwise "Import session" would name two controls. */}
+                    <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+                  </div>
+                ) : (
+                  <>
+                    <ExportSessionButton />
+                    {/* The one control on the page that throws a person's own
+                        work away, so it asks before it does, and stands apart
+                        from the button beside it. */}
+                    {!confirmed && (
+                      <Button className="change-log__start-over" variant="text" onClick={() => setStartOverOpen(true)}>Start over</Button>
+                    )}
+                  </>
+                )}
               </div>
-            </div>
+            )}
             <Button aria-controls="change-log" aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
           {error && <p className="session-error change-log__error"><OpposingArrowsIcon />{error}</p>}

@@ -30,7 +30,6 @@ export interface OpenPackageDialogProps {
   prepare?: typeof prepare_;
   /** The bundled package's reference, shown as the placeholder and never as a value. */
   sampleReference: string;
-  sessionInProgress?: boolean;
 }
 
 const IMAGE_MESSAGES: Record<DrawingErrorCode, string> = {
@@ -48,7 +47,6 @@ export function OpenPackageDialog({
   onUseSample,
   prepare = prepare_,
   sampleReference,
-  sessionInProgress = false,
 }: OpenPackageDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const id = useId();
@@ -243,10 +241,6 @@ export function OpenPackageDialog({
           Nothing leaves this page on its own. Your agent receives what it reads through the page’s tools,
           one section at a time, and every read is logged
         </p>
-
-        {sessionInProgress ? (
-          <p className="dialog__warning">Opening a package starts a new review; the current one is discarded</p>
-        ) : null}
 
         <div className="dialog__actions">
           <Button size="large" type="submit" variant="primary">Open package</Button>
