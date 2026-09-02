@@ -6,6 +6,7 @@ import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
 import { createInitialState, type ReviewSession } from '../state/session';
 import { getState, replaceState } from '../state/store';
 import { ChangeLogDrawer } from './ChangeLogDrawer';
+import { StatusStrip } from './StatusStrip';
 import { samplePackage, setPackage } from '../data/package';
 import { buildPackage } from '../data/user-package';
 
@@ -195,6 +196,18 @@ describe('P5: the log header during a live session', () => {
     await act(async () => { await user.click(within(dialog).getByRole('button', { name: 'Start over' })); });
 
     expect(getState()).toEqual(createInitialState());
+  });
+
+  test('confirming hands the keyboard to the control the page offers next', async () => {
+    const user = userEvent.setup();
+    act(() => replaceState(liveSession()));
+    render(<><StatusStrip apiAvailable={false} /><ChangeLogDrawer /></>);
+    await user.click(screen.getByRole('button', { name: /entr(y|ies)$/ }));
+    await user.click(screen.getByRole('button', { name: 'Start over' }));
+    const dialog = document.querySelector('.dialog--confirm') as HTMLElement;
+    await act(async () => { await user.click(within(dialog).getByRole('button', { name: 'Start over' })); });
+
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Play sample session' }));
   });
 
   test('an empty page is offered no way to start over', async () => {
