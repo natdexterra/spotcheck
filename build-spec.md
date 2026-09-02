@@ -37,7 +37,7 @@ Global result rules:
 
 ### `propose_field` — write
 
-> Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead.
+> Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead. Keep value short and as written in the source; explanation goes in rationale.
 
 - Input: `{ field_id, value, unit?, source_refs, rationale? }`.
   - `field_id`: "One of the 11 field ids in the taxonomy."
@@ -160,7 +160,7 @@ Keyboard (B9): `j`/`k` flagged-field navigation, `Enter` primary action, `e` edi
 
 ## Size and performance budgets
 
-- JS ≤ 180 KB gzip total (React included); CSS ≤ 24 KB; no inline scripts (`default-src 'self'` holds).
+- JS ≤ 180 KB gzip total (React included); CSS ≤ 26 KB; no inline scripts (`default-src 'self'` holds).
 - `data/drawing-sheet1.webp` ≤ 300 KB; fonts self-hosted woff2, preloaded, `Geist Fallback` metric-matched.
 - Every tool result < 1,500 chars serialized — fixture-driven unit test.
 - INP ≤ 200 ms during live extraction (the ADR's review trigger).
