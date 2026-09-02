@@ -28,7 +28,7 @@ The fallback becomes a complete, controllable replay and the session becomes a f
 | `src/lib/download.ts` (create) | `downloadJson(name, text)`: Blob → object URL → `<a download>` click → revoke; no library |
 | `src/components/ReplayControls.tsx` (create) | the replay row (§ Replay row); rendered by `StatusStrip` under the quiet line while a replay is active |
 | `src/components/StatusStrip.tsx` (modify) | the `Export session` text button fills the existing export slot in `live`; renders `ReplayControls`; `onPlaySample` calls `startSample()` |
-| `src/components/ChangeLogDrawer.tsx` (modify) | collapsed bar one line; expanded header gains `Export session` and `Import session` (file input) with an error line |
+| `src/components/ChangeLogDrawer.tsx` (modify) | collapsed bar one line; read entries name what was read (§ Collapsed log bar); expanded header gains `Export session` and `Import session` (file input) with an error line |
 | `src/components/ConfirmSummary.tsx` (modify) | the review-time line per § Summary; `Export session` beside `Start over`; `Start over` goes through `controller.leave()` |
 | `src/App.tsx` (modify) | no replay ref; the strip and the summary reach the controller through the hook; unmount calls `leave()` |
 | `src/styles/tokens.css`, `src/styles/components.css` (modify) | `--text-lg-mono`; replay row, controls, import control, ellipsis on the collapsed log sentence |
@@ -104,6 +104,8 @@ In the first live run the agent put a whole paragraph into `value` for `delivery
 
 The collapsed bar shows the last entry's clock time and sentence on **one line**: the sentence is `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` inside a `min-width: 0` flex item; agent notes are not rendered in the collapsed bar (they are in the expanded log). The disclosure button keeps its place; on narrow the bar stacks as today (sentence line, then the button), the sentence still one line with an ellipsis. The full sentence stays reachable through the expanded log; the collapsed sentence carries no `title`.
 
+Read entries name what was read instead of the generic "Agent read the RFQ package": `Agent listed the documents` · `Agent read spec §3.1` (document short name + section id as the provenance links print them) · `Agent checked the review`. Same vocabulary as `describeStep`, past tense; one helper for both so the two never drift.
+
 ### Mono companion size (DESIGN.md § Typography, rule added 2026-09-02)
 
 Runs of mono text set beside `lg` sans read a step larger than the sans (Geist Mono's advance width). They take `--text-lg-mono: 1.029rem` (cap-height 11) with the unchanged `lg` leading: `.field-row__value`, `.candidate-option__value`, `.suggestion-card__value`, `.field-row__revision`, `.field-row__agent-original`, `.drawing-sheet__caption`, `.confirm-summary__line`. Chips, counts, timestamps, the strip counter and the prompt stay on their tokens. Row heights do not change (same leading); the e2e layout guard extends by one assertion on the computed size of a field value.
@@ -115,7 +117,7 @@ Runs of mono text set beside `lg` sans read a step larger than the sans (Geist M
 3. `controller.ts` + `useReplay.ts`: tests — start snapshots storage and suspends; leave restores the snapshot, resumes, saves once (`setItem` called exactly once after leave, content equal to the snapshot); leave with an empty snapshot gives the initial state; starting a second replay leaves the first; `describe.ts` table test → commit.
 4. `download.ts`: test with a stubbed `URL.createObjectURL` and anchor click → commit.
 5. `ReplayControls.tsx` + strip wiring: tests per row state (labels, disabled `Next call` while busy, error line, focus after `Restart`), narrow stacking → commit.
-6. `ChangeLogDrawer.tsx`: one-line collapsed sentence (class present, no notes rendered), export button disabled on an empty log, import success path (`startImported` called with the parsed fixture, drawer closes), import failure line → commit.
+6. `ChangeLogDrawer.tsx`: one-line collapsed sentence (class present, no notes rendered), read sentences per operation (three tests), export button disabled on an empty log, import success path (`startImported` called with the parsed fixture, drawer closes), import failure line → commit.
 7. `ConfirmSummary.tsx`: the three review-time variants; `Start over` calls `leave()` when a replay is active → commit. The `propose_field` description sentence with the build-spec mirror → commit.
 8. Tokens and CSS: `--text-lg-mono`, replay row, import control, ellipsis; `tokens.test.ts` spot value; the e2e layout guard assertion → commit.
 9. `e2e/replay.spec.ts` (below); fix what it finds → commit. Budgets, screenshots per § Sources 3, acceptance boxes → final commit.
@@ -142,7 +144,7 @@ Playwright `e2e/replay.spec.ts` (production build, `page.clock` installed):
 - [ ] `Export session` in the strip, the drawer and the summary; export → import → identical final state end to end (B8)
 - [ ] Import control native, keyboard-reachable, error path announced
 - [ ] Summary review-time line in its three variants
-- [ ] Collapsed log bar one line with an ellipsis at every width; the mono companion size applied to the listed classes with row heights unchanged
+- [ ] Collapsed log bar one line with an ellipsis at every width; read entries name the document and section; the mono companion size applied to the listed classes with row heights unchanged
 - [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 26 KB; no new dependency
 - [ ] `webmcp-tools.ts` unchanged except the `propose_field` description sentence; `reducer.ts` and the action unions unchanged; the dispatcher-split and description-budget tests still green
 - [ ] Task file boxes ticked with evidence in the pull request description
