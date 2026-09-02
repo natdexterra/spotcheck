@@ -1,163 +1,165 @@
-[
-  {
-    "name": "list_rfq_documents",
-    "description": "Lists the documents in the RFQ package with their section index. Call once at the start to learn what can be read; use the section ids with read_document.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {}
-    },
-    "annotations": {
-      "readOnlyHint": true
-    }
-  },
-  {
-    "name": "read_document",
-    "description": "Reads one section of one document and returns its text as regions with stable ids. Use those region ids as source_refs when proposing values. One section per call; output is capped, so read the sections you need.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "doc_id": {
-          "type": "string",
-          "description": "Document id from list_rfq_documents: email, spec or drawing."
-        },
-        "section_id": {
-          "type": "string",
-          "description": "Section id from that document's index, e.g. s3 or overall."
-        }
+{
+  "tools": [
+    {
+      "name": "list_rfq_documents",
+      "description": "Lists the documents in the RFQ package with their section index. Call once at the start to learn what can be read; use the section ids with read_document.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true
       }
     },
-    "annotations": {
-      "readOnlyHint": true,
-      "untrustedContentHint": true
-    }
-  },
-  {
-    "name": "propose_field",
-    "description": "Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "field_id": {
-          "type": "string",
-          "description": "One of the 11 field ids in the taxonomy."
-        },
-        "value": {
-          "type": "string",
-          "description": "The proposed value, as it should appear in the quote request."
-        },
-        "unit": {
-          "type": "string",
-          "description": "Unit for the unit-bearing field (in or mm). Omit if the sources state none."
-        },
-        "source_refs": {
-          "type": "array",
-          "items": {
-            "type": "string"
+    {
+      "name": "read_document",
+      "description": "Reads one section of one document and returns its text as regions with stable ids. Use those region ids as source_refs when proposing values. One section per call; output is capped, so read the sections you need.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "doc_id": {
+            "type": "string",
+            "description": "Document id from list_rfq_documents: email, spec or drawing."
           },
-          "description": "Region or section ids the value comes from. At least one is required."
-        },
-        "rationale": {
-          "type": "string",
-          "description": "One sentence on why this value; the estimator reads it."
+          "section_id": {
+            "type": "string",
+            "description": "Section id from that document's index, e.g. s3 or overall."
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "propose_field",
+      "description": "Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "description": "One of the 11 field ids in the taxonomy."
+          },
+          "value": {
+            "type": "string",
+            "description": "The proposed value, as it should appear in the quote request."
+          },
+          "unit": {
+            "type": "string",
+            "description": "Unit for the unit-bearing field (in or mm). Omit if the sources state none."
+          },
+          "source_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Region or section ids the value comes from. At least one is required."
+          },
+          "rationale": {
+            "type": "string",
+            "description": "One sentence on why this value; the estimator reads it."
+          }
         }
       }
-    }
-  },
-  {
-    "name": "report_conflict",
-    "description": "Reports that the sources disagree about a field. Include every candidate with its value and sources — the estimator resolves the conflict; you cannot. A candidate may record an absence (\"none stated\") with the section where the value should have been.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "field_id": {
-          "type": "string",
-          "description": "One of the 11 field ids in the taxonomy."
-        },
-        "candidates": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "properties": {
-              "value": {
-                "type": "string",
-                "description": "The proposed value, as it should appear in the quote request."
-              },
-              "unit": {
-                "type": "string",
-                "description": "Unit for the unit-bearing field (in or mm). Omit if the sources state none."
-              },
-              "source_refs": {
-                "type": "array",
-                "items": {
-                  "type": "string"
+    },
+    {
+      "name": "report_conflict",
+      "description": "Reports that the sources disagree about a field. Include every candidate with its value and sources — the estimator resolves the conflict; you cannot. A candidate may record an absence (\"none stated\") with the section where the value should have been.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "description": "One of the 11 field ids in the taxonomy."
+          },
+          "candidates": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "value": {
+                  "type": "string",
+                  "description": "The proposed value, as it should appear in the quote request."
                 },
-                "description": "Region or section ids the value comes from. At least one is required."
-              },
-              "note": {
-                "type": "string"
+                "unit": {
+                  "type": "string",
+                  "description": "Unit for the unit-bearing field (in or mm). Omit if the sources state none."
+                },
+                "source_refs": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Region or section ids the value comes from. At least one is required."
+                },
+                "note": {
+                  "type": "string"
+                }
               }
             }
-          }
-        },
-        "note": {
-          "type": "string"
-        }
-      }
-    }
-  },
-  {
-    "name": "report_missing",
-    "description": "Reports that a field's value is absent after a real search, naming where you looked. Use this instead of guessing; the estimator sees the searched places and decides what to do.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "field_id": {
-          "type": "string",
-          "description": "One of the 11 field ids in the taxonomy."
-        },
-        "searched": {
-          "type": "array",
-          "items": {
+          },
+          "note": {
             "type": "string"
           }
-        },
-        "note": {
-          "type": "string"
         }
       }
-    }
-  },
-  {
-    "name": "get_review_state",
-    "description": "Returns the whole review: every field with its state, value and lock, which fields are still unverified, and which are open gaps. Call it to plan your next step or to answer questions about the review.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {}
     },
-    "annotations": {
-      "readOnlyHint": true,
-      "untrustedContentHint": true
-    }
-  },
-  {
-    "name": "draft_clarification",
-    "description": "Opens a clarification-email draft for the estimator, with your subject, body and the gap fields it covers. The estimator edits and sends it; the covered fields are then marked as asked. Available while open gaps exist.",
-    "inputSchema": {
-      "type": "object",
-      "properties": {
-        "subject": {
-          "type": "string"
-        },
-        "body": {
-          "type": "string"
-        },
-        "covers": {
-          "type": "array",
-          "items": {
+    {
+      "name": "report_missing",
+      "description": "Reports that a field's value is absent after a real search, naming where you looked. Use this instead of guessing; the estimator sees the searched places and decides what to do.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "field_id": {
+            "type": "string",
+            "description": "One of the 11 field ids in the taxonomy."
+          },
+          "searched": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "note": {
             "type": "string"
           }
         }
       }
+    },
+    {
+      "name": "get_review_state",
+      "description": "Returns the whole review: every field with its state, value and lock, which fields are still unverified, and which are open gaps. Call it to plan your next step or to answer questions about the review.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "untrustedContentHint": true
+      }
+    },
+    {
+      "name": "draft_clarification",
+      "description": "Opens a clarification-email draft for the estimator, with your subject, body and the gap fields it covers. The estimator edits and sends it; the covered fields are then marked as asked. Available while open gaps exist.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "subject": {
+            "type": "string"
+          },
+          "body": {
+            "type": "string"
+          },
+          "covers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
-  }
-]
+  ]
+}
