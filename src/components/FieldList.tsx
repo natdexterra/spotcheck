@@ -111,6 +111,7 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
             </h3>
             {group.fields.map(field => (
               <FieldRow
+                bare={log.length === 0}
                 field={field}
                 key={field.id}
                 lockedReport={lockedReportFor(field, log)}

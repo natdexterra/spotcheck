@@ -1223,6 +1223,22 @@
   margin-inline-start: auto;
 }
 
+/* Export 01: before the first tool call there is nothing to explain and
+   nothing to act on, so the eleven rows are one line each. */
+.field-row--bare {
+  display: flex;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.field-row--bare .field-row__value {
+  flex: 1;
+}
+
+.field-row--bare .field-row__badge {
+  align-self: center;
+}
+
 @keyframes field-arrival {
   from {
     opacity: 0;
