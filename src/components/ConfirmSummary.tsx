@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useReview } from '../hooks/useReview';
-import { duration, fieldLabel, groupLabel } from '../lib/format';
+import { displayValue, duration, fieldLabel, groupLabel } from '../lib/format';
+import { dismissReason } from '../lib/log';
 import { createInitialState } from '../state/session';
-import type { LogEntry } from '../state/session';
 import { replaceState } from '../state/store';
 import type { Field, FieldId, ResolutionKind } from '../state/types';
 import { Button } from './Button';
@@ -24,19 +24,6 @@ const RESOLUTIONS: readonly ResolutionKind[] = [
   'applied',
   'asked_customer',
 ];
-
-const displayValue = (value: string | null, unit?: string | null): string =>
-  `${value ?? '—'}${unit ? ` ${unit}` : ''}`;
-
-const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined => {
-  const entry = [...log].reverse().find(item =>
-    item.event.actor === 'human' &&
-    item.event.action.type === 'dismiss' &&
-    item.event.action.field_id === fieldId,
-  );
-  if (!entry || entry.event.actor !== 'human' || entry.event.action.type !== 'dismiss') return undefined;
-  return entry.event.action.reason;
-};
 
 const fieldList = (fields: Field[]): string => fields.map(field => fieldLabel(field.id)).join(' · ');
 
@@ -71,7 +58,7 @@ export function ConfirmSummary({ logContent }: ConfirmSummaryProps) {
           <p className="confirm-summary__timer">
             {replay.active
               ? <>Recorded review <span className="numeric">{duration(replay.recordedMs)}</span>{replay.finishedByViewer ? <> · this run <span className="numeric">{duration(timer ?? 0)}</span></> : null}</>
-              : <>Reviewed in <span className="numeric">{duration(timer!)}</span> — from the agent’s first write to confirm</>}
+              : <>Reviewed in <span className="numeric">{duration(timer!)}</span> · from the agent’s first write to confirm</>}
           </p>
         ) : null}
       </header>

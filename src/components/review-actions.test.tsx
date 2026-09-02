@@ -34,7 +34,7 @@ describe('InlineEditor', () => {
     const onClose = vi.fn();
     render(<InlineEditor field={baseField({ id: 'overall_dimensions', unit: null, value: '20 × 14' })} onClose={onClose} />);
 
-    const input = screen.getByRole('textbox', { name: 'Overall dimensions' });
+    const input = screen.getByRole('textbox', { name: 'Overall dimensions value' });
     await user.type(input, '.5');
     await user.click(screen.getByRole('radio', { name: 'in' }));
     await user.keyboard('{Enter}');
@@ -56,7 +56,7 @@ describe('InlineEditor', () => {
     const user = userEvent.setup();
     render(<InlineEditor field={baseField({ state, value: null })} onClose={vi.fn()} />);
 
-    await user.type(screen.getByRole('textbox', { name: 'Material' }), '6061-T6');
+    await user.type(screen.getByRole('textbox', { name: 'Material value' }), '6061-T6');
     await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(dispatch).toHaveBeenLastCalledWith(expect.objectContaining({

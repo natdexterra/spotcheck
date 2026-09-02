@@ -2,12 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { ChevronDownIcon } from '../icons';
+import { plural } from '../lib/format';
 import type { AgentAction } from '../state/types';
 import { Button } from './Button';
 import { useReplay } from '../hooks/useReplay';
 import { startSample } from '../replay/controller';
 import { ReplayControls } from './ReplayControls';
-import { ExportSessionButton } from './ExportSessionButton';
 
 const PROMPT = 'Extract this RFQ into a quote request';
 const MARKER_MS = 2_000;
@@ -104,7 +104,10 @@ export function StatusStrip({
   const preLive = state === 'no-api' || state === 'waiting';
 
   return (
-    <section className={`status-strip status-strip--${state}`} aria-label="Session status">
+    <section
+      aria-label="Session status"
+      className={`status-strip status-strip--${state}${replay.active ? ' status-strip--replay' : ''}`}
+    >
       {preLive && <p className="status-strip__intro">{INTRO}</p>}
       <div className="status-strip__line">
         <div className="status-strip__summary">
@@ -124,7 +127,7 @@ export function StatusStrip({
           {state === 'live' && (
             <>
               <strong>Live</strong>
-              <span className="numeric">{sizeChange ?? `${rosterSize} tools`} · {agentEntries.length} calls</span>
+              <span className="numeric">{sizeChange ?? plural(rosterSize, 'tool', 'tools')} · {plural(agentEntries.length, 'call', 'calls')}</span>
               <span>{lastActivity(lastAgent?.event.action as AgentAction | undefined)} · just now</span>
               <Button variant="text" aria-expanded={toolsOpen} onClick={() => setToolsOpen(open => !open)}>
                 Show tools <ChevronDownIcon />
@@ -138,7 +141,6 @@ export function StatusStrip({
         {preLive && (
           <Button size="compact" variant={state === 'no-api' ? 'primary' : 'secondary'} onClick={onPlaySample}>Play sample session</Button>
         )}
-        {state === 'live' && <div className="status-strip__export-slot"><ExportSessionButton /></div>}
       </div>
       <ReplayControls />
       {toolsOpen && state === 'live' && (
@@ -150,7 +152,7 @@ export function StatusStrip({
             >
               <code>{tool.name}</code>
               <span>{tool.readOnly ? 'read' : 'write'}</span>
-              <span className="numeric">{tool.calls} calls</span>
+              <span className="numeric">{plural(tool.calls, 'call', 'calls')}</span>
               {tool.code && <code>{tool.code}</code>}
             </li>
           ))}

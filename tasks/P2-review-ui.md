@@ -58,14 +58,14 @@ Allowed new devDependencies: `jsdom`, `@testing-library/react`, `@testing-librar
 - Header, strip, workspace and log drawer take inline padding from `--page-margin`; content inside a pane sits on the gutter lane. Every left edge lands on one of the two lanes.
 - Desktop ≥ 1024px: `grid-template-columns: minmax(480px, 640px) minmax(460px, 1fr)`, gap `--space-6`; below 1024px one column, content capped at 680px above ~600px. No horizontal page scroll at 320px.
 - Scroll model per `DESIGN.md` § Layout ladder: desktop — the page does not scroll, each pane scrolls on its own inside the viewport, the confirm footer is the field pane's last child (not sticky); narrow — one scrolling column, sticky footer, sheets lock body scroll.
-- First load (screen 1): field-pane header "0 of 11 verified", eleven rows "— · Not extracted", one line "Your agent reads the documents → fields fill with sources → you verify and confirm", Email tab open, Confirm disabled with "11 to check", drawer "No activity yet".
+- First load (screen 1): field-pane header "0 of 11 verified", eleven rows "— · Not extracted", one line "Your agent reads the documents → fields fill with sources → you verify and confirm", Email tab open, Confirm disabled with the blocker line "11 not extracted" (the line counts by state), drawer "No activity yet".
 
 ### Status strip
 
 | State | When | Text | Control |
 |---|---|---|---|
 | `no-api` | `typeof document.modelContext?.registerTool !== "function"` | "Live mode needs a WebMCP-capable desktop browser: the ChatGPT desktop app's browser, or Chrome 149+ with the WebMCP flag." | `Play sample session` (primary) |
-| `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono, never broken across lines — it scrolls in its own wrapper on a lane too narrow for it — with a `Copy` text button | `Play sample session` (secondary) |
+| `waiting` | API present, no tool call yet | "Waiting for your agent. In the chat, ask:" + the prompt "Extract this RFQ into a quote request" in mono, wrapping onto a second line where the lane is too narrow for it (it is quoted text, not a label; accepted 2026-09-01), with a `Copy` text button | `Play sample session` (secondary) |
 | `live` | first tool call received or replay started | quiet line "Live · 7 tools · 23 calls · agent opened the clarification draft · just now" + `Show tools` disclosure | `Export session` slot at the right (the button itself is P3) |
 | `confirmed` | session confirmed | "Confirmed" + the roster line | — |
 
@@ -136,7 +136,7 @@ The draft is a document, so it lives on the fourth tab of the source pane, **Cla
 
 - Footer of the field pane, sticky. Button disabled until `canConfirm`; blocker line with jump links: "Blocked by 2 conflicts · 2 missing · 2 to check · 1 not extracted" (zero counts omitted); pending suggestions listed beside it ("2 suggestions pending"), not blocking.
 - Confirm replaces the field pane with the summary: title "Confirmed" or "Confirmed with N open questions" (`asked_customer` count); "Reviewed in 1:48" — from the first `propose` / `report_*` log entry to the `confirm` entry, using log timestamps; counts per resolution kind; "agent independently agreed on N fields"; lists: edits "agent X → yours Y", picks with the losing candidate, dismissals with reasons, fields pending customer answer, suggestions auto-dismissed at confirm; the full change log; `Start over` (resets to the initial state via `replaceState(createInitialState())`; tools stay registered). `Export session` is P3.
-- After confirm the strip reads "Confirmed"; the source pane still works.
+- After confirm the strip reads "Confirmed" and the summary takes the whole workspace: the source pane is not shown beside it (export 08).
 
 ### Change log drawer
 

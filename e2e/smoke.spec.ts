@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { removeModelContext } from './helpers';
 
 test('app boots, renders the root shell, and logs no console errors', async ({ page }) => {
   const consoleErrors: string[] = [];
@@ -11,6 +12,7 @@ test('app boots, renders the root shell, and logs no console errors', async ({ p
     consoleErrors.push(error.message);
   });
 
+  await removeModelContext(page);
   await page.goto('/');
 
   await expect(page).toHaveTitle('Spotcheck');

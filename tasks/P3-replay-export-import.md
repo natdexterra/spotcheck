@@ -54,6 +54,8 @@ No new dependency of any kind.
 
 Text, left: `{label} · recorded {date} · {position} / {total}`, then the next-step phrase in `--ink-secondary`: "next: estimator verifies Part". Counter in mono with tabular figures. `{date}` is `recorded_at` cut to its first ten characters. States:
 
+Superseded by P3.1 § Replay controls, simplified (2026-09-02).
+
 | State | Text after the counter | Controls (right, in this order) |
 |---|---|---|
 | playing | `next: …` | `Pause` (secondary compact) · `Next call` (text, disabled while a step is in flight) · `Restart` (text) — then `Export session` (secondary compact) in the slot at the far right |

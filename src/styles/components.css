@@ -13,11 +13,11 @@
 
 /* The md label voice: buttons, field labels, group headings, input labels. */
 .button,
+.change-log__label,
 .field-row__label,
 .field-list__header h2,
 .field-list__group-heading,
 .clarification__label,
-.inline-editor__label,
 .not-required-picker__legend {
   font-size: var(--text-md);
   line-height: var(--leading-md);
@@ -112,7 +112,6 @@
 
 .button--text:disabled {
   color: var(--ink-faint);
-  background-color: transparent;
 }
 
 .button:disabled {
@@ -132,6 +131,8 @@
 
 /* Mono is for data: values, units, ids, source refs, counts, clock times. */
 .status-strip code,
+.change-log__meta,
+.field-row__chip,
 .inline-link--provenance,
 .change-log__time,
 .field-row__value,
@@ -140,7 +141,6 @@
 .candidate-option__value,
 .suggestion-card__value,
 .inline-editor__input,
-.inline-editor__segment,
 .segmented__option,
 .replay-controls .numeric,
 .confirm-summary__timer .numeric,
@@ -157,7 +157,11 @@
   font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* A source ref is a chip-sized token wherever it lands: row, candidate card,
+   suggestion card, verified row, editor context line (exports 02, 11). */
 .inline-link--provenance {
+  font-size: var(--text-sm);
+  line-height: var(--leading-sm);
   text-decoration-line: underline;
   text-decoration-style: dotted;
   text-decoration-thickness: auto;
@@ -174,7 +178,6 @@
 }
 
 .icon {
-  display: inline-block;
   flex: none;
   width: var(--space-4);
   height: var(--space-4);
@@ -199,11 +202,14 @@
 .confirm-footer__status,
 .field-row__sources,
 .field-row__agent-note,
+.field-row__resolution,
 .field-row__revision,
 .field-row__agent-original,
 .field-list__verified-summary,
 .change-log__entry,
+.inline-editor__context,
 .inline-editor__hint,
+.inline-editor__keys,
 .inline-editor__error,
 .candidate-option__note,
 .suggestion-card__reason,
@@ -255,6 +261,7 @@
   font-weight: 600;
 }
 
+/* The strip's height is a floor, not a fixed value. */
 .status-strip {
   min-height: var(--control-large);
   position: relative;
@@ -264,10 +271,13 @@
   gap: var(--space-2);
 }
 
-/* Before the first tool call the strip says what the page is; the two lines
-   then need the row padding the one-line states get from their min-height. */
+/* Three states carry a second line: the two before the first tool call, which
+   say what the page is, and a replay, which adds its row. Each needs the block
+   padding that the one-line states get from their min-height, so the second
+   line never sits on the closing hairline. */
 .status-strip--no-api,
-.status-strip--waiting {
+.status-strip--waiting,
+.status-strip--replay {
   padding-block: var(--space-3);
 }
 
@@ -323,7 +333,7 @@
 .source-pane__reading,
 .source-pane__draft-dot {
   display: inline-block;
-  margin-inline-start: var(--space-1);
+  margin-inline: var(--space-1);
 }
 
 .status-strip__dot {
@@ -369,7 +379,23 @@
 
 .change-log__entry {
   min-width: 0;
+  align-items: flex-start;
   flex-wrap: wrap;
+}
+
+/* Collapsed, the time and the sentence are one line parted by a middle dot, so
+   they close up to the dot's own spacing (exports 02, 16). */
+.change-log__entry--collapsed {
+  gap: var(--space-1);
+}
+
+.change-log__sentence {
+  min-width: 0;
+  flex: 1;
+}
+
+.change-log__agent-note {
+  width: 100%;
 }
 
 .change-log__time {
@@ -383,7 +409,10 @@
 }
 
 .change-log__header {
+  flex-wrap: wrap;
   justify-content: space-between;
+  gap: var(--space-2);
+  padding-block: var(--space-2);
   padding-inline: var(--page-margin);
 }
 
@@ -439,7 +468,9 @@
   }
 }
 
-.field-pane {
+/* The two panes are one drawing: a white panel on the canvas, hairlined. */
+.field-pane,
+.source-pane {
   min-width: 0;
   min-height: 0;
   display: flex;
@@ -451,7 +482,6 @@
 
 .field-pane__draft-entry {
   padding: var(--space-3) var(--space-4);
-  background-color: var(--bg-raised);
 }
 
 .confirm-footer {
@@ -470,7 +500,6 @@
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  text-align: center;
 }
 
 .confirm-summary {
@@ -510,10 +539,21 @@
   white-space: nowrap;
 }
 
+/* Export 08: every block of the summary stands off the one above it, so two
+   hairlines never meet. */
+.confirm-summary__details,
+.confirm-summary__log,
+.confirm-summary__actions,
+.confirm-summary__section + .confirm-summary__section,
+.document-section + .document-section {
+  margin-block-start: var(--space-6);
+}
+
+/* The details and the log are cards on the canvas; the actions under them are
+   not (export 08). */
 .confirm-summary__details,
 .confirm-summary__log {
   max-width: var(--pane-field-max);
-  margin-block-start: var(--space-6);
   padding: var(--space-4);
   background-color: var(--bg-raised);
   border: var(--rule-width) solid var(--hairline);
@@ -534,10 +574,6 @@
   text-transform: uppercase;
 }
 
-.confirm-summary__section + .confirm-summary__section {
-  margin-block-start: var(--space-6);
-}
-
 /* Plain rows, no markers: the summary lists are records, not an agenda. */
 .confirm-summary__section ul,
 .confirm-summary__log-entries {
@@ -551,22 +587,12 @@
   margin-block-start: var(--space-2);
 }
 
-.confirm-summary__actions {
-  margin-block-start: var(--space-6);
-}
-
 .source-pane {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  background-color: var(--bg-raised);
-  border: var(--rule-width) solid var(--hairline);
-  border-radius: var(--radius-2);
 }
 
-/* The two regions that scroll inside the shell. */
+/* The regions that scroll inside the shell. */
+.field-list,
 .summary-main,
 .source-pane__panel {
   flex: 1;
@@ -612,13 +638,17 @@
   font-weight: 500;
 }
 
+/* Exports 02, 06, 07: the document reads on a measure, not on the width of the
+   pane, and the tab row stands on the same two edges as the text. */
+.document-text,
+.source-pane__panel--clarification,
+.source-pane__tabs {
+  max-width: calc(var(--narrow-content-max) + 2 * var(--document-gutter));
+}
+
 .document-text,
 .source-pane__panel--clarification {
   padding: var(--space-8) var(--document-gutter);
-}
-
-.document-section + .document-section {
-  margin-block-start: var(--space-6);
 }
 
 .document-region + .document-region {
@@ -630,8 +660,12 @@
   line-height: var(--leading-lg-loose);
 }
 
+/* Export 02: the provenance highlight is inset from the text it marks, and
+   the inset is always there so nothing moves when it lights up. */
 .document-section,
 .document-region {
+  padding-inline: var(--space-1);
+  margin-inline: calc(-1 * var(--space-1));
   transition: background-color var(--dur-3) var(--ease-1);
 }
 
@@ -667,12 +701,6 @@
   align-items: center;
   justify-content: flex-end;
   margin-block-end: var(--space-6);
-}
-
-.drawing-sheet__zoom {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
 }
 
 /* The sheet's own scroll region: it takes the height the toolbar and the
@@ -746,8 +774,6 @@
   position: fixed;
   z-index: 1;
   inset: 0;
-  display: flex;
-  flex-direction: column;
   border: 0;
   border-radius: 0;
 }
@@ -761,6 +787,8 @@
   border-bottom: var(--rule-width) solid var(--hairline);
 }
 
+/* Export 16: the log's own title is a panel title, a step under a screen. */
+.change-log__header h2,
 .source-pane__title {
   margin: 0;
   font-size: var(--text-lg);
@@ -840,7 +868,6 @@
   line-height: var(--leading-lg-loose);
 }
 
-.inline-editor,
 .not-required-picker,
 .suggestion-card,
 .candidate-option {
@@ -849,8 +876,19 @@
   background-color: var(--bg-subtle);
 }
 
+/* Export 02: a candidate and a suggestion are cards on the pane, told apart
+   from it by a hairline, never by a fill of their own. */
+.suggestion-card,
+.candidate-option {
+  background-color: var(--bg-raised);
+  border: var(--rule-width) solid var(--hairline);
+}
+
+/* Export 12: the editor replaces the value line inside the row, so it carries
+   no fill and no border of its own; the row's marker and label stay. */
 .inline-editor {
-  border: var(--rule-width) solid var(--border-input);
+  display: grid;
+  gap: var(--space-2);
 }
 
 .inline-editor__controls {
@@ -864,11 +902,18 @@
   flex: 1;
 }
 
-.inline-editor__field,
-.inline-editor__units {
+.inline-editor__field {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+}
+
+/* A legend sits outside the fieldset's own box, so a column gap never reaches
+   it. It carries the step itself, and the two micro-labels read as one line
+   above their controls (export 12). */
+.inline-editor__units legend {
+  margin-block-end: var(--space-2);
+  padding: 0;
 }
 
 .inline-editor__units,
@@ -881,6 +926,7 @@
 
 .change-log__agent-note,
 .change-log__empty,
+.change-log__meta,
 .clarification__label,
 .clarification__sent-line,
 .drawing-sheet__zoom-label,
@@ -904,7 +950,6 @@
 
 /* Segmented control (DESIGN.md § Choice controls): one box around the group,
    hairline separators inside, each segment the height of the input beside it. */
-.inline-editor__segments,
 .segmented {
   display: flex;
   overflow: hidden;
@@ -912,9 +957,9 @@
   border-radius: var(--radius-2);
 }
 
-.inline-editor__segment,
 .segmented__option {
-  min-height: var(--control-input);
+  /* The group's own two hairlines make up the control height (export 12). */
+  min-height: calc(var(--control-input) - 2 * var(--rule-width));
   display: grid;
   place-items: center;
   padding-inline: var(--space-4);
@@ -923,12 +968,10 @@
   cursor: pointer;
 }
 
-.inline-editor__segment + .inline-editor__segment,
 .segmented__option + .segmented__option {
   border-inline-start: var(--rule-width) solid var(--hairline-strong);
 }
 
-.inline-editor__segment:has(input:checked),
 .segmented__option:has(input:checked) {
   color: var(--ink);
   background-color: var(--bg-subtle);
@@ -968,19 +1011,19 @@
   border-color: var(--ink-secondary);
 }
 
+/* Chosen reads at a glance: the box fills with the accent and the mark is
+   white on it — one drawing for the radio's dot and the checkbox's check. */
+.choice .choice__input:checked {
+  background-color: var(--accent-strong);
+  border-color: var(--accent-strong);
+}
+
 .choice--radio .choice__input:checked {
   background-image: radial-gradient(
     circle at center,
-    var(--accent) 0 calc(var(--choice-dot) / 2),
-    transparent calc(var(--choice-dot) / 2)
+    var(--bg-raised) 0 var(--space-1),
+    transparent var(--space-1)
   );
-  border-width: var(--choice-ring);
-  border-color: var(--accent);
-}
-
-.choice--checkbox .choice__input:checked {
-  background-color: var(--ink);
-  border-color: var(--ink);
 }
 
 .choice__mark {
@@ -1004,6 +1047,9 @@
   width: var(--space-3);
   height: var(--space-3);
   color: var(--bg-raised);
+  /* The set is drawn on a 24 grid: 3 units render as the set's own 1.5px
+     stroke once the icon is scaled to 12. */
+  stroke-width: 3;
 }
 
 .choice__label {
@@ -1025,15 +1071,20 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
-  margin: var(--space-2) 0 0;
   color: var(--state-conflict);
+}
+
+/* Export 12: the input and the segmented control beside it are one control
+   height, tops and bottoms aligned, so the block padding gives way to the
+   min-height and the segments sit inside the group's two hairlines. */
+.inline-editor__input {
+  padding-block: 0;
 }
 
 .inline-editor__input[aria-invalid="true"] {
   border-color: var(--state-conflict);
 }
 
-.inline-editor__actions,
 .not-required-picker__actions,
 .suggestion-card__actions,
 .candidate-option__sources,
@@ -1058,17 +1109,10 @@
   margin-block-end: var(--space-2);
 }
 
-.not-required-picker__other {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
 .not-required-picker__other-input {
   min-width: 0;
   flex: 1;
 }
-
 
 .conflict-panel__candidates {
   display: grid;
@@ -1079,8 +1123,15 @@
 }
 
 .candidate-option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.candidate-option__body {
+  min-width: 0;
+  flex: 1;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
   gap: var(--space-2);
 }
 
@@ -1094,24 +1145,12 @@
 
 .candidate-option__value,
 .suggestion-card__value {
-  font-size: var(--text-lg);
   line-height: var(--leading-lg);
   font-weight: 500;
 }
 
-.candidate-option__sources,
-.candidate-option__note {
-  grid-column: 1;
-}
-
-.candidate-option > .button {
-  grid-column: 2;
-  grid-row: 1 / span 2;
-}
-
 .suggestion-card {
-  border: var(--rule-width) solid var(--hairline-strong);
-  background-color: var(--bg-raised);
+  border-color: var(--hairline-strong);
 }
 
 .suggestion-card__sources {
@@ -1120,9 +1159,6 @@
 
 .field-list {
   min-width: 0;
-  min-height: 0;
-  flex: 1;
-  overflow-y: auto;
 }
 
 .field-list__header {
@@ -1181,7 +1217,6 @@
 .field-row__value {
   grid-column: 1;
   overflow-wrap: anywhere;
-  line-height: var(--leading-lg);
   font-weight: 500;
 }
 
@@ -1218,8 +1253,10 @@
   background-color: currentColor;
 }
 
+.field-row__chips,
 .field-row__sources,
 .field-row__actions,
+.inline-editor__actions,
 .clarification__actions {
   display: flex;
   align-items: center;
@@ -1229,8 +1266,12 @@
 
 .field-row__sources,
 .field-row__agent-note,
+.field-row__resolution,
 .field-row__revision,
-.field-row__agent-original {
+.field-row__agent-original,
+.inline-editor__context,
+.inline-editor__hint,
+.inline-editor__error {
   margin: 0;
 }
 
@@ -1243,6 +1284,30 @@
 
 .field-list__verified-summary .button {
   margin-inline-start: auto;
+}
+
+/* Export 01: before the first tool call there is nothing to explain and
+   nothing to act on, so the eleven rows are one line each: a label column wide
+   enough for the longest field name, the value, the badge. The three columns
+   are the row's, not each label's, so the eleven dashes stand on one edge. */
+.field-row--bare {
+  grid-template-columns: minmax(0, 10.5rem) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-6);
+}
+
+.field-row--bare .field-row__label {
+  grid-column: 1;
+}
+
+.field-row--bare .field-row__value {
+  grid-column: 2;
+}
+
+.field-row--bare .field-row__badge {
+  grid-column: 3;
+  grid-row: 1;
+  align-self: center;
 }
 
 @keyframes field-arrival {
@@ -1269,6 +1334,12 @@
 }
 
 @media (width < 64rem) {
+  /* Export 04: one column, so the lane is the column's left edge. The margin
+     centres the measure instead of standing the chrome further out. */
+  :root {
+    --page-margin: max(28px, calc((100% - var(--narrow-content-max)) / 2));
+  }
+
   .header {
     min-height: auto;
     padding-block: var(--space-3);
@@ -1309,9 +1380,6 @@
     max-height: none;
   }
 
-  .change-log,
-  .change-log__header,
-  .change-log__entries,
   .confirm-footer,
   .workspace {
     width: 100%;
@@ -1320,9 +1388,6 @@
     margin-inline: auto;
   }
 
-  /* change-log keeps its own padding-inline: var(--page-margin) rules (base
-     .change-log, .change-log__header, .change-log__entries) so the bar and the
-     expanded sheet stay on the gutter lane; only these two zero it out. */
   .confirm-footer,
   .workspace {
     padding: 0;
@@ -1331,15 +1396,36 @@
   /* Collapsed bar: sentence above, the disclosure button on its own line below,
      left-aligned on the gutter lane. */
   .change-log__collapsed {
-    align-items: flex-start;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--space-2);
     padding-block: var(--space-3);
   }
 
-  /* The disclosure's label, not its pill, sits on the lane. */
+  /* The disclosure takes its own line, and its label, not its pill, sits on
+     the lane (export 16 at 390). */
   .change-log__collapsed > .button--text {
+    width: 100%;
+    justify-content: flex-start;
     margin-inline-start: calc(-1 * var(--space-3));
+  }
+
+  /* Export 14: the title and Close share the sheet header's first row, the
+     meta line follows under the title, the file actions under that. */
+  .change-log__header {
+    padding-block-start: var(--space-4);
+  }
+
+  .change-log__header h2 {
+    order: -1;
+  }
+
+  .change-log__header > .button--text {
+    margin-inline-start: auto;
+  }
+
+  .change-log__meta {
+    order: 1;
+    width: 100%;
   }
 
   .confirm-footer {
@@ -1366,12 +1452,18 @@
     flex-direction: column;
   }
 
-  .inline-editor__segment {
+  /* The input matches the segmented group's outer box, which is its options
+     plus the group's own two hairlines. */
+  .inline-editor__input {
+    min-height: calc(var(--control-large) + 2 * var(--rule-width));
+  }
+
+  /* The unit segments split the lane the input leaves; the zoom segments keep
+     their own width. Both reach the narrow target with their own box. */
+  .inline-editor .segmented__option {
     flex: 1;
   }
 
-  /* The zoom segments are a bar of their own: they keep their width and
-     reach the narrow target through height. */
   .segmented__option {
     min-height: var(--control-large);
   }
@@ -1420,7 +1512,10 @@
   font-size: var(--text-lg-mono);
 }
 
+.change-log__meta,
 .drawing-sheet__zoom-label,
+.inline-editor__label,
+.field-row__chip,
 .field-row__revision,
 .field-row__agent-original,
 .confirm-summary__line {
@@ -1433,10 +1528,21 @@
   font-weight: 500;
 }
 
+/* A searched place is a quiet chip: it names where the agent looked and,
+   unlike a source ref, it goes nowhere. */
+.field-row__chip {
+  padding-inline: var(--space-1);
+  color: var(--ink-secondary);
+  background-color: var(--bg-subtle);
+  border-radius: var(--radius-1);
+}
+
 .replay-controls,
 .replay-controls__text,
 .replay-controls__actions,
-.change-log__file-actions {
+.change-log__file-actions,
+.drawing-sheet__zoom,
+.not-required-picker__other {
   display: flex;
   align-items: center;
   gap: var(--space-2);
@@ -1457,6 +1563,26 @@
   color: var(--ink-secondary);
 }
 
+/* The slot holds the width of the three-button set (Play, Next step, Restart),
+   so moving between states never shifts the controls sideways. */
+.replay-controls__actions {
+  justify-content: flex-end;
+  min-width: calc(15 * var(--space-4));
+}
+
+/* Under the 680px column there is no room for the set beside the line, so the
+   row stacks and the slot gives its width back. */
+@media (width < 37.5rem) {
+  .replay-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .replay-controls__actions {
+    min-width: 0;
+  }
+}
+
 .replay-controls .numeric {
   white-space: nowrap;
 }
@@ -1475,29 +1601,22 @@
   line-height: var(--leading-md);
 }
 
-.change-log__entry--collapsed .change-log__sentence {
+/* One line, cut with an ellipsis: the collapsed log sentence and the roll of
+   verified field names. The full text lives in what they expand into. */
+.change-log__entry--collapsed .change-log__sentence,
+.field-list__verified-names {
   min-width: 0;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.change-log__clip {
-  display: block;
-  max-height: var(--leading-md);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.change-log__entry--collapsed .change-log__time,
-.change-log__collapsed > .button {
+.change-log__time,
+.change-log__collapsed > .button,
+.change-log__label,
+.field-list__verified-count,
+.field-list__verified-summary .button {
   flex: none;
-}
-
-.change-log__header {
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  padding-block: var(--space-2);
 }
 
 .change-log__file-actions {
@@ -1516,43 +1635,21 @@
 }
 
 @media (max-width: 1023px) {
-  .replay-controls {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .replay-controls__actions {
-    flex-wrap: wrap;
+  /* The controls stay beside the row text at every width; only the next-step
+     phrase drops to its own line under it. */
+  .replay-controls__next {
+    width: 100%;
   }
 
   .replay-controls .button--secondary {
     width: auto;
   }
 
-  .change-log__entry--collapsed {
-    width: 100%;
-    flex: none;
-  }
-
-  .change-log__header {
-    display: flex;
-  }
-
   .change-log__file-actions {
-    order: 1;
+    order: 2;
     width: 100%;
     margin-inline-start: 0;
   }
 }
 
-@media (max-width: 1023px) {
-  .status-strip:has(.replay-controls) .status-strip__line {
-    display: contents;
-  }
-  .status-strip__export-slot {
-    order: 2;
-  }
-  .status-strip__export-slot .button {
-    width: auto;
-  }
-}
+

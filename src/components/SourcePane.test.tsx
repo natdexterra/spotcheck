@@ -185,3 +185,22 @@ describe('source documents', () => {
     expect(screen.queryByText(/Sheet \d/)).toBeNull();
   });
 });
+
+test('the unsent marker stands before the tab name, not after it', () => {
+  const initial = createInitialState();
+  const drafted: ReviewSession = {
+    ...initial,
+    fields: initial.fields.map(item => item.id === 'general_tolerance'
+      ? { ...item, state: 'missing' as const, searched: { searched: ['drawing'] } }
+      : item),
+    draft: { subject: 'Two questions', body: 'Please confirm.', covers: ['general_tolerance'] },
+  };
+  act(() => replaceState(drafted));
+  render(<SourcePane onFocusField={vi.fn()} />);
+
+  const tab = screen.getByRole('tab', { name: /Clarification/ });
+  const dot = tab.querySelector('.source-pane__draft-dot')!;
+  // Exports 07 and 13: the dot leads the name.
+  expect(dot.compareDocumentPosition(tab.lastChild!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  expect(dot.previousSibling).toBeNull();
+});

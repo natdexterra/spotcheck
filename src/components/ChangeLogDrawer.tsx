@@ -3,7 +3,7 @@ import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
-import { fieldLabel } from '../lib/format';
+import { clockTime, displayValue, fieldLabel, NO_VALUE, plural } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -24,11 +24,6 @@ const APP_NOTES = [
 const APP_NOTE_PREFIXES = ['Agent reported ', 'Auto-dismissed suggestion: ', 'Skipped fixture step:'];
 const agentAuthored = (note: string): boolean =>
   !APP_NOTES.includes(note) && !APP_NOTE_PREFIXES.some(prefix => note.startsWith(prefix));
-
-const clockTime = (at: number) => {
-  const date = new Date(at);
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-};
 
 const actionInput = (entry: LogEntry): Record<string, unknown> => {
   if (entry.event.actor !== 'agent') return {};
@@ -51,9 +46,9 @@ const agentSentence = (entry: LogEntry) => {
   const action = entry.event.action;
   if (action.type === 'read') return describeRead(action.operation ?? 'list', action.input, true);
   if (entry.result?.ok === false) {
-    return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected — ${String(entry.result.code ?? 'ERROR')}`;
+    return `Agent ${action.type === 'propose' ? 'proposal' : 'report'} for ${fieldName(entry)} was rejected: ${String(entry.result.code ?? 'ERROR')}`;
   }
-  if (action.type === 'propose') return `Agent proposed ${fieldName(entry)} — ${String(actionInput(entry).value ?? '')}`;
+  if (action.type === 'propose') return `Agent proposed ${fieldName(entry)}: ${String(actionInput(entry).value ?? '')}`;
   if (action.type === 'report_conflict') return `Agent reported a conflict on ${fieldName(entry)}`;
   if (action.type === 'report_missing') return `Agent reported ${fieldName(entry)} missing`;
   return 'Agent opened the clarification draft';
@@ -66,11 +61,14 @@ const humanSentence = (entry: LogEntry, fields: Field[]) => {
   const name = fieldName(entry);
   const field = fields.find(item => item.id === entryFieldId(entry));
   if (action.type === 'verify') return `You verified ${name}`;
-  if (action.type === 'edit') return `You edited ${name} — agent ${field?.proposal?.value ?? '—'} → yours ${action.value ?? '—'}`;
+  if (action.type === 'edit') {
+    const was = displayValue(field?.proposal?.value ?? null, field?.proposal?.unit);
+    return `You edited ${name}: agent ${was} → yours ${displayValue(action.value ?? null, action.unit)}`;
+  }
   if (action.type === 'edit_start') return `You started editing ${name}`;
-  if (action.type === 'enter') return `You entered ${name} — ${action.value ?? '—'}`;
-  if (action.type === 'pick') return `You picked ${name} — ${field?.value ?? '—'}`;
-  if (action.type === 'dismiss') return `You marked ${name} not required — ${action.reason ?? ''}`;
+  if (action.type === 'enter') return `You entered ${name}: ${action.value ?? NO_VALUE}`;
+  if (action.type === 'pick') return `You picked ${name}: ${field?.value ?? NO_VALUE}`;
+  if (action.type === 'dismiss') return `You marked ${name} not required: ${action.reason ?? ''}`;
   if (action.type === 'apply') return `You applied the agent suggestion to ${name}`;
   if (action.type === 'dismiss_suggestion') return `You dismissed the agent suggestion for ${name}`;
   if (action.type === 'ask_customer') return `You asked the customer about ${name}`;
@@ -85,7 +83,10 @@ export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
 export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry; fields: Field[]; collapsed?: boolean }) => (
   <div className={`change-log__entry${collapsed ? ' change-log__entry--collapsed' : ''}`}>
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
-    <span className="change-log__sentence">{collapsed ? <span className="change-log__clip">{formatLogEntry(entry, fields)}</span> : formatLogEntry(entry, fields)}</span>
+    {/* Expanded, the time is a column of its own and needs no separator; on the
+        collapsed bar the two run as one line (exports 02, 16). */}
+    {collapsed ? <span aria-hidden="true">·</span> : null}
+    <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
     {!collapsed && entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
       <span className="change-log__agent-note" key={note}>
         {agentAuthored(note) ? `Agent: ${note}` : note}
@@ -136,9 +137,19 @@ export const ChangeLogDrawer = () => {
     >
       {!expanded ? (
         <div className="change-log__collapsed">
+          {/* Exports 01, 02, 16: the bar is named at the left and counted at
+              the right, and the last entry fills whatever is left between. */}
+          <span className="change-log__label">Change log</span>
           {latest ? <LogLine collapsed entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
-          <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
-            Show change log
+          <Button
+            aria-controls="change-log"
+            aria-expanded="false"
+            aria-label={`Show change log, ${plural(log.length, 'entry', 'entries')}`}
+            onClick={() => setExpanded(true)}
+            ref={disclosureRef}
+            variant="text"
+          >
+            {plural(log.length, 'entry', 'entries')}
             <ChevronDownIcon />
           </Button>
         </div>
@@ -152,6 +163,7 @@ export const ChangeLogDrawer = () => {
         >
           <header className="change-log__header">
             <h2 id="change-log-title">Change log</h2>
+            <p className="change-log__meta">{plural(log.length, 'entry', 'entries')} · agent and you</p>
             <div className="change-log__file-actions">
               {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
               <ExportSessionButton />
@@ -162,11 +174,11 @@ export const ChangeLogDrawer = () => {
                     the focus ring (.session-import:has(input:focus-visible)).
                     The visible button only forwards a pointer click, so it
                     stays out of the tab order and out of the accessibility
-                    tree — otherwise "Import session" would name two controls. */}
+                    tree; otherwise "Import session" would name two controls. */}
                 <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
               </div>
             </div>
-            <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
+            <Button aria-controls="change-log" aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
           {error && <p className="session-error change-log__error"><OpposingArrowsIcon />{error}</p>}
           {log.length ? (

@@ -45,7 +45,6 @@ textarea {
 /* A box its container clips — a segment in the group's rounded box, the sheet's
    scroll region in the tab panel — loses an outward ring, so the same 2px
    accent ring is drawn inside the box instead. */
-.inline-editor__segment:has(input:focus-visible),
 .segmented__option:has(input:focus-visible),
 .drawing-sheet__scroll:focus-visible {
   outline: var(--ring-width) solid var(--accent);
