@@ -83,6 +83,9 @@ export const formatLogEntry = (entry: LogEntry, fields: Field[]) =>
 export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry; fields: Field[]; collapsed?: boolean }) => (
   <div className={`change-log__entry${collapsed ? ' change-log__entry--collapsed' : ''}`}>
     <time className="change-log__time" dateTime={new Date(entry.at).toISOString()}>{clockTime(entry.at)}</time>
+    {/* Expanded, the time is a column of its own and needs no separator; on the
+        collapsed bar the two run as one line (exports 02, 16). */}
+    {collapsed ? <span aria-hidden="true">·</span> : null}
     <span className="change-log__sentence">{formatLogEntry(entry, fields)}</span>
     {!collapsed && entry.notes?.filter(note => !note.startsWith('Skipped fixture step:')).map(note => (
       <span className="change-log__agent-note" key={note}>
@@ -138,7 +141,14 @@ export const ChangeLogDrawer = () => {
               the right, and the last entry fills whatever is left between. */}
           <span className="change-log__label">Change log</span>
           {latest ? <LogLine collapsed entry={latest} fields={state.fields} /> : <p className="change-log__empty">No activity yet</p>}
-          <Button aria-expanded="false" onClick={() => setExpanded(true)} ref={disclosureRef} variant="text">
+          <Button
+            aria-controls="change-log"
+            aria-expanded="false"
+            aria-label={`Show change log, ${plural(log.length, 'entry', 'entries')}`}
+            onClick={() => setExpanded(true)}
+            ref={disclosureRef}
+            variant="text"
+          >
             {plural(log.length, 'entry', 'entries')}
             <ChevronDownIcon />
           </Button>
@@ -168,7 +178,7 @@ export const ChangeLogDrawer = () => {
                 <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
               </div>
             </div>
-            <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
+            <Button aria-controls="change-log" aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
           </header>
           {error && <p className="session-error change-log__error"><OpposingArrowsIcon />{error}</p>}
           {log.length ? (

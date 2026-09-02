@@ -298,6 +298,10 @@ describe('the verified group header', () => {
     expect(names).toHaveTextContent('Customer RFQ ref · Part · Quantity');
     const disclosure = screen.getByRole('button', { name: 'Show' });
     expect(disclosure.querySelector('svg')).not.toBeNull();
+    // The disclosure names the region it opens, and the region is there to be
+    // named whether it holds rows or not.
+    expect(disclosure).toHaveAttribute('aria-controls', 'verified-fields');
+    expect(document.getElementById('verified-fields')).not.toBeNull();
   });
 });
 
