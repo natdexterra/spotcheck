@@ -9,3 +9,5 @@ The work queue for this repo. One file per task; this table mirrors the `Status:
 | P1 | Reducer, WebMCP tool layer, fixture replay | done — 2026-08-31 | [#2](https://github.com/natdexterra/spotcheck/pull/2) |
 | P1.1 | Core follow-up: dataset titles, replay coverage, persistence guard | done — 2026-09-01 | [#3](https://github.com/natdexterra/spotcheck/pull/3) |
 | P2 | Review UI: two panes, provenance, resolutions | done — 2026-09-01 | #4 |
+| P3 | Replay controls, session export and import, replay summary | queued | — |
+| P4 | Drawing zoom | queued | — |

@@ -106,7 +106,7 @@ Hard rules that follow:
 
 ## Typography — cap-height model, Geist + Geist Mono
 
-Dense data-UI physics: sizes target *observable cap-height* — the rendered height of capital letters — on a rem grid (values computed with Capsize), line-heights land on even pixel integers at the default root, and Sans + Mono come from one family, Geist + Geist Mono, whose matched vertical metrics let a single size token serve both. Both faces are OFL, self-hosted as woff2 under `public/fonts/` — the CSP allows no third-party origins. Fallback stacks end in `system-ui` / `ui-monospace` so OS-level accessibility fonts can cascade through; a Capsize `createFontStack` metric-matched fallback (`Geist Fallback`) prevents layout shift. `font-display: swap`; preload the sans woff2 with `crossorigin`.
+Dense data-UI physics: sizes target *observable cap-height* — the rendered height of capital letters — on a rem grid (values computed with Capsize), line-heights land on even pixel integers at the default root, and Sans + Mono come from one family, Geist + Geist Mono, whose matched vertical metrics let one size token serve both for single tokens (chips, counts, timestamps, ids). A *run* of mono text beside `lg` sans reads a step larger than the sans, because Geist Mono's advance width is wider; runs take the mono companion size below. Both faces are OFL, self-hosted as woff2 under `public/fonts/` — the CSP allows no third-party origins. Fallback stacks end in `system-ui` / `ui-monospace` so OS-level accessibility fonts can cascade through; a Capsize `createFontStack` metric-matched fallback (`Geist Fallback`) prevents layout shift. `font-display: swap`; preload the sans woff2 with `crossorigin`.
 
 | Token | Cap-height | font-size | line-height | Use |
 |---|---|---|---|---|
@@ -115,6 +115,7 @@ Dense data-UI physics: sizes target *observable cap-height* — the rendered hei
 | `--text-md` | 10 px | `0.936rem` | `--leading-md: 1rem`; loose `1.25rem` | field labels, buttons, actions, log entries |
 | `--text-lg` | 12 px | `1.122rem` | `--leading-lg: 1.25rem`; loose `1.5rem` | **default body**: field values, document text |
 | `--text-xl` | 16 px | `1.497rem` | `--leading-xl: 2rem` | pane titles, confirm summary title |
+| `--text-lg-mono` | 11 px | `1.029rem` | `--leading-lg` / loose, unchanged | **mono runs beside `lg` sans**: field values, candidate values, suggestion-card values, the "was:" line, the drawing caption, summary lines — never chips, counts or timestamps |
 
 Rules the builder must not trade away:
 
@@ -156,6 +157,7 @@ Rules the builder must not trade away:
 - **Scroll model.** Desktop: the page does not scroll. The workspace takes the viewport height left under the header and strip (`min-height: 0` on the grid row), and each pane scrolls on its own (`overflow-y: auto`, padding on the scrolling element so the scrollbar sits at the pane edge). The reviewer keeps their row in view while a provenance click scrolls the source pane; the field-pane footer sits at the pane's bottom edge as the last flex child — no `position: sticky`, nothing from the list ever renders under it. The log drawer is a fixed-height bar under the workspace; expanded, it scrolls inside itself. Narrow: the page scrolls as one column, the confirm footer is sticky at the viewport bottom, an open sheet locks body scroll.
 - The page never scrolls horizontally at 320 CSS px; anything wide scrolls inside its own wrapper (WCAG 1.4.10).
 - Labels never wrap: a button, tab, chip or badge is `white-space: nowrap`; when a bar runs out of room its items stack (the log bar on narrow: sentence above, the disclosure button below, left-aligned), they do not squeeze.
+- A collapsed bar shows one line: the collapsed change log's sentence is a single line with an ellipsis (`white-space: nowrap; overflow: hidden; text-overflow: ellipsis` in a `min-width: 0` item) at every width; the full sentence lives in the expanded log. A bar that grows with its content is a defect.
 - Hit targets: ≥ 24×24 CSS px everywhere (WCAG 2.5.8), ≥ 44px on the narrow layout. Dense text buttons reach it with padding (`min-height: 1.5rem` desktop, `2.75rem` narrow), not with larger type.
 
 ## State iconography
