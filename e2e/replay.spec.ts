@@ -50,7 +50,7 @@ test.afterEach(async ({ page }) => {
   expect((page as Page & { replayProblems: string[] }).replayProblems).toEqual([]);
 });
 
-test('B1 controls advance, pause, step, restart and confirm; live strip exports', async ({ page }) => {
+test('B1 controls advance, pause, step, leave and confirm; live strip exports', async ({ page }) => {
   await removeModelContext(page);
   await page.goto('/'); await start(page);
   await page.clock.runFor(3000);
@@ -67,11 +67,15 @@ test('B1 controls advance, pause, step, restart and confirm; live strip exports'
   const exported = await download(page, '.change-log');
   expect(exported.data.steps.length).toBeGreaterThan(0);
   await page.getByRole('button', { name: 'Close' }).click();
-  await replay(page).getByRole('button', { name: 'Restart' }).click();
-  await expect(counter(page)).toHaveText(`0 of ${total}`);
+  // Leaving hands back a page that came to the replay empty: first load again,
+  // with the focus on the control that starts it over.
+  await replay(page).getByRole('button', { name: 'Leave sample' }).click();
+  await expect(replay(page)).toHaveCount(0);
   await expect(page.locator('.field-row__badge')).toHaveCount(11);
   await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
-  await expect(replay(page).getByRole('button', { name: 'Play', exact: true })).toBeFocused();
+  await expect(page.locator('.change-log')).toContainText('No activity yet');
+  await expect(page.getByRole('button', { name: 'Play sample session', exact: true })).toBeFocused();
+  await start(page);
   await finish(page);
   await expect(replay(page)).toContainText(`finished · ${total} steps`);
   await expect(replay(page).getByRole('button')).toHaveCount(1);
@@ -184,7 +188,7 @@ for (const width of [1920, 820, 390]) {
       }
     };
     await start(page); await page.clock.runFor(3000);
-    await expect(replay(page).getByRole('button')).toHaveCount(1);
+    await expect(replay(page).getByRole('button')).toHaveCount(2);
     await capture('playing');
     await replay(page).getByRole('button', { name: 'Pause' }).click();
     await expect(replay(page).getByRole('button')).toHaveCount(3);

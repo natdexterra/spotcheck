@@ -11,7 +11,7 @@ Exports of the approved screens and state sheets, at 1x. `DESIGN.md` is the sour
 | 08 | Confirm summary |
 | 09 | Status strip states |
 | 10 | Buttons and links, all interaction states |
-| 11 | Field row states and resolutions |
+| 11 | Field row states and resolutions. The export omits the agent's rationale line and the searched chips on a settled row; the rule in `DESIGN.md` wins, and production keeps them |
 | 12 | Inline editor and the not-required picker |
 | 13 | Narrow: source sheet over the field list |
 | 14 | Narrow: change log sheet |

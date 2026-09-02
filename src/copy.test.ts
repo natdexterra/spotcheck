@@ -17,6 +17,9 @@ const SOURCE_ROOT = fileURLToPath(new URL('.', import.meta.url));
    The one sanctioned dash is the empty-value placeholder of a field row and a
    summary line, declared once in `lib/format.ts` and referenced everywhere
    else, so the character appears in exactly one place in the tree. */
+/* The split between app-authored strings and content rendered verbatim is
+   written down in DESIGN.md, § State iconography, "String sources"; this list
+   is its code side and moves with it. */
 const EXEMPT = ['webmcp-tools.ts'];
 
 const DASHES = /[–—]/;

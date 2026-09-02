@@ -78,6 +78,23 @@ Every interactive class has all five states; transitions run at `--dur-1` (120ms
 
 The rule behind the split: an underline means *this takes you somewhere*; its absence means *this acts here*. Text buttons therefore never carry an underline, and links always do. Focus for every class is the global ring (see Focus and keyboard). Disclosure text buttons carry a chevron-down icon (16px, from the icon set — never a text caret). A toggle text button (Ask customer) shows its on state with a leading checked-box icon and the label in `--ink` at weight 500, `aria-pressed` set; no pill — the pill is the hover and active treatment and cannot double as a state. Borders belong to inputs only (`--border-input`); buttons are told apart by fill, never by outline. Inputs carry a visible label above them and no placeholder text; a hint is a separate muted line, never text inside the field. A choice control beside an input (the unit `in | mm` segments) matches the input's height exactly.
 
+**Absent states.** A component that can be hidden, or that hides part of itself, does it in one of three ways, and the state sheet has to say which: the `hidden` attribute under the global guard in `AGENTS.md` (`[hidden] { display: none !important }`), conditional rendering, or a modifier class. What disappears where:
+
+| Component | Mechanism | Absent where |
+|---|---|---|
+| Source-pane panels | `hidden` attribute, under the guard | every panel but the active tab's; the whole pane after confirm |
+| Spec and Drawing tabs and their panels | conditional rendering | a package that holds no specification, or no drawing; no drawing sheet renders behind the Email or Spec tab |
+| Clarification tab | conditional rendering | while no draft exists and none was sent |
+| Open inline editor | conditional rendering inside the row | the row's value line, provenance links, rationale, "was:" line, agent-original line and action row are gone while it is open |
+| Status strip export slot | removed in P3.1 | every state; `Export session` lives in the expanded log and in the confirm summary |
+| Status strip own-package button | conditional rendering | in `live` and `confirmed`, and on one column in `no-api`, where it stands in the change-log sheet header instead |
+| Group heading | conditional rendering | while one group is open |
+| Replay row | conditional rendering | while no replay is attached |
+| Sheets (source, change log) | conditional rendering | closed |
+| Dialog | the element's own state | closed, where the element renders nothing |
+
+After any change to a panel, sheet, drawer or dialog, the evidence covers the states where it must be absent, not only the states where it shows.
+
 ### Choice controls
 
 Radios, checkboxes and the segmented unit control are the app's own drawing, not the browser's: the native `<input>` stays in the DOM for semantics and keyboard (`appearance: none`; no custom roles), and the visible control is drawn on it with tokens. One drawing, reused wherever a choice appears — the not-required picker, the Clarification covers, the unit `in | mm` control, the Ask customer on-state icon.
@@ -169,6 +186,7 @@ Rules the builder must not trade away:
   | pane gap | 24 |
   | page margin | one token `--page-margin` (the layout ladder: 80 → 28). Below 1024 it resolves to the centred column's left edge (70 at 820), so header, strip and log bar stand on the column's lane |
 
+- A group heading appears only while the field list holds more than one group: it tells one group from the next, and with one group there is no next. The first load is therefore eleven bare rows under the pane header (export 01).
 - **Two vertical lanes.** Header, status strip, workspace and log drawer all take their inline padding from `--page-margin`; content inside a pane sits on the pane-gutter lane (margin + 24). Every left edge on the screen lands on one of these two lines — an edge on neither is a defect. The 3px state marker is compensated (row inline padding 21 = 24 − 3) so row content stays on the gutter lane; that is the one sanctioned off-scale number, by construction.
 - **Layout ladder (desktop).** The reference viewport is 1920×1080; the workspace is two white panes on the canvas, gap `--space-6`, side margins `padding-inline: max(28px, calc((100% - 1760px) / 2))` — 80px at 1920, shrinking first.
   1. 1920 → ~1400: margins give way (80 → 28); the source pane absorbs the rest; the field pane holds 640px.
@@ -204,6 +222,15 @@ Every state and resolution renders icon + text label — color is never the only
 **Two wordings, one icon set.** The label column above is the *short label*: it names the state in group headings, counts, the blocker line, the confirm summary, announcements and the badge's `aria-label`. The badge in a field row carries the *human wording* instead, with the same icon: `empty` "Not extracted" · `needs_review` "Needs review", or "Unit missing" when a unit-bearing field has no unit, or "Revised by agent" after the agent revised its own proposal · `conflict` "Two sources disagree" · `missing` "Not found" · verified by kind "Verified by you · 0:42 ago", "Edited by you · …", "Entered by you · …", "Picked by you · …", "Applied by you · …", "Not required · …", "Awaiting customer · …". The wording is for the person reading the row; the short label is for everything that counts, lists or announces.
 
 **Copy grammar, load-bearing.** A badge is a status: a noun phrase or a past participle with its actor ("Needs review", "Edited by you"), never an imperative — "Check it" is a button, not a state. A button is a verb ("Verify", "Mark not required", "Enter value"); a status phrase on a button is a defect. Agent text is reported speech behind "Agent:". Log entries are sentences with the actor first, sentence case: "You edited Quantity: agent 800 → yours 750", "Agent opened the clarification draft". Neither wording ever comes from the state name of a `verified` field.
+
+**Settled rows keep their evidence.** A row in `verified`, whatever its resolution, keeps the `Agent: {rationale}` line and the searched chips it carried before it was settled: the evidence behind a decision stays visible after the decision. Export 11 omits them; the rule wins, and `docs/design/README.md` notes it on that row.
+
+**String sources.** Two kinds of text share the screen and only one of them is the app's.
+
+- *App-authored*, and bound by every copy rule above: labels, badges, buttons, hints, captions, log sentences, strip lines, announcements, `aria-label`s, the document and section titles in `list_rfq_documents`, and the app's own error messages. No em or en dash, middle-dot separators, plurals counted.
+- *Content, rendered verbatim*: document text from `data/` and from a package a person opened, the agent's rationale and notes, the clarification draft, and anything a person typed. It reaches the DOM as a text node and is never typographically "improved" — an apostrophe in a customer's email stays the character they sent.
+
+`src/copy.test.ts` sweeps the first kind and excludes the second by path; its exclusion list mirrors this paragraph, and a comment there points back to it.
 
 **Dot or icon.** In a field row the badge of an agent state (`empty`, `needs_review`, `conflict`, `missing`, and a reopened row) is an 8px dot in the state color plus the human wording; the badge of a `verified` row replaces the dot with the resolution icon from the table, because seven resolutions must be told apart and the null-value kinds must not read as a check. The agent-state icons from the table appear where the short label appears: group headings, the blocker line, the confirm summary. One icon set, two placements.
 
