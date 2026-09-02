@@ -68,6 +68,9 @@ describe('the dialog’s form', () => {
       'Nothing leaves this page on its own. Your agent receives what it reads through the page’s tools, ' +
       'one section at a time, and every read is logged',
     );
+    // The sentence carries itself; a padlock in front of it would decorate a
+    // claim about where data goes, which is the one place decoration misleads.
+    expect(privacy?.querySelector('svg')).toBeNull();
   });
 
   test('the sample is offered only while a package a person opened is in front of them', () => {

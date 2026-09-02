@@ -1803,10 +1803,9 @@
   text-overflow: ellipsis;
 }
 
+/* Plain text on the footer's own lane, so its left edge is the actions' left
+   edge under it. */
 .dialog__privacy {
-  display: flex;
-  align-items: start;
-  gap: var(--space-1);
   margin: 0;
 }
 
