@@ -34,7 +34,7 @@ export function createReplay(source: Fixture = sampleSession) {
   let finishedByViewer = false;
   const listeners = new Set<() => void>();
   const notify = () => listeners.forEach(listener => listener());
-  const firstWrite = fixture.steps.find(step => step.actor === 'agent' && !['list_rfq_documents', 'read_document', 'get_review_state'].includes(step.call.tool));
+  const firstWrite = fixture.steps.find(step => step.actor === 'agent' && ['propose_field', 'report_conflict', 'report_missing'].includes(step.call.tool));
   const last = fixture.steps.find(step => step.actor === 'estimator' && step.action.type === 'confirm') ?? fixture.steps.at(-1);
   const recordedMs = firstWrite && last ? Math.max(0, last.at - firstWrite.at) : 0;
   let generation = 0;

@@ -9,10 +9,11 @@ test('end exposes fixture total and recorded duration and keeps persistence susp
   const persistence = await startPersistence(storage);
   const replay = createReplay({ recorded_at: '2026-09-01', steps: [
     { actor: 'agent', at: 100, call: { tool: 'list_rfq_documents', input: {} } },
+    { actor: 'agent', at: 200, call: { tool: 'draft_clarification', input: { subject: 'Question', body: 'Please clarify', covers: [] } } },
     { actor: 'agent', at: 500, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
     { actor: 'estimator', at: 2500, action: { type: 'verify', field_id: 'material' } },
   ] });
-  expect(replay.total).toBe(3);
+  expect(replay.total).toBe(4);
   expect(replay.ended).toBe(false);
   expect(replay.recordedMs).toBe(2000);
   while (await replay.next()) { /* finish */ }
@@ -59,7 +60,7 @@ test('viewer confirmation ends replay; fixture confirmation does not count as vi
   replay.restart();
   while (await replay.next()) { /* fixture confirmation */ }
   expect(replay.finishedByViewer).toBe(false);
-  const firstWrite = sampleSession.steps.find(step => step.actor === 'agent' && !['list_rfq_documents', 'read_document', 'get_review_state'].includes(step.call.tool))!;
+  const firstWrite = sampleSession.steps.find(step => step.actor === 'agent' && ['propose_field', 'report_conflict', 'report_missing'].includes(step.call.tool))!;
   expect(replay.recordedMs).toBe(sampleSession.steps[confirmIndex]!.at - firstWrite.at);
   replay.dispose();
 });
