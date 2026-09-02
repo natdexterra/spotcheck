@@ -354,12 +354,21 @@ test('Start over during a live session asks first, and clears the page on the se
 
   await confirm.getByRole('button', { name: 'Cancel' }).click();
   await expect(page.locator('[data-field-id="part_name"]')).toContainText('KVM mount bracket');
+  await expect(startOver).toBeFocused();
+
+  await startOver.click();
+  await page.keyboard.press('Escape');
+  await expect(confirm).toBeHidden();
+  await expect(startOver).toBeFocused();
 
   await startOver.click();
   await confirm.getByRole('button', { name: 'Start over' }).click();
   await expect(page.locator('.field-row__badge').filter({ hasText: 'Not extracted' })).toHaveCount(11);
   await expect(page.locator('.change-log')).toContainText('No activity yet');
   await expect(page.locator('.live-region')).toContainText('Review cleared');
+  // The button that was pressed is gone with the log it stood in, so the
+  // keyboard lands on what the page now offers.
+  await expect(page.getByRole('button', { name: 'Play sample session' })).toBeFocused();
 });
 
 test('the first load carries no group heading, and the first proposal brings two', async ({ page }) => {

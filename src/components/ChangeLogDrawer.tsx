@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useOpenPackageLabel } from '../hooks/usePackage';
 import { useReview } from '../hooks/useReview';
@@ -110,6 +110,7 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
   const [error, setError] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
   const disclosureRef = useRef<HTMLButtonElement>(null);
+  const cleared = useRef(false);
   const sheetRef = useRef<HTMLDivElement>(null);
   const narrow = useNarrowLayout();
   const openPackageLabel = useOpenPackageLabel();
@@ -133,6 +134,17 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
     setExpanded(false);
     requestAnimationFrame(() => disclosureRef.current?.focus());
   };
+
+  /* Starting over empties the page, so the button that was pressed and the log
+     that held it are both gone by the time the dialog closes. Focus goes where
+     the page now offers something to do: the strip's own first action, which on
+     a first-load page is Play sample session. The move waits for the dialog's
+     own close, which runs in the child's effect before this one. */
+  useEffect(() => {
+    if (!cleared.current || log.length > 0) return;
+    cleared.current = false;
+    document.querySelector<HTMLElement>('.status-strip__actions button')?.focus();
+  }, [log.length]);
 
   // Narrow only: the expanded log is a full-height sheet over the page, so it
   // owns focus while it is open. On desktop it expands in place inside the bar.
@@ -214,7 +226,13 @@ export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) =>
         confirmLabel="Start over"
         message={`This discards ${plural(log.length, 'entry', 'entries')} and every value on the page.`}
         onCancel={() => setStartOverOpen(false)}
-        onConfirm={() => { setStartOverOpen(false); clearReview(); announce('Review cleared'); }}
+        onConfirm={() => {
+          setStartOverOpen(false);
+          setExpanded(false);
+          cleared.current = true;
+          clearReview();
+          announce('Review cleared');
+        }}
         open={startOverOpen}
         title="Start over?"
       />
