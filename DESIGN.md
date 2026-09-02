@@ -81,8 +81,8 @@ Radios, checkboxes and the segmented unit control are the app's own drawing, not
 
 | Control | Box | Checked | Label |
 |---|---|---|---|
-| Radio | 16×16 circle, 1px `--border-input`, `--bg-raised` fill | 1.5px `--accent` ring, 6px `--accent` dot centered | md, `--ink`, 8px from the box; the whole row is the click target |
-| Checkbox | 16×16, `--radius-1`, 1px `--border-input`, `--bg-raised` fill | `--ink` fill, no border, the 12px check from the icon set in `--bg-raised` | same |
+| Radio | 16×16 circle, 1px `--border-input`, `--bg-raised` fill | `--accent-strong` fill and border, 8px `--bg-raised` dot centered | md, `--ink`, 8px from the box; the whole row is the click target |
+| Checkbox | 16×16, `--radius-1`, 1px `--border-input`, `--bg-raised` fill | `--accent-strong` fill and border, the 12px check from the icon set in `--bg-raised` | same |
 | Segmented (unit `in` \| `mm`) | radio group in one `--border-input` box, `--radius-2`; each segment the input's height, padding 0 16, `--hairline-strong` separator | `--bg-subtle` fill, `--ink` mono 500 (unchecked: `--bg-raised`, `--ink-secondary` mono) | none on the segments; the group carries the visible micro-label |
 
 Picker rows sit 4px apart on a 32px line (44px on narrow through padding, never larger boxes). Hover: border `--ink-secondary`. Focus: the global ring on the box. Disabled: `--ink-faint` border and label. A choice control never carries a state color — accent here means *chosen*, the same meaning it has on links and markers. The Ask customer toggle's leading icon is this checked checkbox at 16px.
