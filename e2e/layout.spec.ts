@@ -380,3 +380,44 @@ test('the provenance highlight is inset from the text it marks', async ({ page }
   const after = (await region.boundingBox())!;
   expect(after.x).toBeCloseTo(before.x, 0);
 });
+
+// The editor replaces the value line inside the row (export 12): the row keeps
+// its marker, label, lock and badge, and everything about the old value goes.
+for (const width of [1920, 390]) {
+  test(`${width}px opens the editor in the row's own lane, one control height`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 1000 });
+    await installModelContext(page);
+    await page.goto('/');
+    await executeTool(page, 'propose_field', {
+      field_id: 'overall_dimensions', value: '20.000 × 14.500', source_refs: ['drawing:width'],
+      rationale: 'read from the drawing title block',
+    });
+
+    const row = page.locator('[data-field-id="overall_dimensions"]');
+    await expect(row.locator('.field-row__value')).toBeVisible();
+    await row.getByRole('button', { name: 'Add unit' }).click();
+    await page.evaluate(() => document.fonts.ready);
+
+    // Nothing about the closed row's value survives the editor.
+    await expect(row.locator('.field-row__value')).toHaveCount(0);
+    await expect(row.locator('.field-row__sources')).toHaveCount(0);
+    await expect(row.locator('.field-row__agent-note')).toHaveCount(0);
+    await expect(row.locator('.field-row__actions')).toHaveCount(0);
+    await expect(row.locator('.field-row__label')).toBeVisible();
+    await expect(row.locator('.field-row__badge')).toContainText('Unit missing');
+    await expect(row.locator('.inline-editor__context')).toContainText('no unit given');
+
+    const input = (await row.locator('.inline-editor__input').boundingBox())!;
+    const unit = (await row.locator('.segmented').boundingBox())!;
+    expect(Math.abs(input.height - unit.height)).toBeLessThanOrEqual(1);
+    if (width >= 1024) {
+      expect(Math.abs(input.y - unit.y)).toBeLessThanOrEqual(1);
+      expect(Math.abs((input.y + input.height) - (unit.y + unit.height))).toBeLessThanOrEqual(1);
+      expect(Math.round(input.height)).toBe(42);
+    }
+    // The editor stands in the row's content lane, not in a card of its own.
+    const lane = (await row.locator('.field-row__label').boundingBox())!;
+    expect(Math.abs((await row.locator('.inline-editor').boundingBox())!.x - lane.x)).toBeLessThanOrEqual(1);
+    expect(await row.locator('.inline-editor').evaluate(element => getComputedStyle(element).borderTopWidth)).toBe('0px');
+  });
+}

@@ -162,15 +162,15 @@ test('saved live proposals survive sample reload and Start over restores them wi
   await expect(page.locator('[data-field-id="part_name"]')).toContainText('Live part');
 });
 
-for (const width of [1920, 1366, 390]) {
+for (const width of [1920, 820, 390]) {
   test(`${width}px replay states, controls, ellipsis and screenshots`, async ({ page }, testInfo) => {
     await page.setViewportSize({ width, height: width === 390 ? 844 : 1080 });
     await installModelContext(page);
     await page.goto('/');
     const capture = async (state: string) => {
       await page.evaluate(() => document.fonts.ready);
-      const path = `docs/qa/p3/replay-${state}-${width}.png`;
-      await mkdir('docs/qa/p3', { recursive: true });
+      const path = `docs/qa/p3-1/replay-${state}-${width}.png`;
+      await mkdir('docs/qa/p3-1', { recursive: true });
       await page.screenshot({ path, animations: 'disabled' });
       await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
