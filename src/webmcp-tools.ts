@@ -85,7 +85,7 @@ export function registerTools(): void {
   }, { signal: controller.signal });
   document.modelContext.registerTool({
     name: 'propose_field',
-    description: 'Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead.',
+    description: 'Proposes a value for one quote-request field, with the source regions it came from. The field enters needs_review for the estimator to check. A field the estimator has already acted on keeps its value; your proposal is shown to them as a suggestion instead. Keep value short and as written in the source; explanation goes in rationale.',
     inputSchema: schema({ field_id: field, value, unit, source_refs: refs, rationale: text('One sentence on why this value; the estimator reads it.') }),
     execute: input => executeTool('propose_field', input),
   }, { signal: controller.signal });
