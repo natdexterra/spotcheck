@@ -1,6 +1,6 @@
 # P4 — Drawing zoom
 
-**Status:** in review
+**Status:** done — 2026-09-02
 **PR:** [#6](https://github.com/natdexterra/spotcheck/pull/6)
 **Depends on:** P2 (branches from `main`; independent of P3 — may run in parallel on its own branch)
 
