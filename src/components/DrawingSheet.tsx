@@ -48,7 +48,10 @@ export function DrawingSheet({
   ).filter((region): region is DrawingRegion & { box: NormalizedBox } => region.box !== undefined);
   // The bundled sheet names its image file; a package a person opened carries
   // the re-encoded image itself, so the data URL is the source when there is one.
-  const source = document.image?.startsWith('data:') === true ? document.image : drawingSheetUrl;
+  // Only an image data URL is ever rendered as one: a package restored from a
+  // storage another script could have written names its scheme, and anything
+  // that is not an image falls back to the bundled sheet.
+  const source = document.image?.startsWith('data:image/') === true ? document.image : drawingSheetUrl;
   const bundled = boxedRegions.some(region => region.id === 'drawing:title_area');
 
   return (

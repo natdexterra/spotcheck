@@ -213,7 +213,9 @@ test('a browser with no room keeps the package for the visit and says so', async
   await page.goto('/');
   await openPackage(page, { reference: 'RFQ 91-2201', email: EMAIL, spec: SPEC });
 
-  await expect(page.locator('.live-region')).toContainText('Package opened for this visit only');
+  // One announcement, and it names the package before it says what could not be kept.
+  await expect(page.locator('.live-region'))
+    .toHaveText('Package opened: RFQ 91-2201. Package opened for this visit only: the browser has no room to keep it');
   await expect(page.locator('.status-strip__notice')).toContainText('the browser has no room to keep it');
   await expect(page.locator('.header__package')).toHaveText('RFQ 91-2201');
 });

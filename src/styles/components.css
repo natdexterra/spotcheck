@@ -1712,6 +1712,14 @@
   }
 }
 
+/* The universal reset in base.css reaches ::before and ::after, never the
+   backdrop the top layer paints, so the scrim is stopped here by name. */
+@media (prefers-reduced-motion: reduce) {
+  .dialog::backdrop {
+    transition: none;
+  }
+}
+
 .dialog__form {
   display: grid;
   gap: var(--space-4);

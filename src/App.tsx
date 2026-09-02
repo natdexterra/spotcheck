@@ -72,7 +72,9 @@ export function App() {
     replaceState(createInitialState());
     const kept = saveUserPackage(opened);
     setNotice(kept ? undefined : VISIT_ONLY);
-    announce(kept ? `Package opened: ${fields.reference}` : VISIT_ONLY);
+    // One announcement, and it names the package either way: a person who hears
+    // only the second half would not know which package the page now holds.
+    announce(`Package opened: ${fields.reference}${kept ? '' : `. ${VISIT_ONLY}`}`);
   };
 
   const openSample = async () => {

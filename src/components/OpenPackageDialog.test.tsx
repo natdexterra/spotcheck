@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import '@testing-library/jest-dom/vitest';
+import { readFileSync } from 'node:fs';
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeAll, describe, expect, test, vi } from 'vitest';
@@ -224,5 +225,32 @@ describe('opening', () => {
     (container.querySelector('dialog') as HTMLDialogElement).close();
 
     expect(onCancel).toHaveBeenCalled();
+  });
+});
+
+describe('P5: the scrim behind the dialog', () => {
+  const componentsCss = readFileSync('src/styles/components.css', 'utf8');
+
+  /** Every `prefers-reduced-motion: reduce` block in the stylesheet, braces balanced. */
+  const reducedMotion = (css: string): string[] => {
+    const opener = '@media (prefers-reduced-motion: reduce) {';
+    const blocks: string[] = [];
+    for (let from = css.indexOf(opener); from >= 0; from = css.indexOf(opener, from + 1)) {
+      let depth = 0;
+      let index = from + opener.length - 1;
+      do {
+        if (css[index] === '{') depth += 1;
+        if (css[index] === '}') depth -= 1;
+        index += 1;
+      } while (depth > 0 && index < css.length);
+      blocks.push(css.slice(from, index));
+    }
+    return blocks;
+  };
+
+  test('the backdrop holds still when motion is not wanted', () => {
+    // The universal reset in base.css reaches ::before and ::after, never the
+    // backdrop the top layer paints, so this rule has to exist on its own.
+    expect(reducedMotion(componentsCss).join(' ')).toMatch(/\.dialog::backdrop\s*\{[^}]*transition:\s*none/);
   });
 });

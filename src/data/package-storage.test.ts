@@ -35,6 +35,18 @@ describe('the package a person opened', () => {
     expect(getPackage().documents.find(doc => doc.id === 'drawing')?.image).toBe('data:image/webp;base64,AAAA');
   });
 
+  test('a stored drawing that is not an image is refused with the package', () => {
+    const storage = memory();
+    storage.setItem(PACKAGE_KEY, JSON.stringify({
+      ...user,
+      documents: user.documents.map(doc => doc.id === 'drawing' ? { ...doc, image: 'javascript:alert(1)' } : doc),
+    }));
+
+    expect(restorePackage(storage)).toBe(false);
+    expect(getPackage()).toBe(samplePackage);
+    expect(storage.values.has(PACKAGE_KEY)).toBe(false);
+  });
+
   test('is left alone when nothing was saved', () => {
     expect(restorePackage(memory())).toBe(false);
     expect(getPackage()).toBe(samplePackage);
