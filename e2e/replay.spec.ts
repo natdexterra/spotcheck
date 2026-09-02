@@ -173,8 +173,10 @@ for (const width of [1920, 820, 390]) {
     await page.goto('/');
     const capture = async (state: string) => {
       await page.evaluate(() => document.fonts.ready);
-      const path = `docs/qa/p3-1/replay-${state}-${width}.png`;
-      await mkdir('docs/qa/p3-1', { recursive: true });
+      // The row is P5's: the leave button replaced Restart here, so the states
+      // it shows belong under P5's own folder, not under the merged task's.
+      const path = `docs/qa/p5/replay-${state}-${width}.png`;
+      await mkdir('docs/qa/p5', { recursive: true });
       await page.screenshot({ path, animations: 'disabled' });
       await testInfo.attach(`${state}-${width}`, { path, contentType: 'image/png' });
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
