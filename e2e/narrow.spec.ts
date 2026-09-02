@@ -182,3 +182,21 @@ test('390px: the log sheet header holds the title, Close and the meta line', asy
   expect(sentence.height).toBeGreaterThan(time.height);
   expect(sentence.x).toBeGreaterThan(time.x + time.width - 1);
 });
+
+test('820px puts the header, the strip and the log bar on the centred column', async ({ page }) => {
+  await page.setViewportSize({ width: 820, height: 900 });
+  await installModelContext(page);
+  await page.goto('/');
+  await executeTool(page, 'propose_field', {
+    field_id: 'material', value: '6061-T6', source_refs: ['spec:s3.1'], rationale: 'The specification names the alloy.',
+  });
+
+  const left = async (selector: string) => (await page.locator(selector).boundingBox())!.x;
+  const column = await left('.field-pane');
+  // Export 04: on one column the lane is the column's own left edge, so the
+  // chrome above and below it does not stand 42px further out.
+  for (const selector of ['.header__identity', '.status-strip__summary', '.change-log__label']) {
+    expect(Math.abs(await left(selector) - column)).toBeLessThanOrEqual(1);
+  }
+  expect(column).toBeGreaterThan(40);
+});
