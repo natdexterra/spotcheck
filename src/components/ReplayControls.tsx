@@ -20,6 +20,7 @@ export function ReplayControls() {
   const toggle = useRef<HTMLButtonElement>(null);
   const leaveButton = useRef<HTMLButtonElement>(null);
   const focused = useRef(replay.focusRequest);
+  const leaving = useRef(false);
   useEffect(() => { if (replay.error) announce(`Replay stopped at step ${replay.position + 1}: ${replay.error}`); }, [replay.error, replay.position]);
   // A focus request from outside the row lands after this render committed, so
   // the buttons it asks for exist. Ended and errored rows have no Pause.
@@ -28,6 +29,19 @@ export function ReplayControls() {
     focused.current = replay.focusRequest;
     (toggle.current ?? leaveButton.current)?.focus();
   }, [replay.focusRequest]);
+  /* Leaving gives the page back what it held before the replay: the package the
+     person had open and the work that was on it. Focus then goes to what they
+     can use next, which the page itself says: the sample button on a page that
+     came back empty, and the first open row's own action on one that did not.
+     The move waits for the commit that removes this row, so the control it
+     lands on is already there. */
+  useLayoutEffect(() => {
+    if (!leaving.current || replay.active) return;
+    leaving.current = false;
+    const target = document.querySelector<HTMLElement>('.status-strip__actions button')
+      ?? document.querySelector<HTMLElement>('.field-list__group:not(.field-list__group--verified) .field-row__actions button');
+    target?.focus();
+  }, [replay.active]);
   if (!replay.active) return null;
 
   const running = !replay.ended && !replay.error;
@@ -37,19 +51,10 @@ export function ReplayControls() {
   const sample = short === 'Sample';
   const counter = <span className="numeric">{replay.position} of {replay.total}</span>;
 
-  /* Leaving gives the page back what it held before the replay: the package the
-     person had open and the work that was on it. Focus then goes to what they
-     can use next, which is the sample button on a page that was empty and the
-     first open row's own action on a page that was not. */
-  const leaveSession = async () => {
-    const restored = await leave();
-    announce(`${replay.label} closed`);
-    requestAnimationFrame(() => {
-      const target = restored
-        ? document.querySelector<HTMLElement>('.field-list__group:not(.field-list__group--verified) .field-row__actions button')
-        : document.querySelector<HTMLElement>('.status-strip__actions button');
-      target?.focus();
-    });
+  const leaveSession = () => {
+    const { label } = replay;
+    leaving.current = true;
+    void leave().then(() => announce(`${label} closed`));
   };
 
   return (
@@ -79,7 +84,7 @@ export function ReplayControls() {
         {running && !replay.playing && (
           <Button variant="text" disabled={replay.busy} onClick={() => void next()}>Next step</Button>
         )}
-        <Button ref={leaveButton} variant="text" disabled={replay.busy} onClick={() => void leaveSession()}>
+        <Button ref={leaveButton} variant="text" disabled={replay.busy} onClick={leaveSession}>
           {sample ? 'Leave sample' : 'Leave session'}
         </Button>
       </div>

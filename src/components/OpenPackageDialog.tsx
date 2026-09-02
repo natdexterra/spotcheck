@@ -57,13 +57,25 @@ export function OpenPackageDialog({
   const [email, setEmail] = useState('');
   const [spec, setSpec] = useState('');
   const [fileName, setFileName] = useState('');
-  const [drawing, setDrawing] = useState<string>();
   const [errors, setErrors] = useState<Partial<Record<FieldName, string>>>({});
+  // Re-encoding an image takes a moment. Pressing Open in that moment must wait
+  // for it, not decide the drawing is missing, so the outcome is held where the
+  // submit handler can read it after awaiting the work.
+  const preparing = useRef<Promise<void>>();
+  const prepared = useRef<{ dataUrl?: string; error?: string }>({});
 
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
-    if (open && !dialog.open) dialog.showModal();
+    if (open && !dialog.open) {
+      // Every opening starts from a blank form: the package on the page is the
+      // one that was opened, and the form is for the next one.
+      setReference(''); setCustomer(''); setEmail(''); setSpec('');
+      setFileName(''); setErrors({});
+      preparing.current = undefined;
+      prepared.current = {};
+      dialog.showModal();
+    }
     if (!open && dialog.open) dialog.close();
   }, [open]);
 
@@ -73,25 +85,34 @@ export function OpenPackageDialog({
   const describedBy = (name: FieldName | 'customer') =>
     [hintId(name), name !== 'customer' && errors[name] ? errorId(name) : ''].filter(Boolean).join(' ');
 
-  const chooseFile = async (file: File | undefined) => {
+  // An error answers the state of the field, so it goes as soon as the person
+  // touches it: no one should be told to enter a reference they just entered.
+  const clear = (name: FieldName) => setErrors(current =>
+    current[name] === undefined ? current : { ...current, [name]: undefined });
+
+  const chooseFile = (file: File | undefined) => {
     setFileName(file?.name ?? '');
-    setDrawing(undefined);
+    prepared.current = {};
     if (!file) {
       setErrors(current => ({ ...current, drawing: undefined }));
       return;
     }
-    const result = await prepare(file);
-    if (result.ok) {
-      setDrawing(result.dataUrl);
-      setErrors(current => ({ ...current, drawing: undefined, spec: undefined }));
-    } else {
-      setErrors(current => ({ ...current, drawing: IMAGE_MESSAGES[result.code] }));
-    }
+    preparing.current = prepare(file).then(result => {
+      if (result.ok) {
+        prepared.current = { dataUrl: result.dataUrl };
+        setErrors(current => ({ ...current, drawing: undefined, spec: undefined }));
+      } else {
+        prepared.current = { error: IMAGE_MESSAGES[result.code] };
+        setErrors(current => ({ ...current, drawing: IMAGE_MESSAGES[result.code] }));
+      }
+    });
   };
 
-  const submit = (event: FormEvent<HTMLFormElement>) => {
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const found: Partial<Record<FieldName, string>> = { drawing: errors.drawing };
+    await preparing.current;
+    const drawing = prepared.current.dataUrl;
+    const found: Partial<Record<FieldName, string>> = { drawing: prepared.current.error };
     if (reference.trim() === '') found.reference = 'Enter a reference';
     if (email.trim() === '') found.email = 'Paste the customer email';
     else if (email.length > TEXT_CAP) {
@@ -120,7 +141,7 @@ export function OpenPackageDialog({
 
   return (
     <dialog aria-labelledby={`${id}-title`} className="dialog" onClose={onCancel} ref={dialogRef}>
-      <form className="dialog__form" onSubmit={submit}>
+      <form className="dialog__form" onSubmit={event => void submit(event)}>
         <h2 className="dialog__title" id={`${id}-title`}>Your package</h2>
 
         <div className="dialog__field">
@@ -131,7 +152,7 @@ export function OpenPackageDialog({
             aria-invalid={errors.reference !== undefined}
             className="dialog__input"
             id={fieldId('reference')}
-            onChange={event => setReference(event.target.value)}
+            onChange={event => { setReference(event.target.value); clear('reference'); }}
             placeholder={`e.g. ${sampleReference}`}
             type="text"
             value={reference}
@@ -160,7 +181,7 @@ export function OpenPackageDialog({
             aria-invalid={errors.email !== undefined}
             className="dialog__textarea"
             id={fieldId('email')}
-            onChange={event => setEmail(event.target.value)}
+            onChange={event => { setEmail(event.target.value); clear('email'); }}
             rows={6}
             value={email}
           />
@@ -175,7 +196,7 @@ export function OpenPackageDialog({
             aria-invalid={errors.spec !== undefined}
             className="dialog__textarea"
             id={fieldId('spec')}
-            onChange={event => setSpec(event.target.value)}
+            onChange={event => { setSpec(event.target.value); clear('spec'); }}
             rows={6}
             value={spec}
           />
@@ -200,7 +221,7 @@ export function OpenPackageDialog({
               aria-invalid={errors.drawing !== undefined}
               className="visually-hidden"
               id={fieldId('drawing')}
-              onChange={event => void chooseFile(event.target.files?.[0])}
+              onChange={event => chooseFile(event.target.files?.[0])}
               type="file"
             />
             <Button
