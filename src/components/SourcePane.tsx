@@ -302,9 +302,13 @@ export function SourcePane({
           readingSectionId={readingSectionFor('spec')}
         />
       </div>
+      {/* This panel does not scroll: the sheet carries its own scroll region
+          around the drawing, so the toolbar and the caption keep the document
+          lane while the drawing pans. The panel is the column that hands that
+          region whatever height the toolbar and the caption leave. */}
       <div
         aria-labelledby="source-tab-drawing"
-        className="source-pane__panel"
+        className="source-pane__panel source-pane__panel--drawing"
         hidden={activeTab !== 'drawing'}
         id="source-panel-drawing"
         role="tabpanel"
