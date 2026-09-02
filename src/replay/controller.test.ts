@@ -12,7 +12,8 @@ test('malformed saved data cannot wedge leave or be overwritten by the sample', 
   const persistence = await startPersistence();
   const before = getState();
   await startSample(); await next();
-  await expect(leave()).resolves.toBeUndefined();
+  // A saved session was there, malformed or not: leaving reports work to restore.
+  await expect(leave()).resolves.toBe(true);
   expect(getSnapshot().active).toBe(false);
   expect(getState()).toEqual(before);
   expect(localStorage.getItem(sessionKey())).toBe('{recoverable');

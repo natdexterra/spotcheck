@@ -8,9 +8,10 @@ import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
 import { describeRead } from '../replay/describe';
-import { focusPause, startImported, startSample } from '../replay/controller';
+import { clearReview, focusPause, startImported, startSample } from '../replay/controller';
 import { useReplay } from '../hooks/useReplay';
 import { parseFixture } from '../replay/serialization';
+import { ConfirmDialog } from './ConfirmDialog';
 import { ExportSessionButton } from './ExportSessionButton';
 import { announce } from './LiveRegion';
 
@@ -95,10 +96,16 @@ export const LogLine = ({ entry, fields, collapsed = false }: { entry: LogEntry;
   </div>
 );
 
-export const ChangeLogDrawer = () => {
-  const { log, state } = useReview();
+export interface ChangeLogDrawerProps {
+  /** Given only where the strip is not carrying it, so the way in stands in one place. */
+  onOpenPackage?: () => void;
+}
+
+export const ChangeLogDrawer = ({ onOpenPackage }: ChangeLogDrawerProps = {}) => {
+  const { confirmed, log, state } = useReview();
   const replay = useReplay();
   const [expanded, setExpanded] = useState(false);
+  const [startOverOpen, setStartOverOpen] = useState(false);
   const [error, setError] = useState<string>();
   const fileRef = useRef<HTMLInputElement>(null);
   const disclosureRef = useRef<HTMLButtonElement>(null);
@@ -166,6 +173,17 @@ export const ChangeLogDrawer = () => {
             <p className="change-log__meta">{plural(log.length, 'entry', 'entries')} · agent and you</p>
             <div className="change-log__file-actions">
               {!replay.active && log.length > 0 && <Button variant="secondary" onClick={async () => { await startSample(); setExpanded(false); focusPause(); }}>Play sample session</Button>}
+              {onOpenPackage && (
+                <Button variant="text" onClick={() => { setExpanded(false); onOpenPackage(); }}>
+                  Open your own package
+                </Button>
+              )}
+              {/* The one control on the page that throws a person's own work
+                  away, so it asks before it does (the confirm screen keeps its
+                  own Start over). */}
+              {!replay.active && !confirmed && log.length > 0 && (
+                <Button variant="text" onClick={() => setStartOverOpen(true)}>Start over</Button>
+              )}
               <ExportSessionButton />
               <div className="session-import">
                 <label className="visually-hidden" htmlFor="session-file">Import session</label>
@@ -190,6 +208,14 @@ export const ChangeLogDrawer = () => {
           ) : <p className="change-log__empty">No activity yet</p>}
         </div>
       )}
+      <ConfirmDialog
+        confirmLabel="Start over"
+        message={`This discards ${plural(log.length, 'entry', 'entries')} and every value on the page.`}
+        onCancel={() => setStartOverOpen(false)}
+        onConfirm={() => { setStartOverOpen(false); clearReview(); announce('Review cleared'); }}
+        open={startOverOpen}
+        title="Start over?"
+      />
     </aside>
   );
 };
