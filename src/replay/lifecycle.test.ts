@@ -74,6 +74,9 @@ test('viewer confirmation ends replay; fixture confirmation does not count as vi
   dispatchHuman({ type: 'confirm' });
   expect(replay.finishedByViewer).toBe(true);
   expect(replay.ended).toBe(true);
+  // The counter reads the position the run reached, not the fixture total.
+  expect(replay.position).toBe(confirmIndex);
+  expect(replay.position).toBeLessThan(replay.total);
   expect(await replay.next()).toBe(false);
   replay.restart();
   while (await replay.next()) { /* fixture confirmation */ }
