@@ -44,6 +44,13 @@ textarea {
   outline-offset: var(--ring-width);
 }
 
+/* A segment sits inside a clipping group box, so an outward ring is cut away:
+   the same 2px accent ring is drawn inside the segment instead. */
+.inline-editor__segment:has(input:focus-visible),
+.segmented__option:has(input:focus-visible) {
+  outline-offset: calc(var(--ring-width) * -1);
+}
+
 .visually-hidden {
   position: absolute;
   inline-size: 1px;
