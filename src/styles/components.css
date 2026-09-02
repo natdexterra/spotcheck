@@ -1262,6 +1262,12 @@
 }
 
 @media (width < 64rem) {
+  /* Export 04: one column, so the lane is the column's left edge. The margin
+     centres the measure instead of standing the chrome further out. */
+  :root {
+    --page-margin: max(28px, calc((100% - var(--narrow-content-max)) / 2));
+  }
+
   .header {
     min-height: auto;
     padding-block: var(--space-3);
@@ -1302,9 +1308,6 @@
     max-height: none;
   }
 
-  .change-log,
-  .change-log__header,
-  .change-log__entries,
   .confirm-footer,
   .workspace {
     width: 100%;
@@ -1313,9 +1316,6 @@
     margin-inline: auto;
   }
 
-  /* change-log keeps its own padding-inline: var(--page-margin) rules (base
-     .change-log, .change-log__header, .change-log__entries) so the bar and the
-     expanded sheet stay on the gutter lane; only these two zero it out. */
   .confirm-footer,
   .workspace {
     padding: 0;
@@ -1545,10 +1545,6 @@
 
   .replay-controls .button--secondary {
     width: auto;
-  }
-
-  .change-log__header {
-    display: flex;
   }
 
   .change-log__file-actions {
