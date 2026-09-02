@@ -257,3 +257,69 @@ test.describe('drawing zoom on the narrow sheet', () => {
     expect(problems).toEqual([]);
   });
 });
+
+test.describe('the focus ring on a segmented control', () => {
+  test.use({ viewport: { width: 1920, height: 1080 } });
+
+  const ringStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(element => {
+    const style = getComputedStyle(element);
+    return {
+      color: style.outlineColor,
+      style: style.outlineStyle,
+      width: style.outlineWidth,
+      offset: style.outlineOffset,
+    };
+  });
+
+  test('a keyboard focus on a segment paints a ring the eye can see', async ({ page }) => {
+    const problems = watchConsole(page);
+    await installModelContext(page);
+    await page.goto('/');
+    await page.getByRole('tab', { name: 'Drawing' }).click();
+
+    // The zoom control: the checked segment is the group's tab stop, and the
+    // ring has to paint on it, not outside the clipped group box.
+    const zoom = page.locator('.drawing-sheet__zoom');
+    const zoomAtRest = await zoom.screenshot();
+    await page.getByRole('tab', { name: 'Drawing' }).focus();
+    await page.keyboard.press('Tab');
+    const first = page.getByRole('radio', { name: 'Zoom 1x' });
+    await expect(first).toBeFocused();
+    expect((await zoom.screenshot()).equals(zoomAtRest)).toBe(false);
+
+    const segment = page.locator('.segmented__option').first();
+    const zoomRing = await ringStyle(segment);
+    expect(zoomRing.color).toBe('rgb(31, 111, 235)');
+    expect(zoomRing.style).toBe('solid');
+    expect(zoomRing.width).toBe('2px');
+    // The ring is drawn inside the segment, so the group's box never clips it.
+    const zoomPaint = await segment.evaluate(element => {
+      const offset = parseFloat(getComputedStyle(element).outlineOffset);
+      const width = parseFloat(getComputedStyle(element).outlineWidth);
+      const group = element.parentElement!.getBoundingClientRect();
+      const box = element.getBoundingClientRect();
+      return {
+        left: box.left + offset >= group.left - 1,
+        right: box.right - offset <= group.right + 1,
+        top: box.top + offset >= group.top - 1,
+        bottom: box.bottom - offset <= group.bottom + 1,
+        width,
+      };
+    });
+    expect(zoomPaint).toEqual({ left: true, right: true, top: true, bottom: true, width: 2 });
+
+    // The unit control in an open editor is the same drawing and takes the same ring.
+    await seedDimensions(page);
+    const dimensions = page.locator('[data-field-id="overall_dimensions"]');
+    await dimensions.getByRole('button', { name: 'Add unit' }).click();
+    const segments = dimensions.locator('.inline-editor__segments');
+    const unitAtRest = await segments.screenshot();
+    await dimensions.getByRole('textbox', { name: 'Overall dimensions' }).click();
+    await page.keyboard.press('Tab');
+    await expect(dimensions.locator('.inline-editor__segment input').first()).toBeFocused();
+    expect((await segments.screenshot()).equals(unitAtRest)).toBe(false);
+    expect(await ringStyle(dimensions.locator('.inline-editor__segment').first())).toEqual(zoomRing);
+
+    expect(problems).toEqual([]);
+  });
+});
