@@ -13,14 +13,14 @@ const toolForAction = (action: AgentAction): ToolName => {
   return action.type === 'propose' ? 'propose_field' : action.type === 'draft' ? 'draft_clarification' : action.type;
 };
 
-export function exportSession(recorded_at = new Date().toISOString()): string {
+export function exportSession(recorded_at = new Date().toISOString(), pretty = false): string {
   const steps: Step[] = reviewSession(getState()).log.map(entry => {
     if (entry.event.actor === 'agent') return { actor: 'agent', at: entry.at,
       call: { tool: toolForAction(entry.event.action), input: entry.event.action.input } };
     const { at: _at, ...action } = entry.event.action;
     return { actor: 'estimator', at: entry.at, action };
   });
-  return JSON.stringify({ recorded_at, steps });
+  return JSON.stringify({ recorded_at, steps }, null, pretty ? 2 : undefined);
 }
 
 export function parseFixture(serialized: string): Fixture {
