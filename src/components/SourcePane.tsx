@@ -56,7 +56,9 @@ const DRAWING_FIELD_DEFAULTS: Partial<Record<string, FieldId>> = {
 
 const tabFromRef = (sourceRef: string | undefined): SourceTab | undefined => {
   const prefix = sourceRef?.split(':', 1)[0];
-  return DOCUMENT_TABS.find(tab => tab === prefix);
+  // "clarification" names the tab and no region inside it: the sent text is one
+  // panel, so the settled row links to the panel rather than to a paragraph.
+  return [...DOCUMENT_TABS, 'clarification' as const].find(tab => tab === prefix);
 };
 
 const sourceRefsForField = (field: Field): string[] => [

@@ -3,7 +3,7 @@ import { useNarrowLayout } from '../hooks/useNarrowLayout';
 import { useReview } from '../hooks/useReview';
 import { useSheetDialog } from '../hooks/useSheetDialog';
 import { ChevronDownIcon, CrossIcon, OpposingArrowsIcon } from '../icons';
-import { displayValue, fieldLabel, NO_VALUE, plural } from '../lib/format';
+import { clockTime, displayValue, fieldLabel, NO_VALUE, plural } from '../lib/format';
 import type { LogEntry } from '../state/session';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -24,11 +24,6 @@ const APP_NOTES = [
 const APP_NOTE_PREFIXES = ['Agent reported ', 'Auto-dismissed suggestion: ', 'Skipped fixture step:'];
 const agentAuthored = (note: string): boolean =>
   !APP_NOTES.includes(note) && !APP_NOTE_PREFIXES.some(prefix => note.startsWith(prefix));
-
-const clockTime = (at: number) => {
-  const date = new Date(at);
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
-};
 
 const actionInput = (entry: LogEntry): Record<string, unknown> => {
   if (entry.event.actor !== 'agent') return {};

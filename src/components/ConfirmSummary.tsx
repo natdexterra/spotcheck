@@ -1,8 +1,8 @@
 import type { ReactNode } from 'react';
 import { useReview } from '../hooks/useReview';
 import { displayValue, duration, fieldLabel, groupLabel } from '../lib/format';
+import { dismissReason } from '../lib/log';
 import { createInitialState } from '../state/session';
-import type { LogEntry } from '../state/session';
 import { replaceState } from '../state/store';
 import type { Field, FieldId, ResolutionKind } from '../state/types';
 import { Button } from './Button';
@@ -24,16 +24,6 @@ const RESOLUTIONS: readonly ResolutionKind[] = [
   'applied',
   'asked_customer',
 ];
-
-const dismissReason = (log: LogEntry[], fieldId: FieldId): string | undefined => {
-  const entry = [...log].reverse().find(item =>
-    item.event.actor === 'human' &&
-    item.event.action.type === 'dismiss' &&
-    item.event.action.field_id === fieldId,
-  );
-  if (!entry || entry.event.actor !== 'human' || entry.event.action.type !== 'dismiss') return undefined;
-  return entry.event.action.reason;
-};
 
 const fieldList = (fields: Field[]): string => fields.map(field => fieldLabel(field.id)).join(' · ');
 

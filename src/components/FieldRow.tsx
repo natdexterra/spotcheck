@@ -1,6 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { CheckedBoxIcon, LockIcon } from '../icons';
-import { displayValue, fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
+import { clockTime, displayValue, fieldLabel, NO_VALUE, searchedLabel, sourceHref, sourceLabel } from '../lib/format';
+import type { SentQuestion } from '../lib/log';
 import { dispatchHuman } from '../state/store';
 import type { Field, FieldId } from '../state/types';
 import { Button } from './Button';
@@ -15,11 +16,15 @@ import { SuggestionCard } from './SuggestionCard';
 export interface FieldRowProps {
   /** True before the first tool call: the row is label, value and badge only. */
   bare?: boolean;
+  /** The reason recorded when this field was marked not required. */
+  dismissReason?: string;
   field: Field;
   /** Set when the agent's newest call on this locked field was a rejected report. */
   lockedReport?: string;
   onSource?: (ref: string, fieldId: FieldId) => void;
   now?: number;
+  /** The clarification that carried this field's question to the customer. */
+  sent?: SentQuestion;
 }
 
 const fieldSources = (field: Field): string[] => {
@@ -27,7 +32,7 @@ const fieldSources = (field: Field): string[] => {
   return [];
 };
 
-export function FieldRow({ bare = false, field, lockedReport, now, onSource }: FieldRowProps) {
+export function FieldRow({ bare = false, dismissReason, field, lockedReport, now, onSource, sent }: FieldRowProps) {
   const [editorOpen, setEditorOpen] = useState(false);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [closes, setCloses] = useState(0);
@@ -110,6 +115,21 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
         {' → yours '}
         {displayValue(field.value, field.unit)}
         {sourceRun(chosen?.source_refs ?? [])}
+      </>
+    );
+  } else if (kind === 'dismissed' && dismissReason) {
+    resolution = `your reason: ${dismissReason}`;
+  } else if (kind === 'asked_customer' && sent) {
+    // Export 11: the row says when the question went and how much of the
+    // clarification it shares, then points at the text that was sent.
+    const others = sent.covers.filter(id => id !== field.id).map(fieldLabel);
+    resolution = (
+      <>
+        sent {clockTime(sent.at)} · covers this field{others.length > 0 ? ` and ${others.join(', ')}` : ''}
+        {' · '}
+        <JumpLink href="#source-panel-clarification" onClick={openSource?.('clarification')}>
+          see the sent text
+        </JumpLink>
       </>
     );
   }
