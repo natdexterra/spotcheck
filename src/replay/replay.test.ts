@@ -182,22 +182,23 @@ test('P1.1 replay: a viewer no-op on a fixture-locked field does not suppress la
 test('P1.1 persistence: a replay suspends saves; the stored live session survives byte-identical', async () => {
   const { startPersistence } = await import('./persistence');
   const { createReplay } = await import('./replay');
+  const { sessionKey } = await import('../data/package-storage');
   const { dispatchHuman } = await import('../state/store');
   const values = new Map<string, string>();
   const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
   const session = await startPersistence(storage);
   dispatchHuman({ type: 'enter', field_id: 'material', value: 'viewer choice', at: 5 });
-  const saved = values.get('spotcheck.session.v1');
+  const saved = values.get(sessionKey());
   expect(saved).toBeTruthy();
   const replay = createReplay({ recorded_at: 'test', steps: [
     { actor: 'agent', at: 1, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
   ] });
   await replay.next();
   replay.restart();
-  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  expect(values.get(sessionKey())).toBe(saved);
   replay.dispose();
   dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
-  expect(values.get('spotcheck.session.v1')).not.toBe(saved);
+  expect(values.get(sessionKey())).not.toBe(saved);
   session.stop();
 });
 
@@ -232,6 +233,7 @@ test('P1.1 replay: a viewer lock-only write (edit_start, then cancel) does not m
 test('P1.1 replay: restart() after dispose() is a no-op and leaves the live session alone', async () => {
   const { startPersistence } = await import('./persistence');
   const { createReplay } = await import('./replay');
+  const { sessionKey } = await import('../data/package-storage');
   const { dispatchHuman, getState } = await import('../state/store');
   const values = new Map<string, string>();
   const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
@@ -242,10 +244,10 @@ test('P1.1 replay: restart() after dispose() is a no-op and leaves the live sess
   await replay.next();
   replay.dispose();
   dispatchHuman({ type: 'enter', field_id: 'quantity', value: '800', at: 6 });
-  const saved = values.get('spotcheck.session.v1');
+  const saved = values.get(sessionKey());
   replay.restart();
   expect(getState().fields.find(f => f.id === 'quantity')?.value).toBe('800');
-  expect(values.get('spotcheck.session.v1')).toBe(saved);
+  expect(values.get(sessionKey())).toBe(saved);
   session.stop();
 });
 
