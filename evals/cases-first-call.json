@@ -1,0 +1,29 @@
+[
+  {
+    "name": "An extraction request opens with the document index",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Extract this RFQ into a quote request." }
+    ],
+    "expectedCall": [
+      { "functionName": "list_rfq_documents", "arguments": {} }
+    ]
+  },
+  {
+    "name": "A request for one field still opens with the document index",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Record the part name from this package." }
+    ],
+    "expectedCall": [
+      { "functionName": "list_rfq_documents", "arguments": {} }
+    ]
+  },
+  {
+    "name": "A question about progress opens with the review state",
+    "messages": [
+      { "role": "user", "type": "message", "content": "What is left to review?" }
+    ],
+    "expectedCall": [
+      { "functionName": "get_review_state", "arguments": {} }
+    ]
+  }
+]
