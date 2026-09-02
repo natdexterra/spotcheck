@@ -309,3 +309,22 @@ test('the Ask customer on-state is an icon and ink, never a pill', async ({ page
   expect(await toggle.evaluate(element => element.querySelectorAll('svg').length)).toBe(1);
   await expect(row).toContainText('Marked for the clarification email. This field still counts as open.');
 });
+
+test('a candidate is a raised card and Pick keeps the compact button height', async ({ page }) => {
+  await installModelContext(page);
+  await page.goto('/');
+  await seed(page);
+
+  const candidate = page.locator('[data-field-id="quantity"] .candidate-option').first();
+  const card = await candidate.evaluate(element => {
+    const style = getComputedStyle(element);
+    return { background: style.backgroundColor, border: `${style.borderTopWidth} ${style.borderTopColor}` };
+  });
+  expect(card).toEqual({ background: 'rgb(255, 255, 255)', border: '1px rgb(227, 232, 238)' });
+
+  const pick = candidate.getByRole('button', { name: 'Pick' });
+  const box = (await pick.boundingBox())!;
+  expect(Math.round(box.height)).toBe(30);
+  // It sits beside the value, not stretched down the side of the card.
+  expect(box.height).toBeLessThan((await candidate.boundingBox())!.height);
+});
