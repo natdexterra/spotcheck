@@ -52,7 +52,6 @@ export function DrawingSheet({
       ].filter(Boolean).join(' ')}
     >
       <div className="drawing-sheet__toolbar">
-        <p className="drawing-sheet__name">Sheet {String(document.sheet ?? '1 of 4')}</p>
         <div className="drawing-sheet__zoom">
           <span className="drawing-sheet__zoom-label" id="drawing-zoom-label">Zoom</span>
           <div aria-labelledby="drawing-zoom-label" className="segmented" role="radiogroup">

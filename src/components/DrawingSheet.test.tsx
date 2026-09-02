@@ -20,10 +20,12 @@ const boxGeometry = (container: HTMLElement) =>
     .map(box => [box.style.left, box.style.top, box.style.width, box.style.height].join(' '));
 
 describe('the drawing zoom control', () => {
-  test('the toolbar carries the sheet name and a Zoom radio group that opens on 1×', () => {
+  test('the toolbar carries a Zoom radio group that opens on 1×, and no sheet count', () => {
     render(<DrawingSheet onActivateRegion={vi.fn()} />);
 
-    expect(screen.getByText('Sheet 1 of 4')).toBeInTheDocument();
+    // The package holds one sheet: a count of four promises sheets nobody can
+    // open, so the toolbar names none.
+    expect(screen.queryByText(/Sheet \d/)).toBeNull();
     const group = screen.getByRole('radiogroup', { name: 'Zoom' });
     expect(group).toBeInTheDocument();
     // Speech gets "Zoom 1x"; the eye gets the real multiplication sign.
@@ -98,13 +100,13 @@ describe('the drawing zoom control', () => {
     expect(scrollIntoView).not.toHaveBeenCalled();
   });
 
-  test('the caption keeps the title-area line and the clickable-regions note, and drops the sheet number', () => {
+  test('the caption keeps the title-area line and the clickable-regions note, and names no sheet', () => {
     const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
     const caption = container.querySelector('.drawing-sheet__caption')!;
 
     expect(caption).toHaveTextContent('a revision letter would live here; there is none');
     expect(caption).toHaveTextContent('regions are clickable');
-    expect(caption.textContent).not.toContain('Sheet 1 of 4');
+    expect(caption.textContent).not.toMatch(/Sheet \d/);
   });
 });
 
