@@ -41,6 +41,11 @@ const VERIFIED_BADGE_LABELS: Record<ResolutionKind, string> = {
 /** The empty value in the interface: the one sanctioned dash character. */
 export const NO_VALUE = '—';
 
+/** Counts read as counts: one call, two calls, one entry, 23 entries. */
+export function plural(count: number, one: string, many: string): string {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
 export function duration(ms: number): string {
   const totalSeconds = Math.floor(Math.max(0, ms) / 1_000);
   const minutes = Math.floor(totalSeconds / 60);
