@@ -607,6 +607,14 @@
   font-weight: 500;
 }
 
+/* Exports 02, 06, 07: the document reads on a measure, not on the width of the
+   pane, and the tab row stands on the same two edges as the text. */
+.document-text,
+.source-pane__panel--clarification,
+.source-pane__tabs {
+  max-width: calc(var(--narrow-content-max) + 2 * var(--document-gutter));
+}
+
 .document-text,
 .source-pane__panel--clarification {
   padding: var(--space-8) var(--document-gutter);
