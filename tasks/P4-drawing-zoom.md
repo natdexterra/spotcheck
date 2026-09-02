@@ -12,7 +12,7 @@ The drawing sheet is a 2200 × 1540 image shown at pane width, where dimension t
 
 1. `build-spec.md` § Screens (source pane, Drawing tab), § Size and performance budgets.
 2. `DESIGN.md` — § Choice controls (the segmented control is the `in` | `mm` component: a radio group), spacing roles, the document gutter, hit targets, motion, "no horizontal page scroll at 320px — anything wide scrolls inside its own wrapper".
-3. `docs/design/06-triage-drawing-tab-1920.png` — the Drawing tab as drawn (at `1×`; the toolbar is not drawn, § UI rules specifies it; screenshots at 1920 and 390 in the pull request).
+3. `docs/design/17-drawing-zoom.png` — the toolbar and the sheet at `1×` and `2×` (1920) and at `2×` inside the 390 source sheet; `06` for the tab at `1×` as shipped. The export prints a region id and a file name in captions and headers; the rule wins (no ids in the source pane, the sheet header shows the document title). Screenshots at 1920 and 390 in the pull request.
 4. `docs/scenarios.md` — S4 (overall dimensions from the drawing, provenance into the sheet), B10, B11.
 
 ## Scope — files

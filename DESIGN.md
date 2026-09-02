@@ -115,7 +115,7 @@ Dense data-UI physics: sizes target *observable cap-height* — the rendered hei
 | `--text-md` | 10 px | `0.936rem` | `--leading-md: 1rem`; loose `1.25rem` | field labels, buttons, actions, log entries |
 | `--text-lg` | 12 px | `1.122rem` | `--leading-lg: 1.25rem`; loose `1.5rem` | **default body**: field values, document text |
 | `--text-xl` | 16 px | `1.497rem` | `--leading-xl: 2rem` | pane titles, confirm summary title |
-| `--text-lg-mono` | 11 px | `1.029rem` | `--leading-lg` / loose, unchanged | **mono runs beside `lg` sans**: field values, candidate values, suggestion-card values, the "was:" line, the drawing caption, summary lines — never chips, counts or timestamps |
+| `--text-lg-mono` | 11 px | `1.029rem` | `--leading-lg` / loose, unchanged | **mono runs beside `lg` sans**: field values (`.field-row__value`), candidate values, suggestion-card values, the value inside an open editor — never chips, counts or timestamps. The "was:" line, the agent-original line under a verified row and the confirm-summary lines are `sm` mono (exports 08, 11); the drawing caption is sans `md` in `--ink-secondary` (export 06) |
 
 Rules the builder must not trade away:
 
