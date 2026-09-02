@@ -23,3 +23,13 @@ export async function executeTool(page: Page, name: string, input: unknown): Pro
   }, [name, input] as const);
 }
 
+/**
+ * The `no-api` path, declared rather than assumed: a browser without WebMCP.
+ * Every spec states which of the two worlds it is testing in, so none of them
+ * turns green or red on whatever the runner happens to expose.
+ */
+export async function removeModelContext(page: Page): Promise<void> {
+  await page.addInitScript(() => {
+    Object.defineProperty(document, 'modelContext', { configurable: true, value: undefined });
+  });
+}

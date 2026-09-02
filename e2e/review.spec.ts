@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { removeModelContext } from './helpers';
 
 test('sample replay exposes review decisions and reaches the confirmation summary', async ({ page }) => {
   test.setTimeout(60_000);
@@ -9,6 +10,8 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   page.on('pageerror', error => browserProblems.push(error.message));
   await page.clock.install({ time: new Date('2026-09-02T10:00:00Z') });
   await page.clock.pauseAt(new Date('2026-09-02T10:00:00Z'));
+  // B1: the fallback path, declared, not inherited from the runner.
+  await removeModelContext(page);
   await page.goto('/');
   await page.getByRole('button', { name: 'Play sample session' }).click();
 
