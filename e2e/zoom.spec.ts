@@ -273,7 +273,7 @@ test.describe('drawing zoom on the narrow sheet', () => {
   });
 });
 
-test.describe('the focus ring on a segmented control', () => {
+test.describe('the focus ring where a container clips the box', () => {
   test.use({ viewport: { width: 1920, height: 1080 } });
 
   const ringStyle = (locator: ReturnType<Page['locator']>) => locator.evaluate(element => {
@@ -334,6 +334,40 @@ test.describe('the focus ring on a segmented control', () => {
     await expect(dimensions.locator('.inline-editor__segment input').first()).toBeFocused();
     expect((await segments.screenshot()).equals(unitAtRest)).toBe(false);
     expect(await ringStyle(dimensions.locator('.inline-editor__segment').first())).toEqual(zoomRing);
+
+    expect(problems).toEqual([]);
+  });
+
+  test('the focused scroll region shows a ring on all four edges', async ({ page }) => {
+    const problems = watchConsole(page);
+    await installModelContext(page);
+    await page.goto('/');
+    await page.getByRole('tab', { name: 'Drawing' }).click();
+
+    const scroller = page.locator('.drawing-sheet__scroll');
+    const edge = await scroller.evaluate(element => {
+      const { x, y, height } = element.getBoundingClientRect();
+      // A three-pixel column on the region's left edge: the stroke the panel's
+      // overflow used to cut away.
+      return { x, y: y + height / 2 - 6, width: 3, height: 12 };
+    });
+    const regionAtRest = await scroller.screenshot();
+    const leftAtRest = await page.screenshot({ clip: edge });
+
+    await page.getByRole('radio', { name: 'Zoom 1x' }).focus();
+    await page.keyboard.press('Tab');
+    await expect(scroller).toBeFocused();
+
+    expect((await scroller.screenshot()).equals(regionAtRest)).toBe(false);
+    expect((await page.screenshot({ clip: edge })).equals(leftAtRest)).toBe(false);
+
+    const ring = await ringStyle(scroller);
+    expect(ring.color).toBe('rgb(31, 111, 235)');
+    expect(ring.style).toBe('solid');
+    expect(ring.width).toBe('2px');
+    // Drawn inside the region's own rect, where nothing clips it.
+    expect(parseFloat(ring.offset)).toBeLessThanOrEqual(0);
+    expect(parseFloat(ring.offset)).toBeGreaterThanOrEqual(-parseFloat(ring.width));
 
     expect(problems).toEqual([]);
   });
