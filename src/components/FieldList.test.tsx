@@ -79,10 +79,13 @@ describe('FieldRow', () => {
     render(<FieldRow field={field('delivery', 'missing', {
       searched: { searched: ['email', 'spec:s3'], note: 'No delivery date was stated.' },
     })} />);
-    expect(screen.getByText(
-      'Agent: No delivery date was stated. Searched the email and spec §3.',
-    )).toBeInTheDocument();
-    expect(document.querySelector('.field-row__chip')).toBeNull();
+    expect(screen.getByText('Agent: No delivery date was stated.')).toBeInTheDocument();
+    // P2 § Field pane: where the agent looked is a row of chips, not prose.
+    expect([...document.querySelectorAll('.field-row__chip')].map(chip => chip.textContent))
+      .toEqual(['the email', 'spec §3']);
+    expect(document.querySelector('.field-row__chips')!.compareDocumentPosition(
+      document.querySelector('.field-row__agent-note')!,
+    ) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Enter value' })).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mark not required' })).toBeInTheDocument();
   });

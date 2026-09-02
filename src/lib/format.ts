@@ -76,16 +76,6 @@ export function searchedLabel(ref: string): string {
   return DOCUMENT_WORDS[documentId ?? ''] ?? ref;
 }
 
-/** The places the agent looked, as a sentence: "Searched spec \u00a73 and the drawing." */
-export function searchedSentence(searched: readonly string[]): string {
-  const places = [...new Set(searched.map(searchedLabel))];
-  if (places.length === 0) return '';
-  const list = places.length === 1
-    ? places[0]!
-    : `${places.slice(0, -1).join(', ')} and ${places.at(-1)}`;
-  return `Searched ${list}.`;
-}
-
 /** The bare fragment: with no handler the link still lands on the region. */
 export function sourceHref(ref: string): string {
   return `#${ref}`;
