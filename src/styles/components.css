@@ -969,6 +969,12 @@
   border-radius: var(--radius-2);
 }
 
+/* The one example an input may carry, in the placeholder token (DESIGN.md
+   § Color tokens): never a hint, never a value. */
+.dialog__input::placeholder {
+  color: var(--ink-muted);
+}
+
 /* Segmented control (DESIGN.md § Choice controls): one box around the group,
    hairline separators inside, each segment the height of the input beside it. */
 .segmented {
