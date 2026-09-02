@@ -383,6 +383,12 @@
   flex-wrap: wrap;
 }
 
+/* Collapsed, the time and the sentence are one line parted by a middle dot, so
+   they close up to the dot's own spacing (exports 02, 16). */
+.change-log__entry--collapsed {
+  gap: var(--space-1);
+}
+
 .change-log__sentence {
   min-width: 0;
   flex: 1;

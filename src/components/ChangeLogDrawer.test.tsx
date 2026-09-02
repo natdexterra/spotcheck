@@ -68,14 +68,21 @@ describe('ChangeLogDrawer', () => {
     expect(screen.getByLabelText('Change log')).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
     expect(screen.queryByText(/Agent proposed Material/)).not.toBeInTheDocument();
 
-    const disclosure = screen.getByRole('button', { name: '2 entries' });
+    // The count is the label the exports draw; the accessible name says what
+    // pressing it does and which region it opens.
+    const disclosure = screen.getByRole('button', { name: 'Show change log, 2 entries' });
+    expect(disclosure).toHaveTextContent('2 entries');
+    expect(disclosure).toHaveAttribute('aria-controls', 'change-log');
     expect(disclosure.querySelector('svg')).not.toBeNull();
+    // Exports 02, 16: a middle dot parts the time from the sentence.
+    expect(document.querySelector('.change-log__collapsed'))
+      .toHaveTextContent(/\d\d:\d\d\s*·\s*You edited Material/);
     await user.click(disclosure);
     expect(document.querySelector('.change-log__meta')).toHaveTextContent('2 entries · agent and you');
     const entries = screen.getAllByRole('listitem');
     expect(entries[0]).toHaveTextContent('Agent proposed Material: 6061');
     expect(entries[1]).toHaveTextContent('You edited Material: agent 6061 → yours 7075');
-    expect(screen.getByRole('button', { name: 'Close' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Close' })).toHaveAttribute('aria-controls', 'change-log');
     expect(screen.getByRole('button', { name: 'Export session' })).toBeEnabled();
   });
 

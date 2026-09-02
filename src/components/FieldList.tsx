@@ -138,6 +138,7 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
               {verified.fields.map(field => fieldLabel(field.id)).join(' · ')}
             </span>
             <Button
+              aria-controls="verified-fields"
               aria-expanded={verifiedOpen}
               variant="text"
               onClick={() => setVerifiedOpen(open => !open)}
@@ -146,18 +147,22 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
               <ChevronDownIcon />
             </Button>
           </div>
-          {verifiedOpen
-            ? verified.fields.map(field => (
-              <FieldRow
-                dismissReason={dismissReason(log, field.id)}
-                field={field}
-                key={field.id}
-                lockedReport={lockedReportFor(field, log)}
-                onSource={onSource}
-                sent={sent}
-              />
-            ))
-            : null}
+          {/* The region the disclosure names stands whether it holds rows or
+              not, so the reference is never dangling. */}
+          <div id="verified-fields">
+            {verifiedOpen
+              ? verified.fields.map(field => (
+                <FieldRow
+                  dismissReason={dismissReason(log, field.id)}
+                  field={field}
+                  key={field.id}
+                  lockedReport={lockedReportFor(field, log)}
+                  onSource={onSource}
+                  sent={sent}
+                />
+              ))
+              : null}
+          </div>
         </section>
       ) : null}
     </section>
