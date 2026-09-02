@@ -114,6 +114,23 @@ test('import failure leaves the session intact and announces the error', async (
   await expect(replay(page)).toHaveCount(0);
 });
 
+test('the drawer header is three tab stops: Export, the native file input, Close', async ({ page }) => {
+  await installModelContext(page); await page.goto('/');
+  await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });
+  await page.getByRole('button', { name: 'Show change log' }).click();
+  await page.locator('.change-log__header').getByRole('button', { name: 'Export session' }).focus();
+  const focused = () => page.evaluate(() => {
+    const element = document.activeElement as HTMLElement | null;
+    if (!element) return 'none';
+    return element instanceof HTMLInputElement ? `input[type=${element.type}]` : (element.textContent ?? '');
+  });
+  expect(await focused()).toBe('Export session');
+  await page.keyboard.press('Tab');
+  expect(await focused()).toBe('input[type=file]');
+  await page.keyboard.press('Tab');
+  expect(await focused()).toBe('Close');
+});
+
 test('saved live proposals survive sample reload and Start over restores them with persistence resumed', async ({ page }) => {
   await installModelContext(page); await page.goto('/');
   await executeTool(page, 'propose_field', { field_id: 'material', value: 'Live alloy', source_refs: ['spec:s1.1'] });

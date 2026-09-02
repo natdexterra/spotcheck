@@ -27,14 +27,25 @@ test.each([['list', 'Agent listed the documents'], ['review', 'Agent checked the
   expect(screen.getByText(sentence)).toBeInTheDocument();
 });
 
-test('empty export is disabled and import retains a labelled native file input', () => {
+test('empty export is disabled and import is one tab stop on the native file input', () => {
   render(<ChangeLogDrawer />);
   fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
   expect(screen.getByRole('button', { name: 'Export session' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Export session' })).toHaveClass('button--secondary', 'button--compact');
-  expect(screen.getByRole('button', { name: 'Import session' })).toHaveClass('button--secondary', 'button--compact');
-  expect(screen.getByLabelText('Import session')).toHaveAttribute('type', 'file');
-  expect(screen.getByLabelText('Import session')).not.toHaveAttribute('tabindex', '-1');
+  const input = screen.getByLabelText('Import session');
+  expect(input).toHaveAttribute('type', 'file');
+  expect(input).not.toHaveAttribute('tabindex', '-1');
+  // The visible trigger only forwards the click, so "Import session" names
+  // exactly one focusable control: the input, which carries the focus ring.
+  const trigger = document.querySelector('.session-import .button')!;
+  expect(trigger).toHaveClass('button--secondary', 'button--compact');
+  expect(trigger).toHaveAttribute('aria-hidden', 'true');
+  expect(trigger).toHaveAttribute('tabindex', '-1');
+  expect(screen.queryByRole('button', { name: 'Import session' })).not.toBeInTheDocument();
+  const tabStops = [...document.querySelectorAll<HTMLElement>('.change-log__header button, .change-log__header input')]
+    .filter(element => element.tabIndex >= 0 && element.getAttribute('aria-hidden') !== 'true');
+  expect(tabStops.map(element => element === input ? 'Import session' : element.textContent))
+    .toEqual(['Export session', 'Import session', 'Close']);
 });
 
 test('a live session can start the sample from the expanded log without losing its fields', async () => {
