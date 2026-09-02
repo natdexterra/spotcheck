@@ -380,6 +380,13 @@ test('first load fits eleven one-line rows, and the line arrives with the agent'
   }));
   expect(list.scrollHeight).toBeLessThanOrEqual(list.clientHeight);
 
+  // Export 01: the eleven dashes stand on one edge, so the value slot reads as
+  // a column instead of trailing each label.
+  const dashes = await page.locator('.field-row--bare .field-row__value')
+    .evaluateAll(values => values.map(value => value.getBoundingClientRect().x));
+  expect(dashes).toHaveLength(11);
+  expect(Math.max(...dashes) - Math.min(...dashes)).toBeLessThanOrEqual(1);
+
   await seed(page);
   const empty = page.locator('[data-field-id="drawing_number"]');
   await expect(empty).toContainText('The agent has proposed nothing here');

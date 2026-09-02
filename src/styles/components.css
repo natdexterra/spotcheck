@@ -1285,18 +1285,26 @@
 }
 
 /* Export 01: before the first tool call there is nothing to explain and
-   nothing to act on, so the eleven rows are one line each. */
+   nothing to act on, so the eleven rows are one line each: a label column wide
+   enough for the longest field name, the value, the badge. The three columns
+   are the row's, not each label's, so the eleven dashes stand on one edge. */
 .field-row--bare {
-  display: flex;
+  grid-template-columns: minmax(0, 10.5rem) minmax(0, 1fr) auto;
   align-items: center;
   gap: var(--space-6);
 }
 
+.field-row--bare .field-row__label {
+  grid-column: 1;
+}
+
 .field-row--bare .field-row__value {
-  flex: 1;
+  grid-column: 2;
 }
 
 .field-row--bare .field-row__badge {
+  grid-column: 3;
+  grid-row: 1;
   align-self: center;
 }
 
