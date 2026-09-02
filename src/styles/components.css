@@ -1360,7 +1360,6 @@
 
 .replay-controls {
   justify-content: space-between;
-  padding-block-end: var(--space-2);
   font-size: var(--text-md);
   line-height: var(--leading-md-loose);
 }
@@ -1372,6 +1371,10 @@
 
 .replay-controls__next {
   color: var(--ink-secondary);
+}
+
+.replay-controls .numeric {
+  white-space: nowrap;
 }
 
 .session-error {
