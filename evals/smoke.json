@@ -1,0 +1,68 @@
+[
+  {
+    "name": "Contract walk: list, read, propose, conflict, missing, draft, state",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Extract this RFQ into a quote request and ask the customer about the gaps." }
+    ],
+    "expectedCall": [
+      {
+        "ordered": [
+          { "functionName": "list_rfq_documents", "arguments": {} },
+          { "functionName": "read_document", "arguments": { "doc_id": "email", "section_id": "body" } },
+          { "functionName": "read_document", "arguments": { "doc_id": "spec", "section_id": "s3" } },
+          {
+            "functionName": "propose_field",
+            "arguments": {
+              "field_id": "part_name",
+              "value": "Hanging KVM mount bracket",
+              "source_refs": ["spec:title"],
+              "rationale": "The specification title names the part."
+            }
+          },
+          {
+            "functionName": "report_conflict",
+            "arguments": {
+              "field_id": "quantity",
+              "candidates": [
+                { "value": "750", "source_refs": ["email:p2"], "note": "The email asks for 750 units plus one first article." },
+                { "value": "800", "source_refs": ["spec:s1.1"], "note": "The specification states 800 brackets." }
+              ]
+            }
+          },
+          {
+            "functionName": "report_missing",
+            "arguments": {
+              "field_id": "general_tolerance",
+              "searched": ["spec:s3", "drawing:overall", "email:body"],
+              "note": "The specification shows a bracketed example, not a requirement."
+            }
+          },
+          {
+            "functionName": "draft_clarification",
+            "arguments": {
+              "subject": "RFQ 26-0812: quantity and tolerance",
+              "body": "Please confirm the quantity to quote and the general tolerance that applies.",
+              "covers": ["quantity", "general_tolerance"]
+            }
+          },
+          { "functionName": "get_review_state", "arguments": {} }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Rejections are structured: missing refs, unknown source, then a valid proposal",
+    "messages": [
+      { "role": "user", "type": "message", "content": "Record the material." }
+    ],
+    "expectedCall": [
+      {
+        "ordered": [
+          { "functionName": "propose_field", "arguments": { "field_id": "material", "value": "6061-T6 aluminum", "source_refs": [] } },
+          { "functionName": "propose_field", "arguments": { "field_id": "material", "value": "6061-T6 aluminum", "source_refs": ["spec:s9.9"] } },
+          { "functionName": "propose_field", "arguments": { "field_id": "material", "value": "6061-T6 aluminum", "source_refs": ["spec:s3.1"] } }
+        ]
+      }
+    ]
+  }
+]
