@@ -343,6 +343,15 @@ describe('the sentence under a verified value', () => {
     expect(document.querySelector('.field-row__agent-original')).toBeNull();
   });
 
+  test('a settled row prints its provenance once, inside the sentence', () => {
+    render(<FieldRow field={verified('verified', '800')} />);
+
+    // Export 11: the links live in the sentence, so the row keeps no line of
+    // its own for them.
+    expect(document.querySelector('.field-row__sources')).toBeNull();
+    expect(document.querySelectorAll('.field-row__resolution a')).toHaveLength(1);
+  });
+
   test('a field the estimator typed says there was nothing to compare against', () => {
     render(<FieldRow field={field('quantity', 'verified', {
       value: '750',

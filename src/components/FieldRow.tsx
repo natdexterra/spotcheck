@@ -92,6 +92,9 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
   } else if (field.proposal && (kind === 'edited' || kind === 'picked' || kind === 'applied')) {
     resolution = <>agent {field.proposal.value} → yours {field.value}{sourceRun(field.proposal.source_refs)}</>;
   }
+  // Export 11: when the row carries a resolution sentence the sentence holds
+  // the provenance, so the row keeps no separate line of links.
+  const showResolution = resolution !== null && !editorOpen && !bare;
 
   return (
     <article
@@ -109,7 +112,7 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
       {editorOpen ? null : <div className="field-row__value">{value}</div>}
       <Badge field={field} now={now} />
 
-      {!editorOpen && sources.length > 0 && !showAgentOriginal ? (
+      {!editorOpen && sources.length > 0 && !showAgentOriginal && !showResolution ? (
         <div className="field-row__sources">
           {sources.map(ref => (
             <ProvenanceLink href={sourceHref(ref)} key={ref} onClick={openSource?.(ref)}>
@@ -144,7 +147,7 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
         </p>
       ) : null}
 
-      {resolution && !editorOpen && !bare ? (
+      {showResolution ? (
         <p className="field-row__resolution">{resolution}</p>
       ) : null}
 
