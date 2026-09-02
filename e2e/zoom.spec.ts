@@ -1,6 +1,10 @@
 import { expect, test, type Page } from '@playwright/test';
 import { executeTool, installModelContext } from './helpers';
 
+/** Every test declares the agent API state it runs under before it navigates,
+    so the strip, the replay controls and the screenshots are never left to the
+    browser the run happens to use. */
+
 /** Every test in this file also asserts the console stayed clean. */
 const watchConsole = (page: Page): string[] => {
   const problems: string[] = [];
@@ -67,6 +71,7 @@ test.describe('drawing zoom', () => {
 
   test('2× doubles the sheet inside its own scroll region and never widens the page', async ({ page }) => {
     const problems = watchConsole(page);
+    await installModelContext(page);
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
 
@@ -129,6 +134,7 @@ test.describe('drawing zoom', () => {
   test('a provenance link brings its box into the scroll region at 2×', async ({ page }) => {
     test.setTimeout(60_000);
     const problems = watchConsole(page);
+    await installModelContext(page);
     await page.clock.install();
     await page.goto('/');
     await page.getByRole('button', { name: 'Play sample session' }).click();
@@ -164,6 +170,7 @@ test.describe('drawing zoom', () => {
 
   test('the control is the only way to zoom: ctrl + wheel is left to the browser', async ({ page }) => {
     const problems = watchConsole(page);
+    await installModelContext(page);
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
 
@@ -181,6 +188,7 @@ test.describe('drawing zoom', () => {
 
   test('arrow keys move between the segments and the scroll region scrolls from the keyboard', async ({ page }) => {
     const problems = watchConsole(page);
+    await installModelContext(page);
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
 
@@ -207,6 +215,7 @@ test.describe('drawing zoom', () => {
 
   test('reduced motion changes nothing: the zoom is instant either way', async ({ page }) => {
     const problems = watchConsole(page);
+    await installModelContext(page);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/');
     await page.getByRole('tab', { name: 'Drawing' }).click();
