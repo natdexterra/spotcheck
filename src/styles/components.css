@@ -1803,16 +1803,17 @@
   text-overflow: ellipsis;
 }
 
-.dialog__privacy,
-.dialog__error {
+.dialog__privacy {
   display: flex;
   align-items: start;
   gap: var(--space-1);
   margin: 0;
 }
 
+/* A validation message is text: the colour and the field's own invalid state
+   carry it, and no glyph repeats them. */
 .dialog__error {
-  align-items: center;
+  margin: 0;
   color: var(--state-conflict);
 }
 
