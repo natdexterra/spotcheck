@@ -9,6 +9,8 @@ const BATCH_DELAY = 3_000;
 // Fifty milliseconds was below the dwell every screen reader needs to speak it.
 const QUEUE_DELAY = 1_000;
 
+export const announce = (message: string) => document.dispatchEvent(new CustomEvent('session-announcement', { detail: message }));
+
 const inputOf = (entry: LogEntry): Record<string, unknown> => {
   if (entry.event.actor !== 'agent') return {};
   const input = entry.event.action.input;
@@ -59,6 +61,12 @@ export const LiveRegion = () => {
     queue.current.push(message);
     pumpQueue();
   }, [pumpQueue]);
+
+  useEffect(() => {
+    const onAnnouncement = (event: Event) => enqueue((event as CustomEvent<string>).detail);
+    document.addEventListener('session-announcement', onAnnouncement);
+    return () => document.removeEventListener('session-announcement', onAnnouncement);
+  }, [enqueue]);
 
   const batchProposal = useCallback(() => {
     proposalCount.current += 1;

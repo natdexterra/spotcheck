@@ -11,6 +11,17 @@ let suspensions = 0;
 export function suspendPersistence(): void { suspensions++; }
 export function resumePersistence(): void { suspensions = Math.max(0, suspensions - 1); }
 
+export function readSavedSession(storage?: SessionStorage): string | null {
+  try { return (storage ?? globalThis.localStorage)?.getItem(key) ?? null; }
+  catch { return null; }
+}
+
+export function saveNow(storage?: SessionStorage, recordedAt?: string): void {
+  if (suspensions > 0) return;
+  try { (storage ?? globalThis.localStorage)?.setItem(key, exportSession(recordedAt)); }
+  catch { /* Storage can be unavailable; the session remains in memory. */ }
+}
+
 /** Restore before subscribing, so intermediate replay states never overwrite the saved log. */
 export async function startPersistence(storage?: SessionStorage) {
   let error: string | undefined;
