@@ -91,5 +91,25 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   expect(summary.lists).toBeGreaterThan(0);
   expect(summary.markers).toEqual(['none']);
   expect(summary.chip).toBe(summary.sans);
+
+  // Export 08: the details and the log are cards on the canvas; the actions
+  // under them are not, and every block keeps its own gap so that no two
+  // hairlines ever meet.
+  const blocks = await page.evaluate(() => {
+    const box = (selector: string) => document.querySelector(selector)!.getBoundingClientRect();
+    const actions = document.querySelector('.confirm-summary__actions')!;
+    const style = getComputedStyle(actions);
+    return {
+      detailsToLog: box('.confirm-summary__log').top - box('.confirm-summary__details').bottom,
+      logToActions: actions.getBoundingClientRect().top - box('.confirm-summary__log').bottom,
+      border: style.borderTopWidth,
+      background: style.backgroundColor,
+    };
+  });
+  expect(blocks.detailsToLog).toBeGreaterThan(0);
+  expect(blocks.logToActions).toBeGreaterThan(0);
+  expect(blocks.border).toBe('0px');
+  expect(blocks.background).toBe('rgba(0, 0, 0, 0)');
+
   expect(browserProblems).toEqual([]);
 });
