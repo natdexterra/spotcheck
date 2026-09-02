@@ -76,10 +76,12 @@ export function DrawingSheet({
       {/* The sheet scrolls inside this wrapper, never in the tab panel: the
           toolbar and the caption stay on the document lane while only the
           drawing pans. A scroll container needs a tab stop of its own to be
-          reachable from the keyboard, and its own name says what it moves. */}
+          reachable from the keyboard, and its own name says what it moves —
+          which needs a role, because a name on a generic element is dropped. */}
       <div
         aria-label="Drawing sheet, scrollable"
         className="drawing-sheet__scroll"
+        role="group"
         tabIndex={0}
       >
         <div
