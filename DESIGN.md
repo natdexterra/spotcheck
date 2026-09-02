@@ -63,7 +63,7 @@ Only the two alarming agent flags (conflict, missing) and the human-only verifie
 
 ## Interaction states
 
-Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time.
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen.
 
 | Class | Default | Hover | Active | Disabled |
 |---|---|---|---|---|
