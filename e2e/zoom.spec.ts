@@ -18,7 +18,10 @@ const geometry = (page: Page) => page.evaluate(() => {
   const panel = document.querySelector<HTMLElement>('.source-pane__panel--drawing')!;
   const scroller = document.querySelector<HTMLElement>('.drawing-sheet__scroll')!;
   const wrap = document.querySelector<HTMLElement>('.drawing-sheet__image-wrap')!;
+  const panelStyle = getComputedStyle(panel);
   return {
+    panelOverflowX: panelStyle.overflowX,
+    panelOverflowY: panelStyle.overflowY,
     panelClientWidth: panel.clientWidth,
     panelScrollWidth: panel.scrollWidth,
     panelScrollHeight: panel.scrollHeight,
@@ -70,6 +73,9 @@ test.describe('drawing zoom', () => {
     const one = await geometry(page);
     // 1×: the sheet fits the region, so nothing scrolls sideways.
     expect(one.scrollerScrollWidth).toBe(one.scrollerClientWidth);
+    // The panel is a column, never a scroll container, at either zoom.
+    expect(['auto', 'scroll']).not.toContain(one.panelOverflowX);
+    expect(['auto', 'scroll']).not.toContain(one.panelOverflowY);
     expect(one.panelScrollWidth).toBe(one.panelClientWidth);
     await page.screenshot({ path: 'docs/qa/p4/drawing-zoom-1x-1920.png' });
 
@@ -86,6 +92,8 @@ test.describe('drawing zoom', () => {
     expect(two.scrollerScrollHeight).toBeGreaterThan(two.scrollerClientHeight);
     expect(two.panelScrollWidth).toBe(two.panelClientWidth);
     expect(two.panelScrollHeight).toBe(two.panelClientHeight);
+    expect(['auto', 'scroll']).not.toContain(two.panelOverflowX);
+    expect(['auto', 'scroll']).not.toContain(two.panelOverflowY);
     expect(two.pageScrollWidth).toBe(two.pageClientWidth);
 
     // The toolbar and the caption keep the lane while the sheet pans under them.
