@@ -2,6 +2,24 @@ import { afterEach, expect, test, vi } from 'vitest';
 
 afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); vi.resetModules(); });
 
+test('exported epoch stamps become this-run wall-clock stamps including time spent paused', async () => {
+  vi.useFakeTimers(); vi.setSystemTime(new Date('2026-09-02T10:00:00Z'));
+  const { createReplay } = await import('./replay');
+  const { getState } = await import('../state/store');
+  const { reviewSession } = await import('../state/session');
+  const replay = createReplay({ recorded_at: '2026-09-01', steps: [
+    { actor: 'agent', at: 1_788_000_000_000, call: { tool: 'propose_field', input: { field_id: 'material', value: 'steel', source_refs: ['spec:s1.1'] } } },
+    { actor: 'estimator', at: 1_788_000_005_000, action: { type: 'verify', field_id: 'material' } },
+  ] });
+  await replay.next();
+  expect(reviewSession(getState()).log[0]!.at).toBe(Date.now());
+  await vi.advanceTimersByTimeAsync(60_000);
+  await replay.next();
+  expect(reviewSession(getState()).log[1]!.at).toBe(Date.now());
+  expect(replay.recordedMs).toBe(5000);
+  replay.dispose();
+});
+
 test('end exposes fixture total and recorded duration and keeps persistence suspended', async () => {
   const { createReplay } = await import('./replay');
   const { startPersistence } = await import('./persistence');

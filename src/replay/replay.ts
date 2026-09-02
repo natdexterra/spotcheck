@@ -44,12 +44,8 @@ export function createReplay(source: Fixture = sampleSession) {
   const viewerHandled = new Set<FieldId>();
   // The fixture's `at` is a recording offset, not a time. Steps are stamped
   // with wall-clock times so badges, log clocks and "Reviewed in" read as the
-  // run the viewer is watching; the offsets still drive the cadence.
-  let startedAt: number | undefined;
-  const stamped = (step: Step): Step => {
-    startedAt ??= Date.now();
-    return { ...step, at: startedAt + step.at };
-  };
+  // run the viewer is watching. Recorded duration is computed separately.
+  const stamped = (step: Step): Step => ({ ...step, at: Date.now() });
   let applyingFixture = false;
   let seen = 0;
   let lastFields = getState().fields;
@@ -140,8 +136,8 @@ export function createReplay(source: Fixture = sampleSession) {
     get nextStep() { return fixture.steps[position]; },
     subscribe(listener: () => void) { listeners.add(listener); return () => { listeners.delete(listener); }; },
     next, pause,
-    play() { if (!disposed && !error && position < fixture.steps.length) { startedAt ??= Date.now(); playing = true; schedule(); notify(); } },
-    restart() { if (disposed || busy) return; pause(); generation++; position = 0; error = undefined; finishedByViewer = false; startedAt = undefined; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); notify(); },
+    play() { if (!disposed && !error && position < fixture.steps.length) { playing = true; schedule(); notify(); } },
+    restart() { if (disposed || busy) return; pause(); generation++; position = 0; error = undefined; finishedByViewer = false; viewerHandled.clear(); seen = 0; replaceState(createInitialState()); notify(); },
     dispose() { pause(); if (!disposed) { disposed = true; unsubscribe(); resumePersistence(); } },
   };
 }
