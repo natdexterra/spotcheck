@@ -133,9 +133,9 @@ export const InlineEditor = ({ field, onClose, onSource, returnFocusRef }: Inlin
         {unitBearing && (
           <fieldset aria-label={`${label} unit`} className="inline-editor__units">
             <legend className="inline-editor__label">unit</legend>
-            <div className="inline-editor__segments">
+            <div className="segmented">
               {(['in', 'mm'] as const).map(option => (
-                <label className="inline-editor__segment" key={option}>
+                <label className="segmented__option" key={option}>
                   <input
                     checked={unit === option}
                     className="visually-hidden"

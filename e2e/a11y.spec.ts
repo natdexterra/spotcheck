@@ -146,7 +146,7 @@ test('choice controls are drawn by the app and take the focus ring on the drawn 
   await dimensions.getByRole('button', { name: 'Add unit' }).click();
   await dimensions.getByRole('textbox', { name: 'Overall dimensions value' }).click();
   await page.keyboard.press('Tab');
-  const segment = dimensions.locator('.inline-editor__segment').first();
+  const segment = dimensions.locator('.segmented__option').first();
   await expect(segment.locator('input')).toBeFocused();
   const ring = await segment.evaluate(element => {
     const style = getComputedStyle(element);
