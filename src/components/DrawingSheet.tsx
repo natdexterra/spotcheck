@@ -15,6 +15,9 @@ export interface DrawingSheetProps {
 }
 
 const titleAreaCaption = 'a revision letter would live here; there is none';
+// A drawing a person attached is an image and nothing more: no region of it was
+// transcribed, so the caption says so rather than promising clickable callouts.
+const userSheetCaption = 'Image only · no text is read from this sheet';
 const ZOOM_LEVELS: readonly Zoom[] = [1, 2];
 
 export function DrawingSheet({
@@ -43,6 +46,10 @@ export function DrawingSheet({
   const boxedRegions = document.sections.flatMap(section =>
     sectionRegions(document.id, section) as DrawingRegion[],
   ).filter((region): region is DrawingRegion & { box: NormalizedBox } => region.box !== undefined);
+  // The bundled sheet names its image file; a package a person opened carries
+  // the re-encoded image itself, so the data URL is the source when there is one.
+  const source = document.image?.startsWith('data:') === true ? document.image : drawingSheetUrl;
+  const bundled = boxedRegions.some(region => region.id === 'drawing:title_area');
 
   return (
     <figure
@@ -92,9 +99,9 @@ export function DrawingSheet({
           ref={wrapRef}
         >
           <img
-            alt="Drawing sheet 1 for the hanging KVM mount bracket"
+            alt={bundled ? 'Drawing sheet 1 for the hanging KVM mount bracket' : 'Drawing sheet 1 of the package you opened'}
             className="drawing-sheet__image"
-            src={drawingSheetUrl}
+            src={source}
           />
           <div className="drawing-sheet__overlays">
             {boxedRegions.map(region => (
@@ -111,8 +118,12 @@ export function DrawingSheet({
         </div>
       </div>
       <figcaption className="drawing-sheet__caption">
-        <span>{titleAreaCaption}</span>
-        <span>regions are clickable</span>
+        {bundled ? (
+          <>
+            <span>{titleAreaCaption}</span>
+            <span>regions are clickable</span>
+          </>
+        ) : <span>{userSheetCaption}</span>}
       </figcaption>
     </figure>
   );
