@@ -575,10 +575,13 @@
   overflow-y: auto;
 }
 
-/* The drawing scrolls sideways inside the panel, never across the page
-   (WCAG 1.4.10); the scrollbars sit at the panel's own edge. */
+/* The drawing tab panel is not a scroll container: the sheet scrolls in a
+   wrapper of its own, so the panel is only the column that hands that wrapper
+   the height the toolbar and the caption leave. */
 .source-pane__panel--drawing {
-  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .source-pane__tabs {
@@ -642,11 +645,24 @@
 
 .drawing-sheet {
   margin: 0;
-  /* The toolbar is the first row: 12px under the tab row, 24px above the sheet. */
-  padding: var(--space-3) var(--document-gutter) var(--space-6);
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  /* The toolbar is the first row: 12px under the tab row, 24px at the foot. */
+  padding-block: var(--space-3) var(--space-6);
+}
+
+/* The document lane belongs to the rows and to the scroll region, not to the
+   figure: that is what lets the region alone go full-bleed at 2x. */
+.drawing-sheet__toolbar,
+.drawing-sheet__scroll,
+.drawing-sheet__caption {
+  padding-inline: var(--document-gutter);
 }
 
 .drawing-sheet__toolbar {
+  flex: none;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -668,16 +684,20 @@
   gap: var(--space-2);
 }
 
-/* At 2x the sheet is twice the panel's content width and the panel scrolls
-   both ways; the toolbar and the caption keep the document lane, the sheet
-   itself runs to the panel edges so 200% is exactly two panel widths. */
-.drawing-sheet--zoom-2 {
-  padding-inline: 0;
+/* The sheet's own scroll region: it takes the height the toolbar and the
+   caption leave and scrolls in both axes, so the page never scrolls sideways
+   (WCAG 1.4.10) and neither row ever pans with the drawing. */
+.drawing-sheet__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
 }
 
-.drawing-sheet--zoom-2 .drawing-sheet__toolbar,
-.drawing-sheet--zoom-2 .drawing-sheet__caption {
-  padding-inline: var(--document-gutter);
+/* At 2x the drawing is twice the scroll region's content width; the region
+   itself runs to the panel edges, where its scrollbars sit, while the toolbar
+   and the caption stay on the document lane. */
+.drawing-sheet--zoom-2 .drawing-sheet__scroll {
+  padding-inline: 0;
 }
 
 .drawing-sheet--zoom-2 .drawing-sheet__image-wrap {
@@ -723,6 +743,7 @@
 }
 
 .drawing-sheet__caption {
+  flex: none;
   display: grid;
   font-size: var(--text-md);
   gap: var(--space-2);
@@ -1245,21 +1266,13 @@
     gap: var(--space-4);
   }
 
-  /* Ladder step 2: the document lane steps 48 to 32 below 1280. */
+  /* Ladder step 2: the document lane steps 48 to 32 below 1280. The zoom-2
+     rule outranks this one, so the scroll region still goes full-bleed. */
   .source-pane__tabs,
   .document-text,
-  .drawing-sheet {
-    padding-inline: var(--space-8);
-  }
-
-  /* The stepped lane follows the toolbar and caption when the sheet itself
-     goes full-bleed at 2x. */
-  .drawing-sheet--zoom-2 {
-    padding-inline: 0;
-  }
-
-  .drawing-sheet--zoom-2 .drawing-sheet__toolbar,
-  .drawing-sheet--zoom-2 .drawing-sheet__caption {
+  .drawing-sheet__toolbar,
+  .drawing-sheet__scroll,
+  .drawing-sheet__caption {
     padding-inline: var(--space-8);
   }
 }
