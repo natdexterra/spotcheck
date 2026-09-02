@@ -12,7 +12,7 @@ The fallback becomes a complete, controllable replay and the session becomes a f
 
 1. `build-spec.md` § Fixture and replay, § Screens 5 (summary), § Component inventory (`ReplayControls`, `ChangeLogDrawer` + import input), § Size and performance budgets.
 2. `DESIGN.md` — tokens, interaction states, spacing roles and the two lanes, § Typography (the mono companion size), "labels never wrap, bars stack", § Choice controls (a native file input stays native), motion.
-3. `docs/design/09-status-strip-states.png` (the `live` line these controls sit under) and `14-narrow-change-log-sheet-390.png` (the sheet the import control lives in). The replay row, the export and import controls and the summary lines are **not drawn**; § UI rules below is their specification, and the pull request carries screenshots at 1920, 1366 and 390 for each state listed there.
+3. `docs/design/15-replay-row-states.png` (the replay row in its four states, desktop and 390) and `16-change-log-export-import.png` (expanded header with Export/Import, the import error line, the one-line collapsed bar, the 390 sheet header); `09` and `14` for the strip and sheet they sit in. Where an export and a rule disagree the rule wins (the exports label the disclosure "23 entries"; the shipped label "Show change log" stays). The pull request carries screenshots at 1920, 1366 and 390 for each replay-row state.
 4. `docs/scenarios.md` — B1, B8, S10, B10, B11 are this task's scenarios.
 
 ## Scope — files
@@ -108,7 +108,7 @@ Read entries name what was read instead of the generic "Agent read the RFQ packa
 
 ### Mono companion size (DESIGN.md § Typography, rule added 2026-09-02)
 
-Runs of mono text set beside `lg` sans read a step larger than the sans (Geist Mono's advance width). They take `--text-lg-mono: 1.029rem` (cap-height 11) with the unchanged `lg` leading: `.field-row__value`, `.candidate-option__value`, `.suggestion-card__value`, `.field-row__revision`, `.field-row__agent-original`, `.drawing-sheet__caption`, `.confirm-summary__line`. Chips, counts, timestamps, the strip counter and the prompt stay on their tokens. Row heights do not change (same leading); the e2e layout guard extends by one assertion on the computed size of a field value.
+Runs of mono text set beside `lg` sans read a step larger than the sans (Geist Mono's advance width). They take `--text-lg-mono: 1.029rem` (cap-height 11) with the unchanged `lg` leading: `.field-row__value`, `.candidate-option__value`, `.suggestion-card__value`, `.inline-editor__input`. Per the approved exports (08, 11, 06) three classes are not lg at all: `.field-row__revision`, `.field-row__agent-original` and `.confirm-summary__line` are `--text-sm` mono with `--leading-sm`; `.drawing-sheet__caption` is sans `--text-md` in `--ink-secondary` (drop it from the mono group). Chips, counts, timestamps, the strip counter and the prompt stay on their tokens. Row heights do not change (same leading); the e2e layout guard extends by one assertion on the computed size of a field value.
 
 ## Order of work (test first; one commit per green step, subjects `P3 <area>: …`)
 
