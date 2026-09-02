@@ -98,6 +98,20 @@ export function FieldRow({ bare = false, field, lockedReport, now, onSource }: F
         {sourceRun(field.proposal.source_refs)}
       </>
     );
+  } else if (kind === 'picked' && field.candidates) {
+    // A conflict row is settled from its candidates: the one whose value the
+    // row now carries is yours, the rest are the readings you passed over.
+    const chosen = field.candidates.find(candidate =>
+      candidate.value === field.value && (candidate.unit ?? null) === (field.unit ?? null));
+    resolution = (
+      <>
+        agent {field.candidates.filter(candidate => candidate !== chosen)
+          .map(candidate => displayValue(candidate.value, candidate.unit)).join(', ')}
+        {' → yours '}
+        {displayValue(field.value, field.unit)}
+        {sourceRun(chosen?.source_refs ?? [])}
+      </>
+    );
   }
   // Export 11: when the row carries a resolution sentence the sentence holds
   // the provenance, so the row keeps no separate line of links.
