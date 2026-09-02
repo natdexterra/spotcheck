@@ -158,7 +158,12 @@ export const ChangeLogDrawer = () => {
               <div className="session-import">
                 <label className="visually-hidden" htmlFor="session-file">Import session</label>
                 <input className="visually-hidden" id="session-file" ref={fileRef} type="file" accept="application/json,.json" onChange={event => void importFile(event.target.files?.[0])} />
-                <Button variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
+                {/* The native input is the control: it holds the tab stop and
+                    the focus ring (.session-import:has(input:focus-visible)).
+                    The visible button only forwards a pointer click, so it
+                    stays out of the tab order and out of the accessibility
+                    tree — otherwise "Import session" would name two controls. */}
+                <Button aria-hidden="true" tabIndex={-1} variant="secondary" size="compact" onClick={() => fileRef.current?.click()}>Import session</Button>
               </div>
             </div>
             <Button aria-expanded="true" onClick={close} variant="text"><CrossIcon />Close</Button>
