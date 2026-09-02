@@ -168,6 +168,14 @@ describe('P5: a drawing a person attached', () => {
     expect(caption).not.toHaveTextContent('a revision letter would live here');
   });
 
+  test('an image source that is not an image is not rendered as one', () => {
+    const tampered = { ...userDrawing, image: 'data:text/html;base64,PHNjcmlwdD4=' };
+    const { container } = render(<DrawingSheet document={tampered} onActivateRegion={vi.fn()} />);
+
+    expect(container.querySelector<HTMLImageElement>('.drawing-sheet__image')?.getAttribute('src'))
+      .not.toBe('data:text/html;base64,PHNjcmlwdD4=');
+  });
+
   test('the bundled sheet keeps its own caption', () => {
     const { container } = render(<DrawingSheet onActivateRegion={vi.fn()} />);
     const caption = container.querySelector('.drawing-sheet__caption');
