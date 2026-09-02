@@ -17,25 +17,35 @@ export interface ReplaySnapshot {
   next?: Step;
   finishedByViewer: boolean;
   recordedMs: number;
+  /** Bumped by `focusPause()`; the replay row focuses itself when it changes. */
+  focusRequest: number;
 }
 
-const idle: ReplaySnapshot = { active: false, label: '', recordedAt: '', position: 0, total: 0,
+const idle: Omit<ReplaySnapshot, 'focusRequest'> = { active: false, label: '', recordedAt: '', position: 0, total: 0,
   playing: false, busy: false, ended: false, finishedByViewer: false, recordedMs: 0 };
-let snapshot = idle;
+let focusRequest = 0;
+let snapshot: ReplaySnapshot = { ...idle, focusRequest };
 let owner: { replay: ReturnType<typeof createReplay>; saved: string | null; before: ReturnType<typeof getState>; label: string; recordedAt: string; unsubscribe: () => void } | undefined;
 const listeners = new Set<() => void>();
 export const subscribe = (listener: () => void) => { listeners.add(listener); return () => { listeners.delete(listener); }; };
 export const getSnapshot = () => snapshot;
 const publish = () => {
-  if (!owner) snapshot = idle;
+  if (!owner) snapshot = { ...idle, focusRequest };
   else {
     const { replay, label, recordedAt } = owner;
     snapshot = { active: true, label, recordedAt, position: replay.position, total: replay.total,
       playing: replay.playing, busy: replay.busy, ended: replay.ended, error: replay.error,
-      next: replay.nextStep, finishedByViewer: replay.finishedByViewer, recordedMs: replay.recordedMs };
+      next: replay.nextStep, finishedByViewer: replay.finishedByViewer, recordedMs: replay.recordedMs,
+      focusRequest };
   }
   listeners.forEach(listener => listener());
 };
+
+// Hands the keyboard back to the replay row after a component elsewhere started
+// a replay (the log drawer, on import and on Play sample session). The row owns
+// its own DOM: it focuses Pause, or Restart when an ended or errored row has no
+// Pause. Nothing outside the row reaches into it.
+export const focusPause = () => { focusRequest += 1; publish(); };
 
 // Serialize transitions so a slow in-flight tool settles before restoring or replacing its store.
 let transition = Promise.resolve();

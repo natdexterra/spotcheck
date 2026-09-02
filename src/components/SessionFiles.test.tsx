@@ -4,11 +4,16 @@ import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-libra
 import { afterEach, expect, test, vi } from 'vitest';
 import { ChangeLogDrawer } from './ChangeLogDrawer';
 import { LiveRegion } from './LiveRegion';
+import { ReplayControls } from './ReplayControls';
 import { createInitialState, type ReviewSession } from '../state/session';
 import { replaceState } from '../state/store';
 import * as controller from '../replay/controller';
 
-afterEach(() => { cleanup(); replaceState(createInitialState()); vi.restoreAllMocks(); });
+afterEach(async () => { cleanup(); await controller.leave(); replaceState(createInitialState()); localStorage.clear(); vi.restoreAllMocks(); });
+
+const importFile = async (text: string) => {
+  await act(async () => { fireEvent.change(screen.getByLabelText('Import session'), { target: { files: [{ text: async () => text }] } }); });
+};
 
 test('collapsed sentence has ellipsis class and omits notes without a title', () => {
   replaceState({ ...createInitialState(), log: [{ actor: 'agent', at: 1,
@@ -68,6 +73,21 @@ test('successful import passes parsed fixture to controller and closes drawer', 
   await act(async () => { fireEvent.change(screen.getByLabelText('Import session'), { target: { files: [file] } }); });
   expect(start).toHaveBeenCalledWith(fixture, 'Imported session');
   expect(screen.getByRole('button', { name: 'Show change log' })).toBeInTheDocument();
+});
+
+test('a successful import hands focus to Pause on the replay row', async () => {
+  render(<><ChangeLogDrawer /><ReplayControls /></>);
+  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  await importFile(JSON.stringify({ recorded_at: '2026-09-01', steps: [{ actor: 'agent', at: 0, call: { tool: 'list_rfq_documents', input: {} } }] }));
+  expect(screen.getByRole('button', { name: 'Pause' })).toHaveFocus();
+});
+
+test('an imported fixture that ends at once hands focus to Restart, the row it has', async () => {
+  render(<><ChangeLogDrawer /><ReplayControls /></>);
+  fireEvent.click(screen.getByRole('button', { name: 'Show change log' }));
+  await importFile('{"recorded_at":"2026-09-01","steps":[]}');
+  expect(screen.queryByRole('button', { name: 'Pause' })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Restart' })).toHaveFocus();
 });
 
 test('failed import is visible and announced; next attempt clears error', async () => {
