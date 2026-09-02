@@ -16,9 +16,9 @@ export function readSavedSession(storage?: SessionStorage): string | null {
   catch { return null; }
 }
 
-export function saveNow(storage?: SessionStorage): void {
+export function saveNow(storage?: SessionStorage, recordedAt?: string): void {
   if (suspensions > 0) return;
-  try { (storage ?? globalThis.localStorage)?.setItem(key, exportSession()); }
+  try { (storage ?? globalThis.localStorage)?.setItem(key, exportSession(recordedAt)); }
   catch { /* Storage can be unavailable; the session remains in memory. */ }
 }
 
