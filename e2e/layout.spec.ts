@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext } from './helpers';
 
 test.use({ viewport: { width: 1920, height: 1080 } });
 
@@ -32,6 +32,7 @@ const seed = async (page: import('@playwright/test').Page) => {
 };
 
 test('the header sets the package reference in the sans, not in the mono of values', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   const families = await page.evaluate(() => ({
     reference: getComputedStyle(document.querySelector('.header__package')!).fontFamily,
@@ -70,6 +71,7 @@ const stripParts = (page: import('@playwright/test').Page) => page.evaluate(() =
 for (const width of [1920, 1366]) {
   test(`${width}px opens on the orienting line above the status line`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await removeModelContext(page);
     await page.goto('/');
     await expect(page.locator('.status-strip__intro')).toContainText('a customer’s RFQ package');
     // Measure with the real face, not the fallback: the line fits 1366 by ~4%.
@@ -89,6 +91,7 @@ for (const width of [1920, 1366]) {
 
 test('390px keeps the orienting line and puts the button full width under the text', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
+  await removeModelContext(page);
   await page.goto('/');
 
   const intro = (await page.locator('.status-strip__intro').boundingBox())!;
@@ -217,6 +220,7 @@ test('control heights: the sample button is compact, Confirm is large', async ({
 });
 
 test('control heights: the sample button stays compact when it is the primary (no-api)', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   const sample = page.getByRole('button', { name: 'Play sample session' });
   await expect(sample).toHaveClass(/button--primary/);
@@ -224,6 +228,7 @@ test('control heights: the sample button stays compact when it is the primary (n
 });
 
 test('the md meta group keeps its size: blocker line, header reference, log sentence', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   await page.evaluate(() => document.fonts.ready);
   const md = await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--text-md').trim());

@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext } from './helpers';
 
 for (const width of [390, 820]) {
   test(`${width}px uses one column and a focus-restoring source sheet`, async ({ page }) => {
@@ -64,6 +64,7 @@ for (const width of [390, 820]) {
 for (const width of [1024, 1366]) {
   test(`${width}px keeps the two-pane workspace`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await removeModelContext(page);
     await page.goto('/');
     await expect(page.locator('.field-pane')).toBeVisible();
     await expect(page.locator('.source-pane')).toBeVisible();
@@ -91,6 +92,7 @@ for (const width of [1024, 1366]) {
 test('390px shows the short no-api line, a full-width primary, and goes live on play', async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 900 });
   await page.clock.install();
+  await removeModelContext(page);
   await page.goto('/');
 
   const strip = page.locator('.status-strip');

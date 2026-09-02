@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { mkdir, readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import type { Fixture } from '../src/replay/replay';
-import { executeTool, installModelContext } from './helpers';
+import { executeTool, installModelContext, removeModelContext } from './helpers';
 
 const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 const total = fixture.steps.length;
@@ -51,6 +51,7 @@ test.afterEach(async ({ page }) => {
 });
 
 test('B1 controls advance, pause, step, restart and confirm; live strip exports', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/'); await start(page);
   await page.clock.runFor(3000);
   const advanced = await counter(page).textContent();
@@ -80,6 +81,7 @@ test('B1 controls advance, pause, step, restart and confirm; live strip exports'
 });
 
 test('B8 summary export imports to the same field decisions and complete log', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/'); await start(page); await finish(page);
   const decisions = await page.locator('.confirm-summary__details').innerText();
   const counts = await page.locator('.confirm-summary__counts').innerText();
@@ -97,6 +99,7 @@ test('B8 summary export imports to the same field decisions and complete log', a
 });
 
 test('take-over logs the skipped estimator step and viewer confirmation shows both durations', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/'); await start(page);
   await page.clock.runFor(3000);
   await replay(page).getByRole('button', { name: 'Pause' }).click();
@@ -110,6 +113,7 @@ test('take-over logs the skipped estimator step and viewer confirmation shows bo
 });
 
 test('import failure leaves the session intact and announces the error', async ({ page }) => {
+  await removeModelContext(page);
   await page.goto('/');
   await importText(page, 'not JSON');
   await expect(page.locator('.change-log__error')).toContainText('Could not import:');
@@ -208,6 +212,7 @@ for (const width of [1920, 1366, 390]) {
 for (const width of [770, 820, 1024]) {
   test(`${width}px keeps the replay text on one line with the controls beside it`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
+    await removeModelContext(page);
     await page.goto('/');
     await start(page);
     await page.clock.runFor(3000);
