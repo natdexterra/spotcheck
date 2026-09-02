@@ -160,7 +160,7 @@ Keyboard (B9): `j`/`k` flagged-field navigation, `Enter` primary action, `e` edi
 
 ## Size and performance budgets
 
-- JS ≤ 180 KB gzip total (React included); CSS ≤ 28 KB (24 KB through P2, 26 KB through P3; raised for the zoom toolbar and the package dialog); no inline scripts (`default-src 'self'` holds).
+- JS ≤ 180 KB gzip total (React included) — a gate. CSS size is reported in every pull request, not gated (the byte budget of 24/26/28 KB that ran through P4 was retired on 2026-09-02: at this size it cost quality without buying speed; reuse is enforced by the component inventory rule in `AGENTS.md` instead). No inline scripts (`default-src 'self'` holds).
 - `data/drawing-sheet1.webp` ≤ 300 KB; fonts self-hosted woff2, preloaded, `Geist Fallback` metric-matched.
 - Every tool result < 1,500 chars serialized — fixture-driven unit test.
 - INP ≤ 200 ms during live extraction (the ADR's review trigger).
