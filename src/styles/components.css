@@ -261,6 +261,8 @@
   font-weight: 600;
 }
 
+/* The strip's height is a floor, not a fixed value: the block padding stays
+   whatever the strip carries, so the replay row never sits on the hairline. */
 .status-strip {
   min-height: var(--control-large);
   position: relative;
@@ -268,12 +270,6 @@
   flex-direction: column;
   justify-content: center;
   gap: var(--space-2);
-}
-
-/* Before the first tool call the strip says what the page is; the two lines
-   then need the row padding the one-line states get from their min-height. */
-.status-strip--no-api,
-.status-strip--waiting {
   padding-block: var(--space-3);
 }
 
@@ -1474,6 +1470,26 @@
   color: var(--ink-secondary);
 }
 
+/* The slot holds the width of the three-button set (Play, Next step, Restart),
+   so moving between states never shifts the controls sideways. */
+.replay-controls__actions {
+  justify-content: flex-end;
+  min-width: calc(15 * var(--space-4));
+}
+
+/* Under the 680px column there is no room for the set beside the line, so the
+   row stacks and the slot gives its width back. */
+@media (width < 37.5rem) {
+  .replay-controls {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .replay-controls__actions {
+    min-width: 0;
+  }
+}
+
 .replay-controls .numeric {
   white-space: nowrap;
 }
@@ -1526,25 +1542,10 @@
 }
 
 @media (max-width: 1023px) {
-  .status-strip:has(.replay-controls) .status-strip__line {
-    display: contents;
-  }
-
-  .status-strip__export-slot {
-    order: 2;
-  }
-
-  .status-strip__export-slot .button {
-    width: auto;
-  }
-
-  .replay-controls {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .replay-controls__actions {
-    flex-wrap: wrap;
+  /* The controls stay beside the row text at every width; only the next-step
+     phrase drops to its own line under it. */
+  .replay-controls__next {
+    width: 100%;
   }
 
   .replay-controls .button--secondary {
