@@ -48,6 +48,7 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--bg-subtle` | `#ECEFF3` | secondary button fill, text-button hover pill, quiet chips |
 | `--ink-hover` | `#2A313A` | primary button hover fill |
 | `--ink-active` | `#1A1F26` | primary button active fill |
+| `--scrim` | `--ink` at 32% (`color-mix`) | the modal dialog's `::backdrop` |
 | `--highlight` | `#E7F0FE` | provenance flash background (both panes) |
 | `--highlight-edge` | `#1F6FEB` | active region outline, reading marker |
 | `--state-conflict` | `#C2293A` | conflict icon + label text |
@@ -59,11 +60,13 @@ State is always carried by icon + label (see State iconography); tints are decor
 | `--state-neutral` | value of `--ink-secondary` | needs_review icon + label |
 | `--state-empty` | value of `--ink-muted` | empty icon + label |
 
+`--scrim` is the one sanctioned alpha: it lies over the page, not over a surface, so the rule against translucent lines and fills does not reach it. It carries no blur, per **No shadows, no blur**.
+
 Only the two alarming agent flags (conflict, missing) and the human-only verified state get color; `needs_review` and `empty` stay in ink so the accent blue remains unambiguously *interactive*. Field state renders as a 3px left marker bar plus a dot-and-word badge in human wording ("Two sources disagree", "Not found", "Unit missing", "Edited by you · 0:42 ago") — never a bordered badge, never a full-row tint.
 
 ## Interaction states
 
-Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen.
+Every interactive class has all five states; transitions run at `--dur-1` (120ms) ease-out. One primary button per screen — Confirm, Send or Play sample session; an open inline editor or reason picker owns a local primary (Save, Mark not required) for as long as it is open, and only one of them can be open at a time. The local primary takes the compact height, not the large one: it sits inside a row, not under a screen. A modal dialog counts as a screen of its own: its single primary is the large primary, one per dialog; the compact local-primary rule stays a rule for rows and open editors.
 
 | Class | Default | Hover | Active | Disabled |
 |---|---|---|---|---|
@@ -78,6 +81,8 @@ The rule behind the split: an underline means *this takes you somewhere*; its ab
 ### Choice controls
 
 Radios, checkboxes and the segmented unit control are the app's own drawing, not the browser's: the native `<input>` stays in the DOM for semantics and keyboard (`appearance: none`; no custom roles), and the visible control is drawn on it with tokens. One drawing, reused wherever a choice appears — the not-required picker, the Clarification covers, the unit `in | mm` control, the Ask customer on-state icon.
+
+`<dialog>` and `<textarea>` are the opposite case and stay native: they are styled through tokens only (font, color, border, radius, focus ring) and never redrawn, because the modality, the top layer, the backdrop, `Esc`, the focus trap and the return of focus are the element's own behaviour and the resize handle is the browser's. `<input type="file">` keeps the native input for its semantics, its keyboard and its ring, with the app's compact secondary button and the chosen file's name as its visible face (`.session-import`, `.dialog__file`): the ring paints on the wrapper, and the button is `aria-hidden` and out of the tab order, so the control is named once.
 
 | Control | Box | Checked | Label |
 |---|---|---|---|
@@ -103,6 +108,23 @@ Hard rules that follow:
 - Readable text uses `--ink`, `--ink-secondary` or `--ink-muted`; state label text uses its state color; nothing else carries prose.
 - `--accent` (`#1F6FEB`) is graphical: focus rings, markers, icon strokes. Text-sized accent content (links, chips) uses `--accent-text`.
 - Hairlines never carry meaning; the input border is the only boundary that must clear the 3:1 graphical floor, and it has its own token.
+
+## Components
+
+The shared primitives, one row each. A task adds a modifier to a row that is here before it adds a block, and a primitive that is new to the app enters this table in the pull request that introduces it (`AGENTS.md`, Stack). Heights are the control-height tokens of **Spacing, layout, hit targets**, cited rather than retyped; a row that names two components is a class convention rather than a component of its own, and those are the components that render it.
+
+| Primitive | Component | CSS block | States | Heights |
+|---|---|---|---|---|
+| Button | `Button` | `.button` with `--primary` / `--secondary` / `--text` and `--compact` / `--large` | default, hover, active, disabled, focus ring; `aria-pressed` on the toggle text button | `--control-compact` and `--control-large`; every button reaches `--control-large` below 1024px |
+| Choice, radio and checkbox | `Choice`, rendered by `NotRequiredPicker` and `ClarificationEditor` | `.choice`, `.choice--radio`, `.choice--checkbox`, `.choice__input`, `.choice__mark`, `.choice__label` | unchecked, checked, hover, focus ring, disabled | 16px box on a 32px row; the row reaches `--control-large` below 1024px through padding, never a larger box |
+| Choice, segmented | rendered by `InlineEditor` (the unit control) and `DrawingSheet` (zoom) | `.segmented`, `.segmented__option` | unchecked, checked, hover, focus ring inset in the group's box | each segment `--control-input`, matching the input beside it; `--control-large` below 1024px |
+| Badge | `Badge` | `.field-row__badge`, `.field-row__badge-dot`, `.field-row__badge-label` | one per field state and per resolution kind (State iconography) | text height; no box |
+| Provenance link and jump link | `ProvenanceLink`, `JumpLink` | `.inline-link`, `.inline-link--provenance`, `.inline-link--jump` | default, hover | `--text-sm` in the run it sits in |
+| Card | rendered by `CandidateOption` and `SuggestionCard` | `.candidate-option`, `.suggestion-card` | resting; a suggestion card only while one is pending | content height; padding 12×16, 8 between cards |
+| Disclosure | rendered by `FieldList` (the verified group) and `ChangeLogDrawer` (the collapsed bar and the sheet) | a text button carrying the chevron icon, with `aria-expanded` and `aria-controls` | collapsed, expanded | the text button's heights |
+| Inline editor | `InlineEditor` | `.inline-editor` with `__context`, `__label`, `__controls`, `__field`, `__input`, `__units`, `__error`, `__hint`, `__keys` | open on a proposal, on an empty field, on a unit-bearing field with no unit, and in validation | the input and the unit control both `--control-input`; below 1024px `--control-large` plus the group's two hairlines |
+| Sheet | rendered by `SourcePane` (the narrow source) and `ChangeLogDrawer` (the narrow log) | `.source-pane--sheet`, `.change-log__sheet` | closed, open (modal, body scroll locked, focus returned on close) | full height below 1024px; the log sheet 40vh above it |
+| Dialog | `OpenPackageDialog` | `.dialog` with `__form`, `__title`, `__field`, `__label`, `__hint`, `__input`, `__textarea`, `__file`, `__file-name`, `__privacy`, `__warning`, `__error`, `__actions` | closed, open, per-field validation | `min(720px, 100% - 2 * --page-margin)` wide and at most 85vh; a full-height sheet below 1024px; its one primary `--control-large` |
 
 ## Typography — cap-height model, Geist + Geist Mono
 
