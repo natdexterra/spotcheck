@@ -15,6 +15,7 @@ A person can bring their own quote request instead of the bundled sample: paste 
 2. `DESIGN.md` — tokens, § Choice controls (radios, checkboxes and the segmented control are the app's own drawing), control heights, the two lanes, § Copy grammar, § Focus and keyboard, motion. The rule for `<dialog>`, `<textarea>` and `<input type="file">` does not exist there yet; this task adds it (§ Scope, the DESIGN.md row) and follows it.
 3. `docs/scenarios.md` T2, T3, T4 (they hold for a user package with one stated change, § Trust below), B10, B11.
 4. § UI rules below. The dialog is not drawn; the pull request carries screenshots at 1920 and 390 of its three states (empty, filled, validation).
+5. For the native `<dialog>` (open, close, `Esc`, focus return, backdrop, entry and exit without motion under `prefers-reduced-motion`): the Modern Web Guidance guides from the Chrome and Edge teams — run `npx -y modern-web-guidance@latest search "modal dialog"` and read the top guide plus `animate-to-from-top-layer`; follow them where `DESIGN.md` is silent, and `DESIGN.md` where it speaks.
 
 ## Scope — files
 
@@ -138,7 +139,7 @@ Playwright `e2e/own-package.spec.ts` (production build, API state declared per t
 - [ ] Every end-to-end test declares the API state through the helpers, including the existing `no-api` tests
 - [ ] The two orientation strings and the privacy line passed `ai-text-detector`
 - [ ] T2 and T4 green for user content; the T3 statement visible in the dialog
-- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 28 KB; no new dependency
+- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS size reported (no byte gate); no new dependency
 - [ ] `webmcp-tools.ts` (descriptions, schemas, execute), `reducer.ts` and the action unions unchanged
 - [ ] Task file boxes ticked with evidence in the pull request description
 

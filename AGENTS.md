@@ -16,6 +16,9 @@ Resolve conflicts in this order:
 - React 18 + TypeScript + Vite, static single-page app. No router, no server framework.
 - React renders; it never owns state. The reducer in `src/state/reducer.ts` is plain TypeScript with no React imports and is tested without React. A small external store exposes `dispatchAgent` and `dispatchHuman`; components subscribe with `useSyncExternalStore`.
 - Plain CSS with custom properties from `DESIGN.md`. No Tailwind, no CSS-in-JS, no inline styles for tokens.
+- One drawing per component. The shared primitives are `Button` (variants and sizes), `Choice` (checkbox, radio, segmented), `Badge`, `ProvenanceLink`, the card, the disclosure, the inline editor, the sheet and the dialog; their class names are the ones already in `src/styles/components.css`. A task adds a modifier to an existing primitive before it adds a new block, and a new primitive enters this list in the same pull request.
+- An element that is hidden with the `hidden` attribute never receives an author `display` value without `:not([hidden])`; `base.css` carries the global `[hidden] { display: none !important }` guard, and a stylesheet test keeps it. After any change to a panel, sheet, drawer or dialog, the evidence includes the states where it must be absent, not only where it shows.
+- CSS size is reported in every pull request; it is not a gate. The JavaScript budget is.
 - Static hosting. No server code, no tracking, no third-party scripts, no secrets.
 - All tools live in `src/webmcp-tools.ts` and are registered with the literal call form `document.modelContext.registerTool({...})`. That module imports `dispatchAgent` and nothing from the human action set; a test asserts it.
 
