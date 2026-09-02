@@ -107,10 +107,15 @@ export function FieldList({ focusRequest, onSource }: FieldListProps) {
         const GroupIcon = GROUP_ICONS[group.state];
         return (
           <section className={`field-list__group field-list__group--${group.state}`} key={group.state}>
-            <h3 className={`field-list__group-heading field-list__group-heading--${group.state}`}>
-              <GroupIcon />
-              {groupHeading(group.state, group.fields.length)}
-            </h3>
+            {/* A heading tells one group from the next. With one group open
+                there is no next, and the first load is eleven bare rows under
+                the pane header (export 01). */}
+            {openGroups.length > 1 ? (
+              <h3 className={`field-list__group-heading field-list__group-heading--${group.state}`}>
+                <GroupIcon />
+                {groupHeading(group.state, group.fields.length)}
+              </h3>
+            ) : null}
             {group.fields.map(field => (
               <FieldRow
                 bare={log.length === 0}

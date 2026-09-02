@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import '@testing-library/jest-dom/vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, test, vi } from 'vitest';
-import type { DocumentData } from '../data/package';
+import { samplePackage, setPackage, type DocumentData } from '../data/package';
+import { buildPackage } from '../data/user-package';
 import { createInitialState, type ReviewSession } from '../state/session';
 import { replaceState } from '../state/store';
 import { DrawingSheet } from './DrawingSheet';
@@ -30,6 +31,7 @@ const readingSession = (): ReviewSession => ({
 afterEach(() => {
   cleanup();
   act(() => replaceState(createInitialState()));
+  act(() => setPackage(samplePackage));
   vi.useRealTimers();
 });
 
@@ -203,4 +205,41 @@ test('the unsent marker stands before the tab name, not after it', () => {
   // Exports 07 and 13: the dot leads the name.
   expect(dot.compareDocumentPosition(tab.lastChild!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   expect(dot.previousSibling).toBeNull();
+});
+
+describe('P5: the tab set comes from the package', () => {
+  const tabNames = () => screen.getAllByRole('tab').map(tab => tab.textContent);
+
+  test('the bundled sample shows all three documents', () => {
+    render(<SourcePane onFocusField={vi.fn()} />);
+    expect(tabNames()).toEqual(['Email', 'Spec', 'Drawing']);
+  });
+
+  test('a package with an email and a drawing has no Spec tab, and no Spec panel', () => {
+    act(() => setPackage(buildPackage({
+      reference: 'RFQ 91-2201', email: 'Subject\n\nBody.', drawing: 'data:image/webp;base64,AAAA',
+    })));
+    const { container } = render(<SourcePane onFocusField={vi.fn()} />);
+
+    expect(tabNames()).toEqual(['Email', 'Drawing']);
+    expect(container.querySelector('#source-panel-spec')).toBeNull();
+  });
+
+  test('a package with an email and a specification has no Drawing tab', () => {
+    act(() => setPackage(buildPackage({
+      reference: 'RFQ 91-2201', email: 'Subject\n\nBody.', spec: '1. Purpose\n\nMake it.',
+    })));
+    const { container } = render(<SourcePane onFocusField={vi.fn()} />);
+
+    expect(tabNames()).toEqual(['Email', 'Spec']);
+    expect(container.querySelector('#source-panel-drawing')).toBeNull();
+  });
+
+  test('a provenance link into a document the package does not hold moves nothing', () => {
+    act(() => setPackage(buildPackage({ reference: 'RFQ 91-2201', email: 'Subject\n\nBody.' })));
+    render(<SourcePane onFocusField={vi.fn()} target={{ ref: 'drawing:sheet', fieldId: 'overall_dimensions' }} />);
+
+    expect(tabNames()).toEqual(['Email']);
+    expect(screen.getByRole('tab', { name: 'Email' })).toHaveAttribute('aria-selected', 'true');
+  });
 });
