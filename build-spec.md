@@ -163,5 +163,5 @@ Keyboard (B9): `j`/`k` flagged-field navigation, `Enter` primary action, `e` edi
 - JS ≤ 180 KB gzip total (React included) — a gate. CSS size is reported in every pull request, not gated (the byte budget of 24/26/28 KB that ran through P4 was retired on 2026-09-02: at this size it cost quality without buying speed; reuse is enforced by the component inventory rule in `AGENTS.md` instead). No inline scripts (`default-src 'self'` holds).
 - `data/drawing-sheet1.webp` ≤ 300 KB; fonts self-hosted woff2, preloaded, `Geist Fallback` metric-matched.
 - Every tool result < 1,500 chars serialized — fixture-driven unit test.
-- INP ≤ 200 ms during live extraction (the ADR's review trigger).
+- INP ≤ 200 ms during live extraction.
 - Headers on the deployed origin: `Content-Security-Policy: default-src 'self'; img-src 'self' data:` (the `data:` image source exists for the drawing a person attaches, re-encoded in the browser; scripts, styles, fonts and fetches stay on `'self'`), `Permissions-Policy: tools=(self)`, origin-trial token (T2).

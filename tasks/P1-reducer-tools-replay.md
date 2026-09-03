@@ -17,11 +17,11 @@ The product's core without visuals: the pure reducer implementing the full state
 | `src/webmcp-tools.ts` | seven `document.modelContext.registerTool({...})` calls (literal form); loose JSON Schemas + strict in-code validation; descriptions from build-spec verbatim; annotations; `draft_clarification` lifecycle on an `AbortController` with in-flight deferral; **imports `dispatchAgent` and selectors only** |
 | `src/replay/replay.ts` | feeds `data/sample-session.json` through the same reducer; agent steps via the tool layer (a replayed `FIELD_LOCKED` is a real rejection), estimator steps via `dispatchHuman`; play/pause/next/restart; skip-and-log for steps on viewer-handled fields |
 | `src/data/package.ts` | loads `data/package.json` (hand-written stub fixture for now), region/section lookup, app-authored titles |
-| `data/package.stub.json`, `data/sample-session.stub.json` | minimal hand stubs until the real dataset lands (D1) |
+| `data/package.stub.json`, `data/sample-session.stub.json` | minimal hand stubs until the real public-domain dataset lands |
 | `src/state/reducer.test.ts` | the twelve invariants from build-spec, one test each, named `invariant-01` … `invariant-12` |
 | `src/webmcp-tools.test.ts` | every error code; precedence order; validation-before-lock (an unprovenanced proposal on a locked field records **no** suggestion); no-silent-merge SCHEMA message names earlier material; `covers` filtering with echo of the accepted subset; equal-value lock → `suggestion_recorded: false`; S4 unit rule; output-size test: every result over the fixture < 1,500 chars serialized |
 | `src/state/dispatcher-split.test.ts` | **T1 unit half**: `webmcp-tools.ts` has no import path to `dispatchHuman` (assert on the module's import graph via a small parser check) and `AgentAction` union contains exactly the five members — a `propose`-shaped call can never produce `verified` |
-| `src/replay/replay.test.ts` | export → import → identical final state (B8); replay of the stub reaches `confirmed`; skipped-step logging (D14 rule) |
+| `src/replay/replay.test.ts` | export → import → identical final state (B8); replay of the stub reaches `confirmed`; skipped-step logging (the take-over rule) |
 
 ## Order of work (TDD; commit after each green step)
 
@@ -44,4 +44,4 @@ The product's core without visuals: the pure reducer implementing the full state
 
 ## Out of scope
 
-Review UI (P2), strip/replay controls UI (P3), real dataset (D1), Playwright tool-calling run (QA, after deploy).
+Review UI (P2), strip/replay controls UI (P3), the real public-domain dataset, Playwright tool-calling run (QA, after deploy).

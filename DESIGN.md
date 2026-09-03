@@ -179,7 +179,7 @@ Rules the builder must not trade away:
 - `font-variant-numeric: tabular-nums lining-nums` on every numeric run (counts, timers, step counters, candidate values) so digits hold column alignment.
 - `font-synthesis: none`. Weights: 400 body, 500 labels and badges, 600 titles and the confirm button.
 - Single-line labels, badges, chips, buttons and tabs get `text-box: trim-both cap alphabetic`, with the Capsize `createStyleString` fallback under `@supports not` for Firefox. Never applied to multi-line copy.
-- Orthotypography (real `×` in dimensions, curly quotes, non-breaking spaces before units) follows the ui-typography rules at build time; region text from documents is rendered verbatim, never typographically "improved".
+- Orthotypography (real `×` in dimensions, curly quotes, non-breaking spaces before units) follows standard orthotypography rules at build time; region text from documents is rendered verbatim, never typographically "improved".
 
 ## Spacing, layout, hit targets
 

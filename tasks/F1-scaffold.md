@@ -52,4 +52,4 @@ A deployable empty shell: the toolchain, the token stylesheet, the external-stor
 
 ## Out of scope
 
-Reducer logic (P1), any product UI (P2), fallback strip (P3), data files (D1).
+Reducer logic (P1), any product UI (P2), fallback strip (P3), the real public-domain dataset.

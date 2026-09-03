@@ -1,7 +1,7 @@
 # P2 — Review UI: two panes, provenance both ways, resolutions
 
 **Status:** done — 2026-09-01
-**PR:** #4 `P2: review UI`
+**PR:** [#4](https://github.com/natdexterra/spotcheck/pull/4) `P2: review UI`
 **Depends on:** P1.1 (branches from `main`)
 
 ## Goal
@@ -178,14 +178,14 @@ Playwright (`pnpm e2e`, against the production build):
 
 ## Acceptance criteria
 
-- [ ] Every screen in `docs/design/` is reproduced with tokens only; spacing uses the role table (an off-scale value or an edge on neither lane is a defect); no shadows, no alpha borders, no `font:` shorthand, tabular figures on numeric runs
-- [ ] Every scenario element in S1–S10, B3–B5, B9–B11 renders and behaves as § UI rules; `?quiet=1` removes `email:note`
-- [ ] All document, rationale, note and draft text reaches the DOM as text nodes (T4 unit test green; `dangerouslySetInnerHTML` absent from `src/`)
-- [ ] `verified` styling is reachable only through `dispatchHuman`; no component accepts a value without `source_refs` for agent-attributed content
-- [ ] Contrast test green for every ledger pair; every state carries icon + text; focus visible and returned per `DESIGN.md`; reduced-motion path tested
-- [ ] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 24 KB; no new runtime dependency; icons ship with `src/icons/LICENSE`
-- [ ] `webmcp-tools.ts` unchanged; `reducer.ts` and the human/agent action unions unchanged; the dispatcher-split test still green
-- [ ] Task file boxes ticked with evidence (test names, sizes) in the pull request description
+- [x] Every screen in `docs/design/` is reproduced with tokens only; spacing uses the role table (an off-scale value or an edge on neither lane is a defect); no shadows, no alpha borders, no `font:` shorthand, tabular figures on numeric runs
+- [x] Every scenario element in S1–S10, B3–B5, B9–B11 renders and behaves as § UI rules; `?quiet=1` removes `email:note`
+- [x] All document, rationale, note and draft text reaches the DOM as text nodes (T4 unit test green; `dangerouslySetInnerHTML` absent from `src/`)
+- [x] `verified` styling is reachable only through `dispatchHuman`; no component accepts a value without `source_refs` for agent-attributed content
+- [x] Contrast test green for every ledger pair; every state carries icon + text; focus visible and returned per `DESIGN.md`; reduced-motion path tested
+- [x] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 24 KB; no new runtime dependency; icons ship with `src/icons/LICENSE`
+- [x] `webmcp-tools.ts` unchanged; `reducer.ts` and the human/agent action unions unchanged; the dispatcher-split test still green
+- [ ] Task file boxes ticked with evidence (test names, sizes) in the pull request description — the tests are named in this file's § Tests section above; per-run sizes are not recorded in this file
 
 ## Out of scope
 
