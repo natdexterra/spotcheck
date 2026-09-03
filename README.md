@@ -32,7 +32,7 @@ Some consequences of that contract, all visible in the page:
 - A human decision is final. Once the estimator has acted on a field, every write tool gets a structured `FIELD_LOCKED` answer with the current value. The agent's differing proposal shows up as a suggestion card the person can apply or dismiss; it never overwrites.
 - Tools follow the state. The page registers the clarification tool only while open gaps exist and unregisters it through its `AbortSignal` when the last gap closes. A browser that lists site tools shows the count move.
 - Document text is untrusted. Read tools carry `untrustedContentHint`; the page renders document text and agent rationale as text, never as HTML. The sample email contains an instruction addressed to automated systems, and it has no effect, because no tool can reach the verified state.
-- Nothing leaves the page except to the agent. `Content-Security-Policy: default-src 'self'`, `Permissions-Policy: tools=(self)`, no third-party scripts, fonts or analytics. Reads are one section at a time and every read is logged, so the estimator sees exactly what the agent received.
+- Nothing leaves the page except to the agent. `Content-Security-Policy: default-src 'self'; img-src 'self' data:`, `Permissions-Policy: tools=(self)`, no third-party scripts, fonts or analytics. The `data:` source covers images and nothing else: a part drawing someone attached, re-encoded in the browser. Reads are one section at a time and every read is logged, so the estimator sees exactly what the agent received.
 
 ## Stack
 
