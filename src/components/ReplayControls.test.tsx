@@ -4,6 +4,7 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, test, vi } from 'vitest';
 import * as controller from '../replay/controller';
 import * as tools from '../webmcp-tools';
+import { sampleSession } from '../replay/replay';
 import { ReplayControls } from './ReplayControls';
 
 afterEach(async () => { cleanup(); await controller.leave(); localStorage.clear(); vi.restoreAllMocks(); });
@@ -15,7 +16,8 @@ test('playing offers Pause and the way out, and names the recording, the step an
   await controller.startSample();
   render(<ReplayControls />);
 
-  expect(row()).toHaveTextContent(`Sample session · recorded 2026-09-01 · step 0 of ${controller.getSnapshot().total}`);
+  // The row reads the fixture's own recording date, the way ReplayControls formats it (its first 10 chars).
+  expect(row()).toHaveTextContent(`Sample session · recorded ${sampleSession.recorded_at.slice(0, 10)} · step 0 of ${controller.getSnapshot().total}`);
   expect(row()).not.toHaveTextContent('next:');
   expect(buttons()).toEqual(['Pause', 'Leave sample']);
 });

@@ -1,6 +1,7 @@
 import type { Locator, Page } from '@playwright/test';
 import { mkdir } from 'node:fs/promises';
 import { dirname } from 'node:path';
+import type { Fixture, Step } from '../src/replay/replay';
 
 /**
  * Evidence screenshots are written into `docs/`, which is a record the
@@ -49,4 +50,23 @@ export async function removeModelContext(page: Page): Promise<void> {
   await page.addInitScript(() => {
     Object.defineProperty(document, 'modelContext', { configurable: true, value: undefined });
   });
+}
+
+/**
+ * Milliseconds the fake clock must run for the fixture's replay to have
+ * processed the first step matching `predicate`, plus one agent step of
+ * margin so the row has settled. Steps replay at 900ms (agent) / 1500ms
+ * (estimator) cadence (see `src/replay/replay.ts`) — this derives the wait
+ * from the fixture's own step order and actors instead of a literal that
+ * only fits one recording.
+ */
+export function waitForStep(fixture: Fixture, predicate: (step: Step, index: number) => boolean): number {
+  const index = fixture.steps.findIndex(predicate);
+  if (index === -1) throw new Error('fixture has no step matching the predicate');
+  return fixture.steps.slice(0, index + 1).reduce((ms, step) => ms + (step.actor === 'agent' ? 900 : 1500), 0) + 900;
+}
+
+/** The `waitForStep` case a spec reaches for most: the first `propose_field` for `fieldId`. */
+export function waitForProposal(fixture: Fixture, fieldId: string): number {
+  return waitForStep(fixture, step => step.actor === 'agent' && step.call.tool === 'propose_field' && (step.call.input as { field_id?: string })?.field_id === fieldId);
 }

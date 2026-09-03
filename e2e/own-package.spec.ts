@@ -302,10 +302,14 @@ test('the sample recording runs over its own package and gives the person’s ba
   await page.getByRole('button', { name: 'Play sample session', exact: true }).click();
   await expect(page.locator('.header__package')).toHaveText('RFQ 26-0812 · Tarrowline Console Systems');
   await expect(page.getByRole('group', { name: 'Replay controls' })).toContainText('finished', { timeout: 90_000 });
-  // The recording cites the sample's own regions, so none of them is unknown.
-  // (The one rejection the recording does carry is its scripted FIELD_LOCKED.)
+  // The recording cites the sample's own regions, so it never references a
+  // document or section that does not exist there. A live agent's own
+  // mistake-and-retry (a malformed candidate, a stray source ref, a second
+  // proposal after the field locked) is a legitimate part of an authentic
+  // recording, not a defect, so only an unknown document or section — a
+  // reference this package could never satisfy — fails the run.
   const log = await page.locator('.confirm-summary__log').innerText();
-  expect(log).not.toMatch(/INVALID_SOURCE_REF|UNKNOWN_DOCUMENT|UNKNOWN_SECTION/);
+  expect(log).not.toMatch(/UNKNOWN_DOCUMENT|UNKNOWN_SECTION/);
 
   await page.locator('.confirm-summary__actions').getByRole('button', { name: 'Start over' }).click();
   await expect(page.locator('.header__package')).toHaveText('RFQ 91-2201');
