@@ -99,3 +99,36 @@ describe('prepareDrawing: the re-encoding', () => {
     expect(qualities).toEqual([0.85, 0.85]);
   });
 });
+
+/**
+ * The re-encoded drawing is rendered as a `data:` URL, so the policy the
+ * deployed origin sends has to admit that scheme for images and for nothing
+ * else. The header is read from `vercel.json` rather than restated here.
+ */
+describe('the deployed Content-Security-Policy', () => {
+  const directives = (): Map<string, string[]> => {
+    const config = JSON.parse(readFileSync('vercel.json', 'utf8')) as {
+      headers: { headers: { key: string; value: string }[] }[];
+    };
+    const header = config.headers
+      .flatMap(rule => rule.headers)
+      .find(entry => entry.key === 'Content-Security-Policy');
+    if (!header) throw new Error('vercel.json sends no Content-Security-Policy');
+    return new Map(header.value.split(';').map((part): [string, string[]] => {
+      const [name = '', ...sources] = part.trim().split(/\s+/);
+      return [name, sources];
+    }));
+  };
+
+  test('everything but images stays on the origin', () => {
+    expect(directives().get('default-src')).toEqual(["'self'"]);
+  });
+
+  test('an image may also come from a data URL, which is how an attached drawing renders', () => {
+    expect(directives().get('img-src')).toEqual(["'self'", 'data:']);
+  });
+
+  test('the policy carries those two directives and no others', () => {
+    expect([...directives().keys()]).toEqual(['default-src', 'img-src']);
+  });
+});
