@@ -1,5 +1,9 @@
 import { expect, test, type Page } from '@playwright/test';
-import { executeTool, installModelContext, saveEvidence } from './helpers';
+import { readFileSync } from 'node:fs';
+import type { Fixture } from '../src/replay/replay';
+import { executeTool, installModelContext, saveEvidence, waitForProposal } from './helpers';
+
+const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 
 /** Every test declares the agent API state it runs under before it navigates,
     so the strip, the replay controls and the screenshots are never left to the
@@ -173,10 +177,11 @@ test.describe('drawing zoom', () => {
     await page.clock.install();
     await page.goto('/');
     await page.getByRole('button', { name: 'Play sample session' }).click();
-    await page.clock.runFor(22_500);
+    await page.clock.runFor(waitForProposal(fixture, 'overall_dimensions'));
 
     const dimensions = page.locator('[data-field-id="overall_dimensions"]');
-    await expect(dimensions).toContainText('20 × 14.5');
+    const proposedDimensions = (fixture.steps.find(step => step.actor === 'agent' && step.call.tool === 'propose_field' && (step.call.input as { field_id?: string }).field_id === 'overall_dimensions')!.call.input as { value: string }).value;
+    await expect(dimensions).toContainText(proposedDimensions);
     await page.getByRole('tab', { name: 'Drawing' }).click();
     await zoomTo(page, '2×');
 

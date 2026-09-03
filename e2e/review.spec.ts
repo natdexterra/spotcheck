@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
-import { removeModelContext } from './helpers';
+import { readFileSync } from 'node:fs';
+import type { Fixture } from '../src/replay/replay';
+import { removeModelContext, waitForProposal, waitForStep } from './helpers';
+
+const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 
 test('sample replay exposes review decisions and reaches the confirmation summary', async ({ page }) => {
   test.setTimeout(60_000);
@@ -15,7 +19,10 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await page.goto('/');
   await page.getByRole('button', { name: 'Play sample session' }).click();
 
-  await page.clock.runFor(3_000);
+  let elapsed = 0;
+  const advanceTo = async (target: number) => { await page.clock.runFor(Math.max(0, target - elapsed)); elapsed = Math.max(elapsed, target); };
+
+  await advanceTo(waitForProposal(fixture, 'customer_rfq_ref'));
   const first = page.locator('[data-field-id="customer_rfq_ref"]');
   await expect(first).toContainText('Needs review');
   await expect(first.getByRole('link')).toBeVisible();
@@ -29,33 +36,21 @@ test('sample replay exposes review decisions and reaches the confirmation summar
   await expect(first).toContainText(/Verified by you · 0:\d\d ago/);
   await page.locator('.field-list__verified-summary').getByRole('button', { name: 'Hide' }).click();
 
-  await page.clock.runFor(14_500);
-  const material = page.locator('[data-field-id="material"]');
-  await expect(material.getByRole('button', { name: /Apply/ })).toBeVisible();
-  await material.getByRole('button', { name: /Apply/ }).click();
-
-  await page.clock.runFor(2_200);
-  const quantity = page.locator('[data-field-id="quantity"]');
-  await expect(quantity).toContainText('Two sources disagree');
-  await expect(quantity).toContainText('800');
-  await expect(quantity).toContainText('750');
-  await quantity.getByRole('button', { name: 'Pick' }).first().click();
-
-  await page.clock.runFor(2_500);
-  const dimensions = page.locator('[data-field-id="overall_dimensions"]');
-  await expect(dimensions.getByRole('button', { name: 'Add unit' })).toBeVisible();
-  await page.clock.runFor(1_500);
-  await expect(page.locator('.field-list__verified-summary')).toContainText('Overall dimensions');
-
-  await page.clock.runFor(3_700);
+  // The recording's own clarification goes out before its own fix to
+  // Material (idx30-31 precede idx35): a live viewer sees the send first.
+  await advanceTo(waitForStep(fixture, step => step.actor === 'agent' && step.call.tool === 'draft_clarification'));
   await expect(page.getByRole('tab', { name: /Clarification/ })).toHaveAttribute('aria-selected', 'true');
   await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
   // The whole draft is readable in place: the textarea grows, it never scrolls inside.
   const draftBody = await page.getByRole('textbox', { name: 'Body' })
     .evaluate(element => ({ scroll: element.scrollHeight, client: element.clientHeight }));
   expect(draftBody.scroll).toBeLessThanOrEqual(draftBody.client + 1);
+  // The count the row sends with is the fixture's own recorded send, not a
+  // literal: nothing has resolved any of its covered fields yet.
+  const sentStep = fixture.steps.find(step => step.actor === 'estimator' && step.action.type === 'send');
+  const askedCount = sentStep?.actor === 'estimator' && sentStep.action.type === 'send' ? sentStep.action.covers?.length ?? 0 : 0;
   await page.getByRole('button', { name: 'Send' }).click();
-  await expect(page.getByText(/Sent · 3 fields asked/)).toBeVisible();
+  await expect(page.getByText(new RegExp(`Sent · ${askedCount} fields? asked`))).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Clarification email' })).toBeVisible();
 
   // The value slot never carries the badge's wording: an asked field with no
@@ -70,10 +65,36 @@ test('sample replay exposes review decisions and reaches the confirmation summar
     await expect(row.locator('.field-row__value')).toHaveText('—');
   }
 
+  // Quantity went out with the same clarification; a viewer reopens it to
+  // pick a candidate instead of waiting on the customer's answer.
+  const quantity = page.locator('[data-field-id="quantity"]');
+  await expect(quantity.locator('.field-row__badge')).toContainText('Awaiting customer');
+  await quantity.getByRole('button', { name: 'Reopen' }).click();
+  await expect(quantity).toContainText('Two sources disagree');
+  await expect(quantity).toContainText('800');
+  await expect(quantity).toContainText('750');
+  await quantity.getByRole('button', { name: 'Pick' }).first().click();
+
+  const materialLockedAt = fixture.steps.findIndex(step => step.actor === 'estimator' && 'field_id' in step.action && step.action.field_id === 'material');
+  await advanceTo(waitForStep(fixture, (step, index) => index > materialLockedAt && step.actor === 'agent' && step.call.tool === 'propose_field' && (step.call.input as { field_id?: string })?.field_id === 'material'));
+  const material = page.locator('[data-field-id="material"]');
+  await expect(material.getByRole('button', { name: /Apply/ })).toBeVisible();
+  await material.getByRole('button', { name: /Apply/ }).click();
+
+  await advanceTo(waitForProposal(fixture, 'overall_dimensions'));
+  const dimensions = page.locator('[data-field-id="overall_dimensions"]');
+  await expect(dimensions.getByRole('button', { name: 'Add unit' })).toBeVisible();
+  await advanceTo(waitForStep(fixture, step => step.actor === 'estimator' && 'field_id' in step.action && step.action.field_id === 'overall_dimensions' && step.action.type === 'edit'));
+  await expect(page.locator('.field-list__verified-summary')).toContainText('Overall dimensions');
+
+  // The fixture's own remaining verifies resolve the rest without a live
+  // hand: wait for its last one so every field is settled before the count.
+  await advanceTo(waitForStep(fixture, step => step.actor === 'estimator' && step.action.type === 'verify' && step.action.field_id === 'delivery'));
+
   // Every field settled: the verified header drops the word "more".
   await expect(page.locator('.field-list__verified-count')).toHaveText('11 verified');
 
-  await page.clock.runFor(3_500);
+  await advanceTo(waitForStep(fixture, step => step.actor === 'estimator' && step.action.type === 'confirm'));
   await expect(page.getByRole('heading', { name: /Confirmed/ })).toBeVisible();
   await expect(page.getByText(/Recorded review/)).toBeVisible();
 
