@@ -16,9 +16,10 @@ Built for the [OpenAI WebMCP Challenge](https://webmcp.devpost.com/), August 25 
 
 Live at **[spotcheck-rfq.vercel.app](https://spotcheck-rfq.vercel.app)**. The page carries one sample package: a public-domain RFQ for sheet-metal KVM mount brackets, wrapped in a fictional customer email (see `data/SOURCE.md`).
 
-- **ChatGPT desktop app.** Open the URL in the built-in browser (Work mode, GPT-5.6 Sol or Terra). The status strip shows the prompt to type: `Extract this RFQ into a quote request`. Fields fill in as the agent reads; the Site tools panel in the address bar lists the page's tools, and its count changes from 6 to 7 when the agent hits a gap and gets the clarification tool.
-- **Chrome 149 or later.** Enable `chrome://flags/#enable-webmcp-testing`, relaunch, open the URL and drive it with a WebMCP-capable agent, for example the Model Context Tool Inspector extension.
-- **Any other browser.** Press `Play sample session`. A recorded session replays through the same state machine, step by step, so the whole product is visible without an agent.
+- **ChatGPT desktop app.** Open the URL in the built-in browser, Work mode. As of September 3, 2026 the model has to be GPT-5.6 Sol (Light or Medium) or GPT-5.6 Terra. Luna exposes no site tools; under it the page waits and nothing arrives. The status strip shows the prompt to type: `Extract this RFQ into a quote request`. Fields fill in as the agent reads; the Site tools panel in the address bar lists the page's tools, and its count changes from 6 to 7 when the agent hits a gap and gets the clarification tool.
+- **Chrome 149 or later.** Enable `chrome://flags/#enable-webmcp-testing`, relaunch, open the URL and drive it with a WebMCP-capable agent. The Model Context Tool Inspector extension with a Gemini key runs the whole review, from the first read to the confirm screen.
+- **Any other browser.** Press `Play sample session`. A session recorded with GPT-5.6 Sol replays through the same state machine, step by step, retries and rejections included, so the whole product is visible without an agent.
+- **Your own package.** `Open your own package` in the status strip: paste the customer email and the specification, attach the drawing as PNG, JPEG or WebP, press `Open package`, and give your agent the same prompt. The drawing is an image only; an agent that cannot see it reports the drawing number and revision as missing, which is the right answer.
 
 Add `?quiet=1` to the URL to drop the prompt-injection line from the sample email, for agents that stop on suspected injection.
 
@@ -49,6 +50,17 @@ pnpm build
 ```
 
 `docs/scenarios.md` lists the scenarios the tests and evals refer to. `evals/` holds cases in the `webmcp-evals` format, with instructions to run them against the live page. Design rules live in `DESIGN.md`; the tool contract and screen inventory in `build-spec.md`.
+
+## What's next
+
+Known gaps, roughly in the order to fix them:
+
+- The tool layer accepts `unit` on `overall_dimensions` only, and the tool description says "the unit-bearing field" without naming it. Sol never tripped on this; Gemini sent a unit with two other fields and got `SCHEMA` back both times. One word in the description fixes it.
+- The dialog caps each pasted document at 40,000 characters. Longer specifications need trimming before they go in.
+- Drawings come in as PNG, JPEG or WebP. PDF sheets need a screenshot first.
+- A user package's drawing has no transcribed regions, so the agent cannot cite anything on it. Region transcription, or a read tool that can see the image, is what that path needs next.
+- No plausibility check on values. A quantity of 8000 where the email says 800 passes the tool layer as long as it has a source.
+- Nothing guards against importing a session that was exported from a different package. The tool layer rejects every reference that does not resolve, and the rejections land in the log, but nothing warns up front.
 
 ## License
 
