@@ -66,7 +66,7 @@ Playwright `e2e/zoom.spec.ts` (production build):
 - [x] `webmcp-tools.ts`, `reducer.ts` and the action unions unchanged — `git diff origin/main HEAD -- src/state src/webmcp-tools.ts` is empty
 - [x] Task file boxes ticked with evidence in the pull request description
 
-Builder evidence: 282 unit tests, 46 Playwright checks, production build and inline-script check pass. CSS 27,495 bytes raw; JavaScript 73.46 KB gzip. Screenshots at 1920 and 390, at rest and at `2×` with a highlighted box, are in `docs/qa/p4/` and in the pull request, regenerated after the review fixes. An independent review pass has run and its findings are fixed on the branch (the pull request lists each one against its commit); owner review is pending.
+Builder evidence: 282 unit tests, 46 Playwright checks, production build and inline-script check pass. CSS 27,495 bytes raw; JavaScript 73.46 KB gzip. Screenshots at 1920 and 390, at rest and at `2×` with a highlighted box, are in `docs/qa/p4/` and in the pull request, regenerated after the review fixes. An independent review pass has run and its findings are fixed on the branch (the pull request lists each one against its commit).
 
 ## Open question for review — ruled
 

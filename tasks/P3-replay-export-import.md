@@ -46,7 +46,7 @@ No new dependency of any kind.
 - Before the replay suspends persistence the controller snapshots the saved live session (`readSavedSession()`), so the viewer's own session survives the sample: the sample is never written to storage, and a page reload during a replay restores the live session, not the sample.
 - **End.** When the last step has run the replay stays attached: playing false, `ended` true, the counter reads `{total} / {total}` (26 / 26 for the current sample; the total is always the fixture's own step count), the row shows `Restart` only. Persistence stays suspended (the sample must not overwrite the saved session). When the fixture's last step is `confirm`, the strip reads `Confirmed` per the precedence rule (`confirmed` → `live` → …) and the replay row stays under it until `leave()`; the strip's export slot is `live`-only, so after confirm the export lives in the summary.
 - **Stop on error.** A step that throws (an imported fixture that passed parsing but breaks a tool, a tool throwing) pauses the replay, keeps its position, sets `error` with the message; the row shows the error line and `Restart`; persistence stays suspended. `Restart` clears the error. Nothing is thrown out of `next()`; the console stays clean.
-- **Take-over.** The viewer may act while paused (D14, already in `replay.ts`); a fixture estimator step on a field the viewer handled is skipped and logged as today. A viewer who confirms by hand ends the replay with `finishedByViewer` true.
+- **Take-over.** The viewer may act while paused (the take-over rule, already in `replay.ts`); a fixture estimator step on a field the viewer handled is skipped and logged as today. A viewer who confirms by hand ends the replay with `finishedByViewer` true.
 - **Leave** (`controller.leave()`): called by `Start over` on the summary, by the start of another replay, and on unmount. Order: restore the snapshot with `importSession(saved)` while persistence is still suspended (an empty snapshot restores `createInitialState()`), then `replay.dispose()` (resumes persistence), then `saveNow()` once. Result: the strip returns to its pre-replay state (`waiting` or `no-api` when the snapshot was empty; `live` with the viewer's own log otherwise); tools stay registered.
 - `Start over` in a live session (no replay attached) keeps today's behaviour: `replaceState(createInitialState())`, tools stay registered.
 
@@ -153,7 +153,7 @@ Playwright `e2e/replay.spec.ts` (production build, `page.clock` installed):
 - [x] `webmcp-tools.ts` unchanged except the `propose_field` description sentence; `reducer.ts` and the action unions unchanged; the dispatcher-split and description-budget tests still green
 - [x] Task file boxes ticked with evidence in the pull request description
 
-Builder evidence: 268 unit tests, 37 Playwright checks, production build and inline-script check pass. JavaScript gzip: 72,339 bytes; CSS: 25,993 bytes. Acceptance evidence, independent QA and screenshots at 1920 / 1366 / 390 are in [PR #5](https://github.com/natdexterra/spotcheck/pull/5). Owner review is pending.
+Builder evidence: 268 unit tests, 37 Playwright checks, production build and inline-script check pass. JavaScript gzip: 72,339 bytes; CSS: 25,993 bytes. Acceptance evidence, independent QA and screenshots at 1920 / 1366 / 390 are in [PR #5](https://github.com/natdexterra/spotcheck/pull/5).
 
 ## Out of scope
 
