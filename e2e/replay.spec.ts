@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import { readFileSync } from 'node:fs';
 import type { Fixture } from '../src/replay/replay';
-import { executeTool, installModelContext, removeModelContext, saveEvidence } from './helpers';
+import { executeTool, installModelContext, removeModelContext, saveEvidence, waitForProposal } from './helpers';
 
 const fixture: Fixture = JSON.parse(readFileSync('data/sample-session.json', 'utf8'));
 const total = fixture.steps.length;
@@ -106,7 +106,7 @@ test('B8 summary export imports to the same field decisions and complete log', a
 test('take-over logs the skipped estimator step and viewer confirmation shows both durations', async ({ page }) => {
   await removeModelContext(page);
   await page.goto('/'); await start(page);
-  await page.clock.runFor(3000);
+  await page.clock.runFor(waitForProposal(fixture, 'customer_rfq_ref'));
   await replay(page).getByRole('button', { name: 'Pause' }).click();
   await page.locator('[data-field-id="customer_rfq_ref"]').getByRole('button', { name: 'Verify', exact: true }).click();
   const confirmIndex = fixture.steps.findIndex(step => step.actor === 'estimator' && step.action?.type === 'confirm');
