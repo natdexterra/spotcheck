@@ -1,9 +1,9 @@
 {
-  "recorded_at": "2026-09-01",
+  "recorded_at": "2026-09-03T06:28:27.646Z",
   "steps": [
     {
       "actor": "agent",
-      "at": 900,
+      "at": 1788415999543,
       "call": {
         "tool": "list_rfq_documents",
         "input": {}
@@ -11,7 +11,15 @@
     },
     {
       "actor": "agent",
-      "at": 1800,
+      "at": 1788415999559,
+      "call": {
+        "tool": "get_review_state",
+        "input": {}
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007517,
       "call": {
         "tool": "read_document",
         "input": {
@@ -22,200 +30,540 @@
     },
     {
       "actor": "agent",
-      "at": 2700,
+      "at": 1788416007523,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "title"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007525,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s1"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007527,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s3"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007534,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s2"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007537,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s4"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007539,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s5"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007540,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "drawing",
+          "section_id": "overall"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416007542,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "drawing",
+          "section_id": "detail"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416043655,
       "call": {
         "tool": "propose_field",
         "input": {
           "field_id": "customer_rfq_ref",
-          "value": "RFQ 26-0812",
+          "rationale": "The customer email subject gives RFQ 26-0812.",
           "source_refs": [
             "email:subject"
           ],
-          "rationale": "The subject line carries the RFQ number."
+          "value": "RFQ 26-0812"
         }
       }
     },
     {
-      "actor": "estimator",
-      "at": 4200,
-      "action": {
-        "type": "verify",
-        "field_id": "customer_rfq_ref"
-      }
-    },
-    {
       "actor": "agent",
-      "at": 5100,
+      "at": 1788416043667,
       "call": {
         "tool": "propose_field",
         "input": {
           "field_id": "part_name",
-          "value": "Hanging KVM mount bracket",
+          "rationale": "The email and specification identify the same part.",
           "source_refs": [
-            "spec:title",
-            "email:p1"
+            "email:subject",
+            "spec:title"
           ],
-          "rationale": "The specification title and the email name the same part."
+          "value": "Hanging KVM mount brackets"
         }
       }
     },
     {
-      "actor": "estimator",
-      "at": 6600,
-      "action": {
-        "type": "verify",
-        "field_id": "part_name"
-      }
-    },
-    {
       "actor": "agent",
-      "at": 7500,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "material",
-          "value": "6061-T6 aluminum or equivalent",
-          "source_refs": [
-            "spec:s3.1",
-            "email:p3"
-          ],
-          "rationale": "The material callout names the alloy; the email allows an equivalent."
-        }
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 9000,
-      "action": {
-        "type": "verify",
-        "field_id": "material"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 9900,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "stock_thickness",
-          "value": ".080 main / .035 support / 3/16 L",
-          "source_refs": [
-            "spec:s3.1"
-          ],
-          "rationale": "Three thicknesses, one for each piece."
-        }
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 11400,
-      "action": {
-        "type": "verify",
-        "field_id": "stock_thickness"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 12300,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "surface_finish",
-          "value": "Black powder coat",
-          "source_refs": [
-            "spec:s3.4",
-            "email:p4"
-          ],
-          "rationale": "The finish is named, but no coating thickness or standard is stated."
-        }
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 13800,
-      "action": {
-        "type": "verify",
-        "field_id": "surface_finish"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 14700,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "delivery",
-          "value": "Two weeks from PO, FOB destination",
-          "source_refs": [
-            "email:p5",
-            "spec:s2.6"
-          ],
-          "rationale": "The email sets two weeks; the specification names the destination."
-        }
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 16200,
-      "action": {
-        "type": "verify",
-        "field_id": "delivery"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 17100,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "material",
-          "value": "5052-H32 aluminum",
-          "source_refs": [
-            "email:p3"
-          ],
-          "rationale": "The email allows “or equivalent”; 5052 is the stocked equivalent."
-        }
-      }
-    },
-    {
-      "actor": "estimator",
-      "at": 18600,
-      "action": {
-        "type": "dismiss_suggestion",
-        "field_id": "material"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 19500,
+      "at": 1788416043685,
       "call": {
         "tool": "report_conflict",
         "input": {
-          "field_id": "quantity",
           "candidates": [
             {
-              "value": "800",
+              "note": "First article requires approval before the production run.",
+              "source_refs": [
+                "email:p2"
+              ],
+              "value": "750 units, plus one first article"
+            },
+            {
+              "note": "The specification includes the approval article in the 800 units.",
               "source_refs": [
                 "spec:s1.1",
                 "spec:s4.1"
               ],
-              "note": "stated twice in the specification"
-            },
+              "value": "800 units, inclusive of an initial test article"
+            }
+          ],
+          "field_id": "quantity",
+          "note": "The email and specification disagree on both total quantity and whether the first article is additional; confirm the required quantity."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416043698,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "rationale": "Both sources specify 6061-T6; the email also permits an equivalent, which the specification does not expressly address.",
+          "source_refs": [
+            "spec:s3.1",
+            "email:p3"
+          ],
+          "value": "Aluminum 6061-T6"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416043707,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "stock_thickness",
+          "rationale": "The specification gives three component thicknesses in inches; the drawing also calls out .080.",
+          "source_refs": [
+            "spec:s3.1",
+            "drawing:thickness"
+          ],
+          "unit": "in",
+          "value": "Main piece .080; KVM support brackets .035; L brackets 3/16"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416043715,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "overall_dimensions",
+          "rationale": "Drawing callouts agree with the specification dimensions, but neither explicitly states their units; confirm the units before quoting.",
+          "source_refs": [
+            "drawing:width",
+            "drawing:height",
+            "spec:s3.2"
+          ],
+          "value": "20.000 × 14.500"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072426,
+      "call": {
+        "tool": "report_conflict",
+        "input": {
+          "candidates": [
             {
-              "value": "750",
+              "note": "750 production units PLUS one first article for approval before production (751 total).",
               "source_refs": [
                 "email:p2"
               ],
-              "note": "the email asks for 750"
+              "value": "750"
+            },
+            {
+              "note": "800 units INCLUDING the initial test article for approval.",
+              "source_refs": [
+                "spec:s1.1",
+                "spec:s4.1"
+              ],
+              "value": "800"
             }
           ],
-          "note": "The specification and the email disagree on the quantity."
+          "field_id": "quantity",
+          "note": "Confirm production quantity and first-article treatment: email requests 750 plus one; specification requests 800 including one."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072437,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "stock_thickness",
+          "rationale": "The specification gives the thickness in inches for each component, and the drawing agrees on .080 for the main piece.",
+          "source_refs": [
+            "spec:s3.1",
+            "drawing:thickness"
+          ],
+          "value": "Main .080″; KVM supports .035″; L brackets 3/16″"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072449,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "general_tolerance",
+          "note": "The specification gives only a bracketed example, [e.g., +/- 0.010\"], and the drawing states no general tolerance; obtain the required tolerance.",
+          "searched": [
+            "spec:s3.3",
+            "drawing:overall",
+            "drawing:detail",
+            "email:body",
+            "spec:s2",
+            "spec:s5"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072458,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "surface_finish",
+          "rationale": "The email and specification both require black powder coat.",
+          "source_refs": [
+            "spec:s3.4",
+            "email:p4"
+          ],
+          "value": "Black Powder Coat"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072468,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_number",
+          "note": "No drawing number appears on the supplied sheet; C2.1 Attachment (2)_Brackets Drawings and Attachment (3)_Brackets CAD.dwg are attachment references, not a stated drawing number.",
+          "searched": [
+            "drawing:title_area",
+            "drawing:overall",
+            "drawing:detail",
+            "spec:s3.0",
+            "email:p1"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072479,
+      "call": {
+        "tool": "report_conflict",
+        "input": {
+          "candidates": [
+            {
+              "note": "The email names Rev A and says to quote the sheet re-issued under amendment 0001 on 30 July.",
+              "source_refs": [
+                "email:p1"
+              ],
+              "value": "Rev A"
+            },
+            {
+              "note": "The supplied sheet has no revision letter.",
+              "source_refs": [
+                "drawing:title_area",
+                "drawing:overall",
+                "drawing:detail"
+              ],
+              "value": "none stated"
+            }
+          ],
+          "field_id": "drawing_revision",
+          "note": "The email names Rev A, but the sheet has no revision identification; confirm that the supplied drawing is the re-issued sheet for amendment 0001."
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416072488,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "delivery",
+          "rationale": "The email sets timing and FOB destination, the specification supplies the dock address and packing list, and both require first-article approval before production and a CoC with shipment.",
+          "source_refs": [
+            "email:p5",
+            "spec:s2.6",
+            "spec:s4.2",
+            "spec:s4.3",
+            "email:p2",
+            "spec:s4.1"
+          ],
+          "value": "Within two weeks of PO; FOB destination; Tarrowline Console Systems, Receiving Dock B, 4410 Industrial Loop, Colorado Springs, CO 80916"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416096344,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "general_tolerance",
+          "note": "The specification gives only a bracketed example, [e.g., +/- 0.010\"], and the drawing states no general tolerance; obtain the required tolerance.",
+          "searched": [
+            "spec:s3",
+            "drawing:overall",
+            "drawing:detail",
+            "email:body",
+            "spec:s2",
+            "spec:s5"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416096355,
+      "call": {
+        "tool": "report_missing",
+        "input": {
+          "field_id": "drawing_number",
+          "note": "No drawing number appears on the supplied sheet; the specification names drawing and CAD attachments but does not establish a drawing number.",
+          "searched": [
+            "drawing:overall",
+            "drawing:detail",
+            "spec:s3",
+            "email:body"
+          ]
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416096366,
+      "call": {
+        "tool": "get_review_state",
+        "input": {}
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416407742,
+      "action": {
+        "type": "edit_start",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416409788,
+      "action": {
+        "type": "edit",
+        "field_id": "material",
+        "value": "5052-H32 aluminum"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416484466,
+      "call": {
+        "tool": "get_review_state",
+        "input": {}
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416502460,
+      "call": {
+        "tool": "draft_clarification",
+        "input": {
+          "body": "Hello Purchasing Team,\n\nWe are preparing our quote for the hanging KVM mount brackets. Please clarify the following:\n\n1. Quantity: The email requests 750 units plus one first article (751 total), while specification sections 1 and 4 call for 800 units including the first article. Which quantity should we quote, and is the first article included or additional?\n\n2. Drawing revision: The email references Rev A and a sheet re-issued under amendment 0001 on 30 July. The supplied sheet has no revision marking. Please confirm the revision to use and provide the identified re-issued sheet.\n\n3. Drawing number: We could not find a drawing number on the supplied sheet. Please provide the drawing number to reference in our quote, or confirm that none is assigned.\n\n4. General tolerance: Specification section 3 gives +/- 0.010 inch only as a bracketed example, and the drawing states no general tolerance. Please confirm the required general fabrication tolerance.\n\n5. Dimension units: The overall dimensions are shown as 20.000 × 14.500 without a unit designation. Please confirm the units for these dimensions and the drawing callouts.\n\nThank you.",
+          "covers": [
+            "quantity",
+            "drawing_revision",
+            "drawing_number",
+            "general_tolerance",
+            "overall_dimensions"
+          ],
+          "subject": "RFQ 26-0812: quantity and drawing clarifications"
         }
       }
     },
     {
       "actor": "estimator",
-      "at": 21000,
+      "at": 1788416556000,
+      "action": {
+        "type": "send",
+        "subject": "RFQ 26-0812: quantity and drawing clarifications",
+        "body": "Hello Purchasing Team,\n\nWe are preparing our quote for the hanging KVM mount brackets. Please clarify the following:\n\n1. Quantity: The email requests 750 units plus one first article (751 total), while specification sections 1 and 4 call for 800 units including the first article. Which quantity should we quote, and is the first article included or additional?\n\n2. Drawing revision: The email references Rev A and a sheet re-issued under amendment 0001 on 30 July. The supplied sheet has no revision marking. Please confirm the revision to use and provide the identified re-issued sheet.\n\n3. Drawing number: We could not find a drawing number on the supplied sheet. Please provide the drawing number to reference in our quote, or confirm that none is assigned.\n\n4. General tolerance: Specification section 3 gives +/- 0.010 inch only as a bracketed example, and the drawing states no general tolerance. Please confirm the required general fabrication tolerance.\n\n5. Dimension units: The overall dimensions are shown as 20.000 × 14.500 without a unit designation. Please confirm the units for these dimensions and the drawing callouts.\n\nThank you. Waiting for your answer",
+        "covers": [
+          "quantity",
+          "drawing_revision",
+          "drawing_number",
+          "general_tolerance"
+        ]
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416597471,
+      "call": {
+        "tool": "get_review_state",
+        "input": {}
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416597486,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "email",
+          "section_id": "body"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416597489,
+      "call": {
+        "tool": "read_document",
+        "input": {
+          "doc_id": "spec",
+          "section_id": "s3"
+        }
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416605738,
+      "call": {
+        "tool": "propose_field",
+        "input": {
+          "field_id": "material",
+          "rationale": "Specification §3.1 requires 6061-T6 for all three components; the email allows an equivalent but does not identify or approve the current 5052-H32 entry.",
+          "source_refs": [
+            "spec:s3.1",
+            "email:p3"
+          ],
+          "value": "Aluminum 6061-T6"
+        }
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416635383,
+      "action": {
+        "type": "apply",
+        "field_id": "material"
+      }
+    },
+    {
+      "actor": "agent",
+      "at": 1788416660756,
+      "call": {
+        "tool": "get_review_state",
+        "input": {}
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416714867,
+      "action": {
+        "type": "edit_start",
+        "field_id": "overall_dimensions"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416719035,
+      "action": {
+        "type": "edit",
+        "field_id": "overall_dimensions",
+        "value": "20.000 × 14.500",
+        "unit": "in"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416751190,
+      "action": {
+        "type": "reopen",
+        "field_id": "quantity"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416796619,
       "action": {
         "type": "pick",
         "field_id": "quantity",
@@ -223,110 +571,65 @@
       }
     },
     {
-      "actor": "agent",
-      "at": 21900,
-      "call": {
-        "tool": "propose_field",
-        "input": {
-          "field_id": "overall_dimensions",
-          "value": "20 × 14.5",
-          "source_refs": [
-            "drawing:width",
-            "drawing:height",
-            "spec:s3.2"
-          ],
-          "rationale": "The drawing states the dimensions and neither source names a unit."
-        }
-      }
-    },
-    {
       "actor": "estimator",
-      "at": 23400,
+      "at": 1788416831426,
       "action": {
-        "type": "edit",
-        "field_id": "overall_dimensions",
-        "value": "20 × 14.5",
-        "unit": "in"
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 24300,
-      "call": {
-        "tool": "report_missing",
-        "input": {
-          "field_id": "general_tolerance",
-          "searched": [
-            "spec:s3",
-            "drawing"
-          ],
-          "note": "the spec keeps a template placeholder — “[e.g., +/- 0.010”]”."
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 25200,
-      "call": {
-        "tool": "report_missing",
-        "input": {
-          "field_id": "drawing_number",
-          "searched": [
-            "spec:s3",
-            "drawing"
-          ],
-          "note": "the spec names the attachment file; the sheet carries no number."
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 26100,
-      "call": {
-        "tool": "report_missing",
-        "input": {
-          "field_id": "drawing_revision",
-          "searched": [
-            "email:body",
-            "drawing"
-          ],
-          "note": "the email asks for Rev A; the title area carries no revision letter."
-        }
-      }
-    },
-    {
-      "actor": "agent",
-      "at": 27000,
-      "call": {
-        "tool": "draft_clarification",
-        "input": {
-          "subject": "RFQ 26-0812 — three questions before we quote",
-          "body": "Hello,\n\nThree points before we finalize the quote:\n\n1. The specification keeps a placeholder for the general tolerance. Which tolerance should govern?\n\n2. Neither the sheet nor the specification carries a drawing number. Could you confirm the number for our records?\n\n3. The email asks for Rev A, but the sheet has no revision letter. Which revision applies?\n\nRegards",
-          "covers": [
-            "general_tolerance",
-            "drawing_number",
-            "drawing_revision"
-          ]
-        }
+        "type": "reopen",
+        "field_id": "drawing_revision"
       }
     },
     {
       "actor": "estimator",
-      "at": 28500,
+      "at": 1788416835762,
       "action": {
-        "type": "send",
-        "subject": "RFQ 26-0812 — three questions before we quote",
-        "body": "Hello,\n\nThree points before we finalize the quote:\n\n1. The specification keeps a placeholder for the general tolerance. Which tolerance should govern?\n\n2. Neither the sheet nor the specification carries a drawing number. Could you confirm the number for our records?\n\n3. The email asks for Rev A, but the sheet has no revision letter. Which revision applies?\n\nRegards, Estimating",
-        "covers": [
-          "general_tolerance",
-          "drawing_number",
-          "drawing_revision"
-        ]
+        "type": "pick",
+        "field_id": "drawing_revision",
+        "index": 0
       }
     },
     {
       "actor": "estimator",
-      "at": 30000,
+      "at": 1788416865134,
+      "action": {
+        "type": "verify",
+        "field_id": "customer_rfq_ref"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416866242,
+      "action": {
+        "type": "verify",
+        "field_id": "part_name"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416867346,
+      "action": {
+        "type": "verify",
+        "field_id": "stock_thickness"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416868594,
+      "action": {
+        "type": "verify",
+        "field_id": "surface_finish"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416870486,
+      "action": {
+        "type": "verify",
+        "field_id": "delivery"
+      }
+    },
+    {
+      "actor": "estimator",
+      "at": 1788416889118,
       "action": {
         "type": "confirm"
       }
