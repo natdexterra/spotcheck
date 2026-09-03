@@ -164,4 +164,4 @@ Keyboard (B9): `j`/`k` flagged-field navigation, `Enter` primary action, `e` edi
 - `data/drawing-sheet1.webp` ≤ 300 KB; fonts self-hosted woff2, preloaded, `Geist Fallback` metric-matched.
 - Every tool result < 1,500 chars serialized — fixture-driven unit test.
 - INP ≤ 200 ms during live extraction (the ADR's review trigger).
-- Headers on the deployed origin: `Content-Security-Policy: default-src 'self'`, `Permissions-Policy: tools=(self)`, origin-trial token (T2).
+- Headers on the deployed origin: `Content-Security-Policy: default-src 'self'; img-src 'self' data:` (the `data:` image source exists for the drawing a person attaches, re-encoded in the browser; scripts, styles, fonts and fetches stay on `'self'`), `Permissions-Policy: tools=(self)`, origin-trial token (T2).

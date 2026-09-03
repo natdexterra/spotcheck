@@ -39,7 +39,7 @@ Resolve conflicts in this order:
 - A field the estimator has acted on (verified, edited, picked, dismissed, or started typing in) is locked against every write tool; the tool returns the current value in a structured rejection and the UI shows a differing proposal as a suggestion card. Locks never release.
 - Verify, edit, resolve, confirm and send exist only in the UI. No tool triggers them.
 - Document text and agent rationale are rendered as text (`textContent`), never as HTML.
-- `Content-Security-Policy: default-src 'self'`; `Permissions-Policy: tools=(self)`; no `exposedTo` on any tool.
+- `Content-Security-Policy: default-src 'self'; img-src 'self' data:`; `Permissions-Policy: tools=(self)`; no `exposedTo` on any tool. The `data:` image source exists for the drawing a person attaches, re-encoded in the browser; scripts, styles, fonts and fetches stay on `'self'`.
 - WCAG 2.2 AA. States use icon + label, not color alone. Motion respects `prefers-reduced-motion`; state changes are announced through a live region.
 
 ## Delivery
