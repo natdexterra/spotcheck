@@ -185,7 +185,9 @@ Playwright (`pnpm e2e`, against the production build):
 - [x] Contrast test green for every ledger pair; every state carries icon + text; focus visible and returned per `DESIGN.md`; reduced-motion path tested
 - [x] `pnpm test`, `pnpm e2e`, `pnpm build`, `pnpm check:inline` green; JS ≤ 180 KB gzip, CSS ≤ 24 KB; no new runtime dependency; icons ship with `src/icons/LICENSE`
 - [x] `webmcp-tools.ts` unchanged; `reducer.ts` and the human/agent action unions unchanged; the dispatcher-split test still green
-- [ ] Task file boxes ticked with evidence (test names, sizes) in the pull request description — the tests are named in this file's § Tests section above; per-run sizes are not recorded in this file
+- [x] Task file boxes ticked with evidence (test names, sizes) in the pull request description
+
+Builder evidence: 222 unit tests, 28 Playwright checks, production build and inline-script check pass. CSS 23.94 kB raw, JavaScript 70.9 kB gzip.
 
 ## Out of scope
 
